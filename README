@@ -1,0 +1,4 @@
+# kits
+
+Runa base library. The initial release has been refactored from the
+pythia.kits namespace.
