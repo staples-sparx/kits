@@ -1,6 +1,4 @@
 (ns kits.logging
-  (:use
-   kits.foundation)
   (:import
    java.io.IOException
    java.util.logging.Level

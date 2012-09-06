@@ -1,5 +1,4 @@
 (ns kits.runtime
-  (:use kits.foundation)
   (:require
    [clojure.string :as str])
   (:import

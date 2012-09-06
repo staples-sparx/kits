@@ -58,8 +58,9 @@ timer, in nanoseconds."
   []
   (System/currentTimeMillis))
 
-(defn fprint [& more]
+(defn fprint
   "Same as print but explicitly flushes *out*."
+  [& more]
   (apply print more)
   (flush))
 
@@ -153,7 +154,7 @@ timer, in nanoseconds."
 (defn uuid
   "Return a UUID string."
   []
-  (.toString (java.util.UUID/randomUUID)))
+  (str (java.util.UUID/randomUUID)))
 
 (defmacro do1
   "Evaluate expr and exprs and return the value of expr."
