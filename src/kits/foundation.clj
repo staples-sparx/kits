@@ -1,7 +1,10 @@
 (ns kits.foundation
   (:require
    [clojure.pprint :as pprint]
-   [clojure.string :as str]))
+   [clojure.string :as str])
+  (:import
+   java.util.concurrent.Future
+   java.util.concurrent.TimeoutException))
 
 (defn raise
   "Raise a RuntimeException with specified message."
@@ -200,13 +203,52 @@ timer, in nanoseconds."
     (catch Exception ex
       nil)))
 
-(defn call-with-timeout
+(defmacro defn-cond
+  "Variant of defn that allows for multiple alternative
+  implementations in the body, one of which is used based on a
+  matching predicate, e.g.,
+
+  (defn-cond test [a b]
+    (re-find #\"^1.2\" (clojure-version))
+    (* a b)
+
+    :else
+    (+ a b))
+
+  would define `test` one way under Clojure 1.2, and differently on
+  other versions."
+  [name & fdecl]
+  (let [[m fdecl] (if (string? (first fdecl))
+                    [{:doc (first fdecl)} (rest fdecl)]
+                    [{} fdecl])
+        [args & clauses] fdecl
+        m (conj {:arglists (list 'list (list 'quote args))} m)]
+    (list 'def
+          (with-meta name m)
+          (list*
+           (reduce (fn [acc [pred body]] (conj acc pred `(fn [~@args] ~body)))
+                   ['cond]
+                   (partition 2 clauses))))))
+
+(defn-cond call-with-timeout
   "Evaluate the function `f` but throw a RuntimeException if it takes
-   longer than `timeout` milliseconds."
-  [timeout f]
+  longer than `timeout` milliseconds."
+  [timeout-ms f]
+
+  (re-find #"^1.2" (clojure-version))
+  (let [^Future fut (future-call f)]
+    (try
+      (.get fut
+            timeout-ms
+            java.util.concurrent.TimeUnit/MILLISECONDS)
+      (catch TimeoutException ex
+        (future-cancel fut)
+        (throw (RuntimeException. "Evaluation timeout")))))
+
+  :else
   (let [ex (RuntimeException. "Evaluation timeout")
         fut (future-call f)
-        r (deref fut timeout ex)]
+        r (deref fut timeout-ms ex)]
     (if (= ex r)
       (do
         (future-cancel fut)
@@ -217,7 +259,7 @@ timer, in nanoseconds."
   "Evaluate `body` but throw a RuntimeException if it takes longer
   than `timeout` milliseconds."
   [timeout & body]
-  `(call-with-timeout ~timeout (fn [] ~@body)))
+  `(call-with-timeout ~timeout (bound-fn [] ~@body)))
 
 (defn rmerge
   "Recursive merge of the provided maps."
