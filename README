@@ -2,3 +2,6 @@
 
 Runa base library. The initial release has been refactored from the
 pythia.kits namespace.
+
+# tests
+Run them with ./run-tests.sh. This will run all unit tests in Clojure 1.2 - 1.5, ensuring this library is usable by the widest number of projects.
