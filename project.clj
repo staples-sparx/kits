@@ -1,12 +1,12 @@
 (def common-deps '[]) ;; if any ever exist
 
-(defproject com.runa/kits "1.0.0"
+(defproject com.runa/kits "1.0.1"
   :description "Runa base libraries"
   :plugins [[s3-wagon-private "1.1.2"]]
   :repositories {"releases" {:url "s3p://runa-maven/releases/"}
                  "snapshots" {:url "s3p://runa-maven/snapshots/"}}
   :dependencies ~(cons '[org.clojure/clojure "1.3.0"]
-                         common-deps)
+                       common-deps)
   :dev-dependencies [[jonase/kibit "0.0.3"]
                      [jonase/eastwood "0.0.2"]
                      [lein-multi "1.1.0"]]
