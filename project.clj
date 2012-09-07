@@ -1,6 +1,6 @@
 (def common-deps '[]) ;; if any ever exist
 
-(defproject com.runa/kits "1.0.1"
+(defproject com.runa/kits "1.0.2"
   :description "Runa base libraries"
   :plugins [[s3-wagon-private "1.1.2"]]
   :repositories {"releases" {:url "s3p://runa-maven/releases/"}
