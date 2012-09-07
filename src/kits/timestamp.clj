@@ -11,22 +11,22 @@
 
 (defn yyyy-mm-dd? [x]
   (boolean
-    (and (string? x)
-      (re-matches #"\d{4}-\d{2}-\d{2}" x))))
+   (and (string? x)
+        (re-matches #"\d{4}-\d{2}-\d{2}" x))))
 
 (def yyyy-mm-dd-hh-mm "yyyy-MM-dd HH:mm")
 
 (defn yyyy-mm-dd-hh-mm? [x]
   (boolean
-    (and (string? x)
-      (re-matches #"\d{4}-\d{2}-\d{2} \d{2}:\d{2}" x))))
+   (and (string? x)
+        (re-matches #"\d{4}-\d{2}-\d{2} \d{2}:\d{2}" x))))
 
 (def yyyy-mm-dd-hh-mm-ss "yyyy-MM-dd HH:mm:ss")
 
 (defn yyyy-mm-dd-hh-mm-ss? [x]
   (boolean
-    (and (string? x)
-      (re-matches #"\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}" x))))
+   (and (string? x)
+        (re-matches #"\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}" x))))
 
 ;;;
 
@@ -40,25 +40,28 @@
      (doto (SimpleDateFormat. format-string)
        (.setTimeZone (TimeZone/getTimeZone tz-string)))))
 
-(defn ->timestamp [x]
-  (cond
-    (integer? x)
-    x
+(defn ->timestamp
+  ([s format-string]
+     (-> (simple-date-format format-string) (.parse s) .getTime))
+  ([x]
+     (cond
+      (integer? x)
+      x
 
-    (yyyy-mm-dd? x)
-    (-> (simple-date-format yyyy-mm-dd) (.parse x) .getTime)
+      (yyyy-mm-dd? x)
+      (->timestamp x yyyy-mm-dd)
 
-    (yyyy-mm-dd-hh-mm? x)
-    (-> (simple-date-format yyyy-mm-dd-hh-mm) (.parse x) .getTime)
+      (yyyy-mm-dd-hh-mm? x)
+      (->timestamp x yyyy-mm-dd-hh-mm)
 
-    (yyyy-mm-dd-hh-mm-ss? x)
-    (-> (simple-date-format yyyy-mm-dd-hh-mm-ss) (.parse x) .getTime)
+      (yyyy-mm-dd-hh-mm-ss? x)
+      (->timestamp x yyyy-mm-dd-hh-mm-ss)
 
-    (and (string? x) (re-matches #"\d*" x))
-    (Long/parseLong x)
+      (and (string? x) (re-matches #"\d*" x))
+      (Long/parseLong x)
 
-    :else
-    (throw (IllegalArgumentException. (str "Don't know how to parse " (pr-str x))))))
+      :else
+      (throw (IllegalArgumentException. (str "Don't know how to parse " (pr-str x)))))))
 
 (defn ->str
   ([x]

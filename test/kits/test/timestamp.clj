@@ -17,7 +17,7 @@
        "2012-05-01 05:55:55" "2012-05-01 00:00:00"
        1335873634000 "2012-05-01 00:00:00"))
 
-(deftest testing-truncate
+(deftest test-truncate
   (are [t interval expected] (= (->str (truncate (->timestamp t) interval)) expected)
        "2012-05-03 22:22:22" :second "2012-05-03 22:22:22"
        "2012-05-03 22:22:22" :minute "2012-05-03 22:22:00"
@@ -26,7 +26,7 @@
        "2012-05-03 22:22:22" :month "2012-05-01 00:00:00"
        "2012-05-03 22:22:22" :year "2012-01-01 00:00:00"))
 
-(deftest testing-timestamp
+(deftest test->timestamp
   (are [t expected] (= (->str (->timestamp t)) expected)
        "2012-05-01" "2012-05-01 00:00:00"
        "2012-05-01 12:12" "2012-05-01 12:12:00"
@@ -39,6 +39,9 @@
        "1.5"
        1.5
        1M))
+
+(deftest test->timestamp---with-specified-format
+  (is (= "2012-01-30 00:00:00" (->str (->timestamp "January 30, 2012" "MMMM dd, yyyy")))))
 
 (deftest test-timestamp-ranges
   
