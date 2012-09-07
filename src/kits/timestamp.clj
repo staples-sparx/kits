@@ -7,26 +7,23 @@
 
 ;;; formats
 
-(def yyyy-mm-dd "yyyy-MM-dd")
+(def ^:constant yyyy-mm-dd "yyyy-MM-dd")
 
 (defn yyyy-mm-dd? [x]
-  (boolean
-   (and (string? x)
-        (re-matches #"\d{4}-\d{2}-\d{2}" x))))
+  (and (string? x)
+       (boolean (re-matches #"\d{4}-\d{2}-\d{2}" x))))
 
-(def yyyy-mm-dd-hh-mm "yyyy-MM-dd HH:mm")
+(def ^:constant yyyy-mm-dd-hh-mm "yyyy-MM-dd HH:mm")
 
 (defn yyyy-mm-dd-hh-mm? [x]
-  (boolean
-   (and (string? x)
-        (re-matches #"\d{4}-\d{2}-\d{2} \d{2}:\d{2}" x))))
+  (and (string? x)
+       (boolean (re-matches #"\d{4}-\d{2}-\d{2} \d{2}:\d{2}" x))))
 
-(def yyyy-mm-dd-hh-mm-ss "yyyy-MM-dd HH:mm:ss")
+(def ^:constant yyyy-mm-dd-hh-mm-ss "yyyy-MM-dd HH:mm:ss")
 
 (defn yyyy-mm-dd-hh-mm-ss? [x]
-  (boolean
-   (and (string? x)
-        (re-matches #"\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}" x))))
+  (and (string? x)
+       (boolean (re-matches #"\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}" x))))
 
 ;;;
 
@@ -40,13 +37,13 @@
      (doto (SimpleDateFormat. format-string)
        (.setTimeZone (TimeZone/getTimeZone tz-string)))))
 
-(defn ->timestamp
+(defn ^Long ->timestamp
   ([s format-string]
      (-> (simple-date-format format-string) (.parse s) .getTime))
   ([x]
      (cond
       (integer? x)
-      x
+      (long x)
 
       (yyyy-mm-dd? x)
       (->timestamp x yyyy-mm-dd)
@@ -57,7 +54,7 @@
       (yyyy-mm-dd-hh-mm-ss? x)
       (->timestamp x yyyy-mm-dd-hh-mm-ss)
 
-      (and (string? x) (re-matches #"\d*" x))
+      (and (string? x) (re-matches #"\d+" x))
       (Long/parseLong x)
 
       :else

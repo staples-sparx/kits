@@ -7,6 +7,7 @@
                  "snapshots" {:url "s3p://runa-maven/snapshots/"}}
   :dependencies ~(cons '[org.clojure/clojure "1.3.0"]
                        common-deps)
+  :warn-on-reflection true
   :dev-dependencies [[jonase/kibit "0.0.3"]
                      [jonase/eastwood "0.0.2"]
                      [lein-multi "1.1.0"]]
