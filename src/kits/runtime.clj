@@ -8,7 +8,7 @@
    java.lang.management.RuntimeMXBean))
 
 (def ^{:private true} ^Runtime runtime (Runtime/getRuntime))
-(def ^{:private true} ^RuntimeMXBean runtime-mx
+(def ^{:private true} ^java.lang.management.RuntimeMXBean runtime-mx
   (ManagementFactory/getRuntimeMXBean))
 (def ^{:private true} ^OperatingSystemMXBean os-mx
   (ManagementFactory/getOperatingSystemMXBean))
@@ -16,7 +16,7 @@
 (defn process-info
   "Returns {:pid pid :host host} of the running JVM"
   []
-  (let [name (.getName runtime-mx)
+  (let [name (.getName ^java.lang.management.RuntimeMXBean runtime-mx)
         [process-id host] (str/split name #"@")]
     {:pid process-id
      :host host}))
@@ -32,14 +32,15 @@
   (:host (process-info)))
 
 (defn jvm-info []
-  {:name (.getName runtime-mx)
-   :vm-name (.getVmName runtime-mx)
-   :vm-vendor (.getVmVendor runtime-mx)
-   :vm-version (.getVmVersion runtime-mx)
-   :args (into [] (.getInputArguments runtime-mx))
-   :classpath (.getClassPath runtime-mx)
-   :boot-classpath (.getBootClassPath runtime-mx)
-   :system-properties (into {} (.getSystemProperties runtime-mx))})
+  (let [^java.lang.management.RuntimeMXBean runtime-mx runtime-mx]
+    {:name (.getName runtime-mx)
+     :vm-name (.getVmName runtime-mx)
+     :vm-vendor (.getVmVendor runtime-mx)
+     :vm-version (.getVmVersion runtime-mx)
+     :args (into [] (.getInputArguments runtime-mx))
+     :classpath (.getClassPath runtime-mx)
+     :boot-classpath (.getBootClassPath runtime-mx)
+     :system-properties (into {} (.getSystemProperties runtime-mx))}))
 
 (defn thread-id
   "Returns the current thread id"
@@ -66,12 +67,12 @@
 (defn load-average
   "Returns OS load average"
   []
-  (.getSystemLoadAverage os-mx))
+  (.getSystemLoadAverage ^OperatingSystemMXBean os-mx))
 
 (defn processor-count
   "Returns the number of processors available on the local machine"
   []
-  (.getAvailableProcessors os-mx))
+  (.getAvailableProcessors ^OperatingSystemMXBean os-mx))
 
 (defn cpu-usage
   "Returns the CPU usage as a percentace of the total processing power"
@@ -81,55 +82,59 @@
 (defn os-info
   "Return the name, version and architecture of the OS"
   []
-  {:name (.getName os-mx)
-   :version (.getVersion os-mx)
-   :arch (.getArch os-mx)})
+  (let [^OperatingSystemMXBean os-mx os-mx]
+    {:name (.getName os-mx)
+     :version (.getVersion os-mx)
+     :arch (.getArch os-mx)}))
 
 (defn os-total-memory []
-  (.getTotalPhysicalMemorySize os-mx))
+  (.getTotalPhysicalMemorySize
+   ^com.sun.management.UnixOperatingSystem os-mx))
 
 (defn os-free-memory []
-  (.getFreePhysicalMemorySize os-mx))
+  (.getFreePhysicalMemorySize
+   ^com.sun.management.UnixOperatingSystem os-mx))
 
 (defn os-memory
   "Returns info about the physical memory and swap"
   []
-  {:physical {:total (os-total-memory)
-              :free (os-free-memory)
-              :committed (.getCommittedVirtualMemorySize os-mx)}
-   :swap {:total (.getTotalSwapSpaceSize os-mx)
-          :free (.getFreeSwapSpaceSize os-mx)}})
+  (let [os-mx ^com.sun.management.UnixOperatingSystem os-mx]
+    {:physical {:total (os-total-memory)
+                :free (os-free-memory)
+                :committed (.getCommittedVirtualMemorySize os-mx)}
+     :swap {:total (.getTotalSwapSpaceSize os-mx)
+            :free (.getFreeSwapSpaceSize os-mx)}}))
 
 (defn jvm-total-memory
   "Returns the total amount of memory in the Java virtual
    machine. (bytes)"
   []
-  (.totalMemory runtime))
+  (.totalMemory ^Runtime runtime))
 
 (defn jvm-free-memory
   "Returns the amount of free memory in the Java Virtual
    Machine (bytes)."
   []
-  (.freeMemory runtime))
+  (.freeMemory ^Runtime runtime))
 
 (defn jvm-max-memory
   "Returns the maximum amount of memory that the Java virtual machine
    will attempt to use. (bytes)"
   []
-  (.maxMemory runtime))
+  (.maxMemory ^Runtime runtime))
 
 (defn jvm-overall-memory
   "Returns info about global jvm memory usage"
   []
   {:total (jvm-total-memory)
    :free (jvm-free-memory)
-   :max (.maxMemory runtime)})
+   :max (.maxMemory ^Runtime runtime)})
 
 (defn jvm-start-time []
-  (.getStartTime runtime-mx))
+  (.getStartTime ^RuntimeMXBean runtime-mx))
 
 (defn uptime []
-  (.getUptime runtime-mx))
+  (.getUptime ^RuntimeMXBean runtime-mx))
 
 (defn disk-total [^String mount-point]
   (.getTotalSpace (File. mount-point)))
