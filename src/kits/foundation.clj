@@ -42,7 +42,8 @@
 (defn tap [& args]
   (apply println
          (cons "*** "
-               (map #(if (string? %) % (with-out-str (pprint/pprint %))) args)))
+               (map #(if (string? %) % (with-out-str (pprint/pprint %)))
+                    args)))
   (last args))
 
 (defn nano-time
@@ -108,7 +109,8 @@ timer, in nanoseconds."
   [opts & body]
   `(let [iter# (atom 0)
          opts# (or ~opts {})
-         reporter# (or (:reporter opts#) (make-default-progress-reporter opts#))]
+         reporter# (or (:reporter opts#)
+                       (make-default-progress-reporter opts#))]
      (letfn [(report# [& [fin?#]]
                (when *print-progress*
                  (when-not fin?# (swap! iter# inc))
@@ -185,12 +187,11 @@ timer, in nanoseconds."
                            ["file" spec])
           [raw-host raw-path] (let [[h & r] (str/split comps #"/")]
                                 [h (str "/" (str/join "/" r))])
-          [username password host] (let [comps (str/split raw-host #"@")
-                                         host (last comps)]
-                                     (if (< 1 (count comps))
-                                       (let [[user pass] (str/split (first comps) #":")]
-                                         [user pass host])
-                                       [nil nil host]))
+          comps (str/split raw-host #"@")
+          host (last comps)
+          [username password] (if (< 1 (count comps))
+                                (str/split (first comps) #":")
+                                [nil nil])
           [path & [query]] (str/split raw-path #"\?")]
       (into {}
             (filter val 
@@ -226,7 +227,8 @@ timer, in nanoseconds."
     (list 'def
           (with-meta name m)
           (list*
-           (reduce (fn [acc [pred body]] (conj acc pred `(fn [~@args] ~body)))
+           (reduce (fn [acc [pred body]]
+                     (conj acc pred `(fn [~@args] ~body)))
                    ['cond]
                    (partition 2 clauses))))))
 
