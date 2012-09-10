@@ -30,7 +30,7 @@
   \"false\" => false
   \"foobar\" => true
   nil or \"\" => false"
-  [s]
+  [^String s]
   (if (not-empty s) (not= "false" (.toLowerCase s)) false))
 
 (defn base-array?
