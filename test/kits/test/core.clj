@@ -264,6 +264,20 @@
     nil [[:a :b]] nil
     {:a {:b 1 :c 2 :d 3}} [[:a :b] [:a :c]] {:a {:d 3}}))
 
+(deftest test-nested-dissoc
+  (are [result x] (= result (nested-dissoc x :a))
+    nil nil
+    1 1
+    {} {}
+    #{} #{}
+
+    [1 1] [1 1]
+    [{:b 2}] [{:a 1 :b 2}]
+    #{{:b 2}} #{{:a 1 :b 2}}
+
+    [{:b [{:b 3}]}] [{:a 1 :b [{:a 1 :b 3}]}]
+    ))
+
 (deftest test-filter-map
   (are [m pred result] (= result (filter-map pred m))
     {}

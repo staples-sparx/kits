@@ -61,14 +61,15 @@
        %)
     m))
 
-(defn print-error [& args]
+(defn print-error
   "Println to *err*"
+  [& args]
   (binding [*out* *err*]
     (apply println args)))
 
 (defn return-zero-if-negative [number]
   (try
-    (if (> number 0)
+    (if (pos? number)
       number
       0)
     (catch Exception e
@@ -139,8 +140,9 @@
     (catch InterruptedException e
       (.interrupt ^Thread (Thread/currentThread)))))
 
-(defn random-sleep [min-millis max-millis]
+(defn random-sleep
   "Sleep between 'min-millis' and 'max-millis' milliseconds"
+  [min-millis max-millis]
   (let [range (- max-millis min-millis)
         millis (+ min-millis (rand-int range))]
     (safe-sleep millis)))
@@ -151,6 +153,54 @@
     (when-not (or (>= elapsed timeout) (done-fn?))
       (Thread/sleep ms-per-loop)
       (recur (long (+ elapsed ms-per-loop))))))
+
+
+;;; Maps Utils
+
+(defn invert-map [m]
+  (zipmap (vals m) (keys m)))
+
+(defn filter-map
+  "given a predicate like (fn [k v] ...) returns a map with only entries that match it."
+  [pred m]
+  (into {}
+    (filter (fn [[k v]] (pred k v))
+      m)))
+
+(defn filter-by-key
+  "given a predicate like (fn [k] ...) returns a map with only entries with keys that match it."
+  [pred m]
+  (into {}
+    (filter (fn [[k v]] (pred k))
+      m)))
+
+(defn filter-by-val
+  "given a predicate like (fn [v] ...) returns a map with only entries with vals that match it."
+  [pred m]
+  (into {}
+    (filter (fn [[k v]] (pred v))
+      m)))
+
+(defn map-over-map
+  "given a function like (fn [k v] ...) returns a new map with each entry mapped by it."
+  [f m]
+  (into {}
+    (map (fn [[k v]] (f k v))
+      m)))
+
+(defn map-keys
+  "Apply a function on all keys of a map and return the corresponding map (all values untouched)"
+  [f m]
+  (zipmap
+    (map f (keys m))
+    (vals m)))
+
+(defn map-values
+  "Apply a function on all values of a map and return the corresponding map (all keys untouched)"
+  [f m]
+  (zipmap
+    (keys m)
+    (map f (vals m))))
 
 (defn paths
   "Return the paths of the leaves in the map"
@@ -203,6 +253,21 @@
   ([m path & more-paths]
     (apply dissoc-in (dissoc-in m path) more-paths)))
 
+(defn nested-dissoc
+  "dissoc keys from every map at every level of a nested data structure"
+  [data & ks]
+  (cond (map? data)
+        (let [map-minus-ks (apply dissoc data ks)]
+          (map-values #(apply nested-dissoc % ks) map-minus-ks))
+
+        (set? data)
+        (into (empty data) (map #(apply nested-dissoc % ks) data))
+
+        (sequential? data)
+        (map #(apply nested-dissoc % ks) data)
+
+        :else
+        data))
 
 ;; Alex - TODO - 6/23/12 (M/D/Y) - copied from contrib.
 ;;    Add some unit tests
@@ -223,51 +288,6 @@
     maps))
 
 ;;
-
-(defn invert-map [m]
-  (zipmap (vals m) (keys m)))
-
-(defn filter-map
-  "given a predicate like (fn [k v] ...) returns a map with only entries that match it."
-  [pred m]
-  (into {}
-    (filter (fn [[k v]] (pred k v))
-      m)))
-
-(defn filter-by-key
-  "given a predicate like (fn [k] ...) returns a map with only entries with keys that match it."
-  [pred m]
-  (into {}
-    (filter (fn [[k v]] (pred k))
-      m)))
-
-(defn filter-by-val
-  "given a predicate like (fn [v] ...) returns a map with only entries with vals that match it."
-  [pred m]
-  (into {}
-    (filter (fn [[k v]] (pred v))
-      m)))
-
-(defn map-over-map
-  "given a function like (fn [k v] ...) returns a new map with each entry mapped by it."
-  [f m]
-  (into {}
-    (map (fn [[k v]] (f k v))
-      m)))
-
-(defn map-keys
-  "Apply a function on all keys of a map and return the corresponding map (all values untouched)"
-  [f m]
-  (zipmap
-    (map f (keys m))
-    (vals m)))
-
-(defn map-values
-  "Apply a function on all values of a map and return the corresponding map (all keys untouched)"
-  [f m]
-  (zipmap
-    (keys m)
-    (map f (vals m))))
 
 (defn boolean? [x]
   (or (= true x) (= false x)))
@@ -423,7 +443,7 @@
   (reduce
     (fn [m [k v]]
       (let [v (when-not (empty? v) v)]
-        (assoc-in m (->> (str/split k #"[\[\]]") (remove empty?)) v)))
+        (assoc-in m (remove empty? (str/split k #"[\[\]]")) v)))
     {}
     m))
 
