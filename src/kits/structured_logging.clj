@@ -14,18 +14,22 @@
   []
   `(-> (Throwable.) .getStackTrace first .getClassName unmangle))
 
-(defn- structured-log [log-level tags the-ns calling-fn-name log-map]
+(defn structured-log [log-level tags the-ns calling-fn-name log-map]
   (log/logp log-level (pr-str {:tags (vec tags)
                                :level log-level
                                :function calling-fn-name
                                :namespace (str the-ns)
                                :data log-map})))
 
+
+;; Use these for logging. The above are public because I can't
+;; get these funky macros to work with them private
+
 (defmacro info [log-map & {:keys [tags]}]
-  `(#'groupon.structured-logging/structured-log :info ~tags ~*ns* (current-function-name) ~log-map))
+  `(structured-log :info ~tags ~*ns* (current-function-name) ~log-map))
 
 (defmacro warn [log-map & {:keys [tags]}]
-  `(#'groupon.structured-logging/structured-log :warn ~tags ~*ns* (current-function-name) ~log-map))
+  `(structured-log :warn ~tags ~*ns* (current-function-name) ~log-map))
 
 (defmacro error [log-map & {:keys [tags]}]
-  `(#'groupon.structured-logging/structured-log :error ~tags ~*ns* (current-function-name) ~log-map))
+  `(structured-log :error ~tags ~*ns* (current-function-name) ~log-map))
