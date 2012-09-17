@@ -1,6 +1,6 @@
 (def common-deps '[[org.clojure/tools.logging "0.2.3"]])
 
-(defproject com.runa/kits "1.2.1"
+(defproject com.runa/kits "1.2.2"
   :description "Runa base libraries"
   :plugins [[s3-wagon-private "1.1.2"]]
   :repositories {"releases" {:url "s3p://runa-maven/releases/"}
@@ -16,5 +16,4 @@
                "1.3.0" [[org.clojure/clojure "1.3.0"]]
                "1.4.0" [[org.clojure/clojure "1.4.0"]]
                "1.5.0" [[org.clojure/clojure "1.5.0-alpha3"]]
-               :all ~common-deps}
-  :aot [kits.foundation kits.queues kits.runtime])
+               :all ~common-deps})
