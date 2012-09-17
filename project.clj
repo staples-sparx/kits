@@ -1,4 +1,4 @@
-(def common-deps '[]) ;; if any ever exist
+(def common-deps '[[org.clojure/tools.logging "0.2.3"]])
 
 (defproject com.runa/kits "1.1.1"
   :description "Runa base libraries"
