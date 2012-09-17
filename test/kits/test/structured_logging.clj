@@ -20,7 +20,7 @@
         [1 2 3]
         :info
         nil
-        "{:tags [:my-special-error], :level :info, :function \"groupon.structured-logging-test/our-function\", :namespace \"groupon.structured-logging-test\", :data {:a 1, :b 2}}")))
+        "{:tags [:my-special-error], :level :info, :function \"kits.structured-logging-test/our-function\", :namespace \"kits.structured-logging-test\", :data {:a 1, :b 2}}")))
 
   (deftest test-logging
     (mocking [log/log*]
@@ -30,4 +30,4 @@
         [1 2 3]
         :warn
         nil
-        "{:tags [], :level :warn, :function \"groupon.structured-logging-test/our-function-2\", :namespace \"groupon.structured-logging-test\", :data {:c 3, :d 4}}")))  ;)
+        "{:tags [], :level :warn, :function \"kits.structured-logging-test/our-function-2\", :namespace \"kits.structured-logging-test\", :data {:c 3, :d 4}}")))  ;)
