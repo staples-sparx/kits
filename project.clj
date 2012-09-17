@@ -16,5 +16,4 @@
                "1.3.0" [[org.clojure/clojure "1.3.0"]]
                "1.4.0" [[org.clojure/clojure "1.4.0"]]
                "1.5.0" [[org.clojure/clojure "1.5.0-alpha3"]]
-               :all ~common-deps}
-  :aot [kits.foundation kits.queues kits.runtime])
+               :all ~common-deps})
