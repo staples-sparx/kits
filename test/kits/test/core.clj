@@ -400,13 +400,8 @@
       {:a {:b {:c {:d "e"}}}} {"a" {"b" {"c" {"d" "e"}}}}
       {:a-1 {:b_2 {:c_d-3 "e"}}} {"a-1" {"b_2" {"c_d-3" "e"}}})))
 
-(defmacro appropriate-stubbing []
-  (if (= 2 (:minor *clojure-version*))
-    'binding
-    'stubbing)
-
 (deftest test-single-destructuring-arg->form+name
-  ((appropriate-stubbing)) [gensym 'unique-3]
+  (stubbing [gensym 'unique-3]
     (are [original form name] (let [[frm nm] (single-destructuring-arg->form+name original)]
                                 (and (= frm form)
                                   (= nm name)))

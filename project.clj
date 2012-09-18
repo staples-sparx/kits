@@ -10,7 +10,7 @@
   :warn-on-reflection true
   :dev-dependencies [[jonase/kibit "0.0.3"]
                      [jonase/eastwood "0.0.2"]
-                     [org.clojars.runa/conjure "1.0.0"]
+                     [org.clojars.runa/conjure "1.0.1"]
                      [lein-multi "1.1.0"]]
   :multi-deps {"1.2.0" [[org.clojure/clojure "1.2.0"]]
                "1.2.1" [[org.clojure/clojure "1.2.1"]]
