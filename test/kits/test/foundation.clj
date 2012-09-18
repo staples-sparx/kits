@@ -59,7 +59,11 @@
 
     2130706433 "127.0.0.1"
     67240450 "4.2.2.2"
-    ))
+    )
+  
+  (is (thrown? RuntimeException (= (f/dotted-to-ip "127.0.0.1&abc") 2130706433)))
+
+  )
 
 (deftest ip-to-dotted
   (are [expected ip]

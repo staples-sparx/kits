@@ -134,7 +134,9 @@ timer, in nanoseconds."
   (dotted-to-ip \"127.0.0.1\")
   => 2130706433"
   [dotted]
-  (let [[b1 b2 b3 b4] (map parse-int (str/split dotted #"\."))]
+  (let [[b1 b2 b3 b4] (map #(or (parse-int %)
+                                (raise (format "Invalid IP address: %s" dotted)))
+                           (str/split dotted #"\."))]
     (bit-or (bit-or (bit-or (bit-shift-left b1 24)
                             (bit-shift-left b2 16))
                     (bit-shift-left b3 8))

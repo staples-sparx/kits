@@ -1,6 +1,6 @@
 (def common-deps '[[org.clojure/tools.logging "0.2.3"]])
 
-(defproject com.runa/kits "1.2.2"
+(defproject com.runa/kits "1.2.3"
   :description "Runa base libraries"
   :plugins [[s3-wagon-private "1.1.2"]]
   :repositories {"releases" {:url "s3p://runa-maven/releases/"}
