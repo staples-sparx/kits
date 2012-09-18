@@ -468,6 +468,28 @@
       []
       (subvec v 0 (dec cnt)))))
 
+(defn single-destructuring-arg->form+name
+  "Turns any one binding arg (which may be a destructuring binding) into a vector
+   where the left elem is the arg with a possible :as added to it.
+   And the rght side is the symbol referring to the arg itself."
+  [arg-form]
+  (let [as-symbol (gensym 'symbol-for-destructured-arg)
+        snd-to-last-is-as? #(= :as (second (reverse %)))]
+    (cond (and (vector? arg-form) (snd-to-last-is-as? arg-form))
+      [arg-form (last arg-form)]
+
+      (vector? arg-form)
+      [(-> arg-form (conj :as) (conj as-symbol)) as-symbol]
+
+      (and (map? arg-form) (contains? arg-form :as))
+      [arg-form (:as arg-form)]
+
+      (map? arg-form)
+      [(assoc arg-form :as as-symbol) as-symbol]
+
+      :else
+      [arg-form arg-form])))
+
 (defn clojure-version-as-double
   "Clojure 1.2.1 => 1.21
    Clojure 1.4.0 => 1.4"
