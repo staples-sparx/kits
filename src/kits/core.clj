@@ -34,17 +34,14 @@
 (defn rand-int* [min max]
   (+ min (rand-int (- max min))))
 
-(defn keyword->underscored-string [k]
-  (-> k name (.replace "-" "_")))
 
-(defn keyword->underscored-keyword [k]
-  (-> k keyword->underscored-string keyword))
+;;; Map Utils
 
-(defn keywords->underscored-keywords [m]
+(defn transform-keywords [f m]
   (postwalk #(if (keyword? %)
-               (keyword->underscored-keyword %)
+               (f %)
                %)
-            m))
+    m))
 
 (defn keyword->hyphenated-string [k]
   (-> k name (.replace "_" "-")))
@@ -52,17 +49,20 @@
 (defn keyword->hyphenated-keyword [k]
   (-> k keyword->hyphenated-string keyword))
 
+(defn keyword->underscored-string [k]
+  (-> k name (.replace "-" "_")))
+
+(defn keyword->underscored-keyword [k]
+  (-> k keyword->underscored-string keyword))
+
 (defn keywords->hyphenated-keywords [m]
-  (postwalk #(if (keyword? %)
-               (keyword->hyphenated-keyword %)
-               %)
-            m))
+  (transform-keywords keyword->hyphenated-keyword m))
 
 (defn keywords->underscored-strings [m]
-  (postwalk #(if (keyword? %)
-               (keyword->underscored-string %)
-               %)
-            m))
+  (transform-keywords keyword->underscored-string m))
+
+(defn keywords->underscored-keywords [m]
+  (transform-keywords keyword->underscored-keyword m))
 
 (defn print-error
   "Println to *err*"
