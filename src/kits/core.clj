@@ -8,34 +8,7 @@
   (:import [java.io File FileOutputStream]))
 
 
-(defn raise [& x]
-  (throw (Exception. ^String (apply str x))))
-
-(defn print-vals [& args]
-  (apply println (cons "*** " (map #(if (string? %) % (with-out-str (pprint %)))  args)))
-  (last args))
-
-(defn parse-number
-  ([s]
-    (parse-number s nil))
-  ([s default-value]
-    (cond
-      (number? s)  s
-      (empty? s)  default-value
-      :default (read-string s))))
-
-
-(defn read-string-safely [s] (when s (read-string s)))
-
-
-(defn trap-nil [x default]
-  (if-not (nil? x) x default))
-
-(defn rand-int* [min max]
-  (+ min (rand-int (- max min))))
-
-
-;;; Map Utils
+;;; Maps Utils -- TODO Alex Sep 18, 2012 - pull out to `kits.maps` ns
 
 (defn transform-keywords [f m]
   (postwalk #(if (keyword? %)
@@ -63,102 +36,6 @@
 
 (defn keywords->underscored-keywords [m]
   (transform-keywords keyword->underscored-keyword m))
-
-(defn print-error
-  "Println to *err*"
-  [& args]
-  (binding [*out* *err*]
-    (apply println args)))
-
-(defn return-zero-if-negative [number]
-  (try
-    (if (pos? number)
-      number
-      0)
-    (catch Exception e
-      "Not Available")))
-
-(defn sget
-  "Safe get. Get the value of key `k` from map `m` only if the key really
-  exists, throw exception otherwise."
-  [m k] {:pre [(map? m)]}
-  (assert (contains? m k))
-  (get m k))
-
-(defmacro time-elapsed
-  "Returns time elapsed in millis."
-  [& body]
-  `(let [start# (. System (nanoTime))]
-     ~@body
-     (/ (double (- (. System (nanoTime)) start#)) 1000000.0)))
-
-(defn timeout-fn
-  "Take one function and wrap it such that it times out if it takes too long. Say you are
-   querying HBase and don't want to wait for a map/filter that may take 10 min or more"
-  [millis f]
-  (fn [& args]
-    (let [f-with-args-curried (fn [] (apply f args))
-          fut (future-call f-with-args-curried)]
-      (try
-        (.get ^java.util.concurrent.Future fut
-          millis
-          java.util.concurrent.TimeUnit/MILLISECONDS)
-        (finally
-          (future-cancel fut))))))
-
-(defmacro with-timeout
-  "Usage: (with-timeout 1000 (execute-long-running-code) (more-code))"
-  [millis & body]
-  `((timeout-fn ~millis (bound-fn [] ~@body))))
-
-(defn =>
-  "true functional thrush"
-  [data & fns]
-  (reduce #(%2 %1) data fns))
-
-(defn segregate
-  "returns [(filter f s) (remove f s)], but only runs through the seq once"
-  [f s]
-  (reduce (fn [[fl rl] i]
-            (if (f i)
-              [(conj fl i) rl]
-              [fl (conj rl i)]))
-    [[] []]
-    s))
-
-(defmacro periodic-fn
-  "creates a fn that executes 'body' every 'period' calls"
-  [args [var period] & body]
-  `(let [call-count# (atom 0)]
-     (fn [~@args]
-       (swap! call-count# inc)
-       (when (zero? (mod @call-count# ~period))
-         (let [~var @call-count#]
-           ~@body)))))
-
-(defn safe-sleep
-  "Sleep for `millis` milliseconds."
-  [millis]
-  (try (Thread/sleep millis)
-    (catch InterruptedException e
-      (.interrupt ^Thread (Thread/currentThread)))))
-
-(defn random-sleep
-  "Sleep between 'min-millis' and 'max-millis' milliseconds"
-  [min-millis max-millis]
-  (let [range (- max-millis min-millis)
-        millis (+ min-millis (rand-int range))]
-    (safe-sleep millis)))
-
-(defn wait-until [done-fn? & {:keys [ms-per-loop timeout]
-                           :or {ms-per-loop 1000 timeout 10000}}]
-  (loop [elapsed (long 0)]
-    (when-not (or (>= elapsed timeout) (done-fn?))
-      (Thread/sleep ms-per-loop)
-      (recur (long (+ elapsed ms-per-loop))))))
-
-
-;;; Maps Utils
 
 (defn invert-map [m]
   (zipmap (vals m) (keys m)))
@@ -290,7 +167,148 @@
         (apply f maps)))
     maps))
 
-;;
+(defn map-difference [m1 m2]
+  (let [ks1 (set (keys m1))
+        ks2 (set (keys m2))
+        ks1-ks2 (set/difference ks1 ks2)
+        ks2-ks1 (set/difference ks2 ks1)
+        ks1*ks2 (set/intersection ks1 ks2)]
+    (merge (select-keys m1 ks1-ks2)
+      (select-keys m2 ks2-ks1)
+      (select-keys m1
+        (remove (fn [k] (= (m1 k) (m2 k)))
+          ks1*ks2)))))
+
+(defn keys-to-keywords [m & {:keys [underscore-to-hyphens?]
+                             :or {underscore-to-hyphens? true}}]
+  (if-not (map? m)
+    m
+    (zipmap
+      (if underscore-to-hyphens?
+        (map #(-> % (str/replace "_" "-") keyword) (keys m))
+        (map keyword (keys m)))
+      (map #(keys-to-keywords % :underscore-to-hyphens? underscore-to-hyphens?) (vals m)))))
+
+;; END Map Utils
+
+(defn raise [& x]
+  (throw (Exception. ^String (apply str x))))
+
+(defn print-vals [& args]
+  (apply println (cons "*** " (map #(if (string? %) % (with-out-str (pprint %)))  args)))
+  (last args))
+
+(defn parse-number
+  ([s]
+    (parse-number s nil))
+  ([s default-value]
+    (cond
+      (number? s)  s
+      (empty? s)  default-value
+      :default (read-string s))))
+
+
+(defn read-string-safely [s] (when s (read-string s)))
+
+
+(defn trap-nil [x default]
+  (if-not (nil? x) x default))
+
+(defn rand-int* [min max]
+  (+ min (rand-int (- max min))))
+
+(defn print-error
+  "Println to *err*"
+  [& args]
+  (binding [*out* *err*]
+    (apply println args)))
+
+(defn return-zero-if-negative [number]
+  (try
+    (if (pos? number)
+      number
+      0)
+    (catch Exception e
+      "Not Available")))
+
+(defn sget
+  "Safe get. Get the value of key `k` from map `m` only if the key really
+  exists, throw exception otherwise."
+  [m k] {:pre [(map? m)]}
+  (assert (contains? m k))
+  (get m k))
+
+(defmacro time-elapsed
+  "Returns time elapsed in millis."
+  [& body]
+  `(let [start# (. System (nanoTime))]
+     ~@body
+     (/ (double (- (. System (nanoTime)) start#)) 1000000.0)))
+
+(defn timeout-fn
+  "Take one function and wrap it such that it times out if it takes too long. Say you are
+   querying HBase and don't want to wait for a map/filter that may take 10 min or more"
+  [millis f]
+  (fn [& args]
+    (let [f-with-args-curried (fn [] (apply f args))
+          fut (future-call f-with-args-curried)]
+      (try
+        (.get ^java.util.concurrent.Future fut
+          millis
+          java.util.concurrent.TimeUnit/MILLISECONDS)
+        (finally
+          (future-cancel fut))))))
+
+(defmacro with-timeout
+  "Usage: (with-timeout 1000 (execute-long-running-code) (more-code))"
+  [millis & body]
+  `((timeout-fn ~millis (bound-fn [] ~@body))))
+
+(defn =>
+  "true functional thrush"
+  [data & fns]
+  (reduce #(%2 %1) data fns))
+
+(defn segregate
+  "returns [(filter f s) (remove f s)], but only runs through the seq once"
+  [f s]
+  (reduce (fn [[fl rl] i]
+            (if (f i)
+              [(conj fl i) rl]
+              [fl (conj rl i)]))
+    [[] []]
+    s))
+
+(defmacro periodic-fn
+  "creates a fn that executes 'body' every 'period' calls"
+  [args [var period] & body]
+  `(let [call-count# (atom 0)]
+     (fn [~@args]
+       (swap! call-count# inc)
+       (when (zero? (mod @call-count# ~period))
+         (let [~var @call-count#]
+           ~@body)))))
+
+(defn safe-sleep
+  "Sleep for `millis` milliseconds."
+  [millis]
+  (try (Thread/sleep millis)
+    (catch InterruptedException e
+      (.interrupt ^Thread (Thread/currentThread)))))
+
+(defn random-sleep
+  "Sleep between 'min-millis' and 'max-millis' milliseconds"
+  [min-millis max-millis]
+  (let [range (- max-millis min-millis)
+        millis (+ min-millis (rand-int range))]
+    (safe-sleep millis)))
+
+(defn wait-until [done-fn? & {:keys [ms-per-loop timeout]
+                              :or {ms-per-loop 1000 timeout 10000}}]
+  (loop [elapsed (long 0)]
+    (when-not (or (>= elapsed timeout) (done-fn?))
+      (Thread/sleep ms-per-loop)
+      (recur (long (+ elapsed ms-per-loop))))))
 
 (defn boolean? [x]
   (or (= true x) (= false x)))
@@ -362,18 +380,6 @@
 
 (defn min-by [sort-by-fn xs]
   (first (sort-by sort-by-fn xs)))
-
-(defn map-difference [m1 m2]
-  (let [ks1 (set (keys m1))
-        ks2 (set (keys m2))
-        ks1-ks2 (set/difference ks1 ks2)
-        ks2-ks1 (set/difference ks2 ks1)
-        ks1*ks2 (set/intersection ks1 ks2)]
-    (merge (select-keys m1 ks1-ks2)
-      (select-keys m2 ks2-ks1)
-      (select-keys m1
-        (remove (fn [k] (= (m1 k) (m2 k)))
-          ks1*ks2)))))
 
 (defn nested-sort [x]
   (cond (sequential? x)
@@ -449,16 +455,6 @@
         (assoc-in m (remove empty? (str/split k #"[\[\]]")) v)))
     {}
     m))
-
-(defn keys-to-keywords [m & {:keys [underscore-to-hyphens?]
-                             :or {underscore-to-hyphens? true}}]
-  (if-not (map? m)
-    m
-    (zipmap
-      (if underscore-to-hyphens?
-        (map #(-> % (str/replace "_" "-") keyword) (keys m))
-        (map keyword (keys m)))
-      (map #(keys-to-keywords % :underscore-to-hyphens? underscore-to-hyphens?) (vals m)))))
 
 (defn any? [pred coll]
   (boolean (some pred coll)))
