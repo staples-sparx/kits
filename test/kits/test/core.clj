@@ -363,6 +363,12 @@
   (is (= :foo (with-retries (throws-on-1st-or-2nd-call))))
   (is (thrown? Exception (with-retries (raise Exception "BLAMMO!")))))
 
+(deftest test-keyword-munging
+  (is (= "a_foo_1" (keyword->underscored-string :a-foo-1)))
+  (is (= :a_foo_1 (keyword->underscored-keyword :a-foo-1)))
+  (is (= "a-foo-1" (keyword->hyphenated-string :a_foo_1)))
+  (is (= :a-foo-1 (keyword->hyphenated-keyword :a_foo_1))))
+
 (deftest test-keywords->underscored-keywords
   (is (= {:a_1 1
           :b_1 1

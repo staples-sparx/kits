@@ -34,32 +34,35 @@
 (defn rand-int* [min max]
   (+ min (rand-int (- max min))))
 
-(defn keyword->underscored-keyword [k]
-  (-> k name (.replace "-" "_") keyword))
-
 (defn keyword->underscored-string [k]
   (-> k name (.replace "-" "_")))
 
+(defn keyword->underscored-keyword [k]
+  (-> k keyword->underscored-string keyword))
+
 (defn keywords->underscored-keywords [m]
-  (postwalk
-    #(if (keyword? %)
-       (keyword->underscored-keyword %)
-       %)
-    m))
+  (postwalk #(if (keyword? %)
+               (keyword->underscored-keyword %)
+               %)
+            m))
+
+(defn keyword->hyphenated-string [k]
+  (-> k name (.replace "_" "-")))
+
+(defn keyword->hyphenated-keyword [k]
+  (-> k keyword->hyphenated-string keyword))
 
 (defn keywords->hyphenated-keywords [m]
-  (postwalk
-    #(if (keyword? %)
-       (-> % name (.replace "_" "-") keyword)
-       %)
-    m))
+  (postwalk #(if (keyword? %)
+               (keyword->hyphenated-keyword %)
+               %)
+            m))
 
 (defn keywords->underscored-strings [m]
-  (postwalk
-    #(if (keyword? %)
-       (keyword->underscored-string %)
-       %)
-    m))
+  (postwalk #(if (keyword? %)
+               (keyword->underscored-string %)
+               %)
+            m))
 
 (defn print-error
   "Println to *err*"
