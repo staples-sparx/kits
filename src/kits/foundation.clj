@@ -44,19 +44,19 @@
                     args)))
   (last args))
 
-(defn nano-time
-  "Returns the current value of the most precise available system
-timer, in nanoseconds."
+(defn time-ns
+  "Current value of the most precise available system timer, in
+  nanoseconds since epoch."
   []
   (System/nanoTime))
 
-(defn micro-time
-  "Return the number of micro-seconds since the epoch."
+(defn time-us
+  "Number of micro-seconds since epoch."
   []
-  (long (/ (nano-time) 1000)))
+  (long (/ (time-ns) 1000)))
 
-(defn ms-time
-  "Return the number of milli-seconds since the epoch."
+(defn time-ms
+  "Number of milli-seconds since epoch."
   []
   (System/currentTimeMillis))
 
