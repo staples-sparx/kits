@@ -162,9 +162,9 @@ timer, in nanoseconds."
   (str (java.util.UUID/randomUUID)))
 
 (defmacro do1
-  "Evaluate expr and exprs and return the value of expr."
-  [expr & exprs]
-  `(let [v# ~expr]
+  "Evaluate expr1 and exprs and return the value of expr1."
+  [expr1 & exprs]
+  `(let [v# ~expr1]
      ~@exprs
      v#))
 
