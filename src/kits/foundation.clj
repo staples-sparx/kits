@@ -23,8 +23,7 @@
 (defn parse-double [str] (ignore-exceptions (Double/parseDouble str)))
 
 (defn str->boolean
-  "Return a boolean for the specified string, per the following
-  rules:
+  "Boolean value for the specified string, per the following rules:
 
   \"true\" => true
   \"false\" => false
@@ -34,8 +33,7 @@
   (if (not-empty s) (not= "false" (.toLowerCase s)) false))
 
 (defn base-array?
-  "Return true if specified array is of a base-type (long/double
-  etc.)"
+  "Test if specified array is of a base-type (long/double etc.)"
   [a]
   (and (or a false) (.isArray ^Class (class a))))
 
@@ -121,7 +119,7 @@ timer, in nanoseconds."
          val#))))
 
 (defn seq-to-map
-  "Take a seq of ([key1 value1] [key2 value2]) pairs and return a map
+  "Transforms a seq of ([key1 value1] [key2 value2]) pairs to a map
   {key1 value1 key2 value2}."
   [s]
   (if (seq s)
