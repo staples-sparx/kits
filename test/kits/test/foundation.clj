@@ -145,3 +145,16 @@
   (is (false? (f/base-array? nil)))
 
   )
+
+(deftest value-and-elapsed-time
+
+  (f/bind-value-and-elapsed-time [val elapsed]
+      (+ 1 1)
+
+    (is (= 2 val))
+
+    (is (number? elapsed))
+
+    )
+
+  )

@@ -270,3 +270,18 @@
   (if (every? map? maps)
     (apply merge-with rmerge maps)
     (last maps)))
+
+(defn value-and-elapsed-time
+  "Return the value of `thunk` and time taken to evaluate in
+  microseconds." 
+  [thunk]
+  (let [start (time-us)
+        value (thunk)]
+    [value (- (time-us) start)]))
+
+(defmacro bind-value-and-elapsed-time
+  "Binds [value elapsed-time-us] from evaluating `expr` and invokes
+  `body`."
+  [bindings expr & body]
+  `(let [~bindings (value-and-elapsed-time (fn [] ~expr))]
+     ~@body))
