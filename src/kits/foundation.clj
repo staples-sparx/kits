@@ -176,7 +176,8 @@ timer, in nanoseconds."
      (try
        (do ~@body)
        (finally
-         (.delete ~var)))))
+         (when (.exists ~var)
+           (.delete ~var))))))
 
 (defn parse-url
   "Parse the url spec into a map with keys {:scheme, :host, etc.}"
