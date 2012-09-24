@@ -1,0 +1,37 @@
+-*- Mode: Org -*-
+
+* promoted:
+
+- kits.foundation/raise
+- kits.foundation/ignore-exceptions
+- kits.foundation/tap
+- [kits.foundation parse-int parse-long parse-short parse-float
+  parse-double]
+- kits.core/read-string-safely (as safely-read-string)
+- kits.core/parse-number
+- kits.core/rand-int*
+- kits.foundation/time-ns
+- kits.foundation/time-us
+- kits.foundation/time-ms
+- kits.foundation/value-and-elapsed-time
+- kits.foundation/bind-value-and-elapsed-time
+- kits.core/segregate
+- kits.core/safe-sleep (as safely-sleep)
+- kits.core/boolean?
+- kits.core/fn->fn-thats-false-if-throws (as wrap-trapping-errors)
+
+* deprecated:
+
+- kits.core/raise 
+- kits.core/print-vals
+- kits.core/trap-nil
+- kits.core/print-error
+- kits.core/return-zero-if-negative
+- kits.core/sget
+- kits.core/time-elapsed
+- kits.core/timeout-fn
+- kits.core/with-timeout
+- kits.core/random-sleep
+- kits.core/wait-until
+- kits.core/non-neg-integer?
+
