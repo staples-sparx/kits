@@ -19,10 +19,14 @@
 - kits.core/safe-sleep (as safely-sleep)
 - kits.core/boolean?
 - kits.core/fn->fn-thats-false-if-throws (as wrap-trapping-errors)
+- kits.foundation/dotted-to-ip (as ip-to-integer)
+- kits.core/url (as to-url)
+- kits.core/only (as single-element-only)
+- kist.core/name-generator (as incremental-name-with-prefix)
 
 * deprecated:
 
-- kits.core/raise 
+- kits.core/raise
 - kits.core/print-vals
 - kits.core/trap-nil
 - kits.core/print-error
@@ -34,4 +38,6 @@
 - kits.core/random-sleep
 - kits.core/wait-until
 - kits.core/non-neg-integer?
-
+- kits.core/non-empty?
+- kits.core/=>
+- kits.core/single-destructuring-arg->form+name
