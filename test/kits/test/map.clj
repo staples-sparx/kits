@@ -181,8 +181,8 @@
     ))
 
 (deftest test-deep-merge-with
-  (is 
-   (= {:a {:b {:z 3, :c 3, :d {:z 9, :y 2, :x 1}}, :e 103}, :f 4}   
+  (is
+   (= {:a {:b {:z 3, :c 3, :d {:z 9, :y 2, :x 1}}, :e 103}, :f 4}
 
       (deep-merge-with + {:a {:b {:c 1 :d {:x 1 :y 2}} :e 3} :f 4}{:a {:b {:c 2 :d {:z 9} :z 3} :e 100}})))
 
@@ -198,9 +198,9 @@
 
   )
 
-  (is (= {:b 3} (map-difference {:a 0 :b 1 :c 0} {:a 0 :b 0 :c 0})))
+  (is (= {:b 1} (map-difference {:a 0 :b 1 :c 0} {:a 0 :b 0 :c 0})))
 
-;; 
+;;
 
 
 (deftest test-keys-to-keywords
@@ -216,7 +216,3 @@
       {:a "1"} {"a" "1"}
       {:a {:b {:c {:d "e"}}}} {"a" {"b" {"c" {"d" "e"}}}}
       {:a-1 {:b_2 {:c_d-3 "e"}}} {"a-1" {"b_2" {"c_d-3" "e"}}})))
-
-
-
-

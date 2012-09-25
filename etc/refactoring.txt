@@ -22,7 +22,10 @@
 - kits.foundation/dotted-to-ip (as ip-to-integer)
 - kits.core/url (as to-url)
 - kits.core/only (as single-element-only)
-- kist.core/name-generator (as incremental-name-with-prefix)
+- kits.core/name-generator (as incremental-name-with-prefix)
+- kits.core/zip (as zip-columns)
+- kits.core/retrying-fn [f] (as retrying-fn [f max-times])
+- kits.core/with-retries [&body] (as with-retries [retry-count & body])
 
 * deprecated:
 
@@ -41,3 +44,5 @@
 - kits.core/non-empty?
 - kits.core/=>
 - kits.core/single-destructuring-arg->form+name
+- kits.core/def-many-methods
+- kits.core/transform-fakejson-params->map

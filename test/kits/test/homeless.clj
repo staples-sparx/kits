@@ -71,9 +71,9 @@
   (is (= "127.0.0.1" (h/ip-to-dotted (h/ip-to-integer "127.0.0.1")))))
 
 (deftest parse-url
-  (is (= {:scheme "http", :host "www.runa.com", :path "/design"} (h/parse-url "http://www.runa.com/design"))) 
-  (is (= nil (h/parse-url ""))) 
-  (is (= nil (h/parse-url nil))) 
+  (is (= {:scheme "http", :host "www.runa.com", :path "/design"} (h/parse-url "http://www.runa.com/design")))
+  (is (= nil (h/parse-url "")))
+  (is (= nil (h/parse-url nil)))
 )
 
 (deftest rmerge
@@ -88,8 +88,8 @@
   (is (false? (h/url? nil)))
   (is (h/url? "http://www.runa.com/")))
 
-(deftest zip
-  (are [lists result] (= (h/zip lists) result)
+(deftest zip-columns
+  (are [lists result] (= (h/zip-columns lists) result)
     nil []
     []  []
     [[:a 1 \x]]             [[:a] [1] [\x]]

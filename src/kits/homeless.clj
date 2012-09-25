@@ -216,6 +216,9 @@ to return."
       (catch MalformedURLException e
         nil))))
 
+(defn url? [s]
+  (boolean (to-url s)))
+
 (def ^:private valid-ip-address-v4-re
   #"^([01]?\d\d?|2[0-4]\d|25[0-5])\.([01]?\d\d?|2[0-4]\d|25[0-5])\.([01]?\d\d?|2[0-4]\d|25[0-5])\.([01]?\d\d?|2[0-4]\d|25[0-5])$")
 
@@ -341,8 +344,7 @@ to return."
   []
   (str (java.util.UUID/randomUUID)))
 
-;;TODO - Kasim, 9/24: Need to have context for this and possible remove it.
-(defmacro do1
+(defmacro do-all-return-first
   "Evaluate expr1 and exprs and return the value of expr1."
   [expr1 & exprs]
   `(let [v# ~expr1]
@@ -407,16 +409,6 @@ to return."
     (catch InterruptedException e
       (.interrupt ^Thread (Thread/currentThread)))))
 
-;; Guys, have a look at this. Any objection to deprecation?
-(defmacro def-many-methods
-  "Creates multiple multimethods with different dispatch values, but the same implementation."
-  [name dispatch-values & body]
-  `(doseq [dispatch-val# ~dispatch-values]
-     (defmethod ~name dispatch-val# ~@body)))
-
-(defn url? [s]
-  (boolean (to-url s)))
-
 (defn timestamp? [n]
   (and (integer? n)
     (>= n 0)
@@ -425,8 +417,7 @@ to return."
 (defn stacktrace->str [e]
   (map #(str % "\n") (.getStackTrace ^Exception e)))
 
-;TODO - Kasim 09/24: need to think of a better name
-(defn zip
+(defn zip-columns
   "[[:a 1] [:b 2] [:c 3]] ;=> [[:a :b :c] [1 2 3]]"
   [seqs]
   (if (empty? seqs)
@@ -491,14 +482,13 @@ to return."
     x
     [x]))
 
-;;TODO - Kaism 9/24: Need to parametize the max call times
 (defn retrying-fn
-  "Take a no-arg function f, and returns a new no-arg function that
-   will call f again if calling f throws a Throwable. f is called a max of 3 times."
-  [f]
+  "Take a no-arg function f and max times it should be called, returns a new no-arg
+ function that will call f again if calling f throws a Throwable."
+  [f max-times]
   (fn this
     ([]
-      (this 2))
+      (this max-times))
     ([retry-count]
       (try
         (f)
@@ -507,18 +497,9 @@ to return."
             (throw t)
             (this (dec retry-count))))))))
 
-(defmacro with-retries [& body]
+(defmacro with-retries [retry-count & body]
   `((retrying-fn
-      (fn [] ~@body))))
-
-;;TODO - Kaism 9/24: Need to think about removing this altogether
-(defn transform-fakejson-params->map [m]
-  (reduce
-    (fn [m [k v]]
-      (let [v (when-not (empty? v) v)]
-        (assoc-in m (remove empty? (str/split k #"[\[\]]")) v)))
-    {}
-    m))
+      (fn [] ~@body) retry-count)))
 
 (defn any? [pred coll]
   (boolean (some pred coll)))
