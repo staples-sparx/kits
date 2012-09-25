@@ -148,11 +148,23 @@
     (fn [k v] [(name k) (inc v)])
     {"a" 2 "b" 3}))
 
+(deftest test-map-over-map
+  (is (= {:a 2 :b 3 :c 4 :d 5}) (map-over-map (fn [k v] [k (inc v)]) {:a 1 :b 2 :c 3 :d 4})))
+
+(deftest test-map-values
+  (is (= {:b 8, :a 7} (map-values #(+ 5 %) {:a 2 :b 3})))
+  (is (= {} (map-values #(+ 5 %) {})))
+  (is (= {} (map-values #(+ 5 %) nil)))
+)
+
 (deftest test-keyword-munging
   (is (= "a_foo_1" (keyword->underscored-string :a-foo-1)))
   (is (= :a_foo_1 (keyword->underscored-keyword :a-foo-1)))
   (is (= "a-foo-1" (keyword->hyphenated-string :a_foo_1)))
-  (is (= :a-foo-1 (keyword->hyphenated-keyword :a_foo_1))))
+  (is (= :a-foo-1 (keyword->hyphenated-keyword :a_foo_1)))
+  (is (= :a-foo-1 (keywords->hyphenated-keywords :a_foo_1)))
+  (is (= :a-foo-1 (keywords->hyphenated-keywords :a-foo-1)))
+  )
 
 (deftest test-keywords->underscored-keywords
   (is (= {:a_1 1

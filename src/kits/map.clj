@@ -39,7 +39,7 @@
   (into {}
     (filter (fn [[k v]] (pred k v))
       m)))
-
+;;;;;;
 (defn filter-by-key
   "given a predicate like (fn [k] ...) returns a map with only entries with keys that match it."
   [pred m]
@@ -141,9 +141,6 @@
 
     :else
     data))
-
-;; Alex - TODO - 6/23/12 (M/D/Y) - copied from contrib.
-;;    Add some unit tests
 
 (defn deep-merge-with
   "Like merge-with, but merges maps recursively, applying the given fn
