@@ -301,11 +301,10 @@ to return."
 
 (defn seq-to-map
   "Transforms a seq of ([key1 value1] [key2 value2]) pairs to a map
-  {key1 value1 key2 value2}."
-  [s]
-  (if (seq s)
-    (apply assoc {} s)
-    {}))
+  {key1 value1 key2 value2}. For empty and nil values, returns nil."
+  [coll]
+  (when (seq coll)
+    (reduce merge (map #(hash-map (first %) (second %)) coll))))
 
 (defn ip-to-integer
   "Convert a dotted notation IPv4 address string to a 32-bit integer.

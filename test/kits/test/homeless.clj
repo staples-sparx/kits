@@ -12,7 +12,6 @@
   (is (= 1 (h/parse-int "1")))
   (is (= 1.0 (h/parse-double "1.0")))
   (is (= 1.0 (h/parse-float "1.0")))
-
 )
 
 (deftest parse-number
@@ -24,15 +23,6 @@
     10.0 "10.00" nil
     10.0 "10.00" 0
     10 10 0))
-
-(deftest value-and-elapsed-time
-
-  (h/bind-value-and-elapsed-time [val elapsed]
-      (+ 1 1)
-
-    (is (= 2 val))
-
-    (is (number? elapsed))))
 
 (deftest segregate
   (is (= [["a" "b"] [1 2]] (h/segregate string? [1 "a" "b" 2])))
@@ -51,12 +41,70 @@
 (deftest wrap-trapping-errors
   (is (false? ((h/wrap-trapping-errors pos? false) "string")))
   (is (nil? ((h/wrap-trapping-errors pos?) "string")))
-  (is (true?  ((h/wrap-trapping-errors string?) "string")))
+  (is (true?  ((h/wrap-trapping-errors string?) "string"))))
+
+(deftest ip-address-v4?
+  (is (false? (h/ip-address-v4? "34.342.3.4")))
+  (is (h/ip-address-v4? "192.168.0.1")))
+
+(deftest str->boolean
+  (is (h/str->boolean "true"))
+  (is (false? (h/str->boolean "")))
+  (is (false? (h/str->boolean "false"))))
+
+(deftest base-array?
+  (is (h/base-array? (to-array '(1 2 2 :c :d :e))))
+  (is (h/base-array? (into-array {:a 3})))
+  (is (h/base-array? (to-array [:a 3])))
+  (is (false? (h/base-array? '(1 2 2 :c :d :e))))
 )
 
+(deftest seq-to-map
+  (is (= {:a 2, :b 4, :c 5} (h/seq-to-map '([:a 2] [:b 4] [:c 5]))))
+  (is (nil? (h/seq-to-map nil)))
+  (is (nil? (h/seq-to-map '()))))
 
+(deftest ip-to-integer
+  (is (= (h/ip-to-integer "127.0.0.1") 2130706433)))
 
+(deftest ip-to-dotted
+  (is (= "127.0.0.1" (h/ip-to-dotted (h/ip-to-integer "127.0.0.1")))))
 
+(deftest parse-url
+  (is (= {:scheme "http", :host "www.runa.com", :path "/design"} (h/parse-url "http://www.runa.com/design"))) 
+  (is (= nil (h/parse-url ""))) 
+  (is (= nil (h/parse-url nil))) 
+)
 
+(deftest rmerge
+  (is (= {:a 1 :b 2} (h/rmerge {:b 2} {:a 1})))
+  (is (= {:a {:x {:y {:z 3}}} :b 2} (h/rmerge {:a {:x 1} :b 2} {:a {:x {:y {:z 3}}}})))
+  (is (= {:a {:x {:y {:z 3}}} :b 2} (h/rmerge {:a {:x {:y {:z 1}}} :b 2} {:a {:x {:y {:z 3}}}})))
+)
 
+(deftest url?
+  (is (false? (h/url? "malformedhttp:// url")))
+  (is (false? (h/url? "")))
+  (is (false? (h/url? nil)))
+  (is (h/url? "http://www.runa.com/")))
 
+(deftest zip
+  (are [lists result] (= (h/zip lists) result)
+    nil []
+    []  []
+    [[:a 1 \x]]             [[:a] [1] [\x]]
+    [[:a 1 \x] [:b 2 \y]]   [[:a :b] [1 2] [\x \y]]))
+
+(deftest nested-sort
+  (are [input sorted] (= sorted (h/nested-sort input))
+    {} {}
+    [] []
+    nil nil
+    #{} #{}
+    [[3 2 1]] '((1 2 3))))
+
+(deftest indexed
+  (is (= '([0 a] [1 b] [2 c] [3 d]) (h/indexed '(a b c d))))
+  (is (= '() (h/indexed 'nil))
+  (is (= '() (h/indexed '()))))
+)
