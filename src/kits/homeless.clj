@@ -363,28 +363,29 @@ to return."
 (defn parse-url
   "Parse the url spec into a map with keys {:scheme, :host, etc.}"
   [^String spec]
-  (try
-    (let [[scheme comps] (if (re-find #".*://" spec)
-                           (str/split spec #"://")
-                           ["file" spec])
-          [raw-host raw-path] (let [[h & r] (str/split comps #"/")]
-                                [h (str "/" (str/join "/" r))])
-          comps (str/split raw-host #"@")
-          host (last comps)
-          [username password] (if (< 1 (count comps))
-                                (str/split (first comps) #":")
-                                [nil nil])
-          [path & [query]] (str/split raw-path #"\?")]
-      (into {}
-            (filter val
-                    {:scheme scheme
-                     :username (not-empty username)
-                     :password (not-empty password)
-                     :host (not-empty host)
-                     :path (not-empty path)
-                     :query (not-empty query)})))
-    (catch Exception ex
-      nil)))
+  (when (seq spec)
+    (try
+      (let [[scheme comps] (if (re-find #".*://" spec)
+                             (str/split spec #"://")
+                             ["file" spec])
+            [raw-host raw-path] (let [[h & r] (str/split comps #"/")]
+                                  [h (str "/" (str/join "/" r))])
+            comps (str/split raw-host #"@")
+            host (last comps)
+            [username password] (if (< 1 (count comps))
+                                  (str/split (first comps) #":")
+                                  [nil nil])
+            [path & [query]] (str/split raw-path #"\?")]
+        (into {}
+              (filter val
+                      {:scheme scheme
+                       :username (not-empty username)
+                       :password (not-empty password)
+                       :host (not-empty host)
+                       :path (not-empty path)
+                       :query (not-empty query)})))
+      (catch Exception ex
+        nil))))
 
 (defn rmerge
   "Recursive merge of the provided maps."
