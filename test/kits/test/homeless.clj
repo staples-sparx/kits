@@ -88,12 +88,14 @@
   (is (false? (h/url? nil)))
   (is (h/url? "http://www.runa.com/")))
 
-(deftest zip-columns
-  (are [lists result] (= (h/zip-columns lists) result)
+(deftest zip
+  (are [lists result] (= (h/zip lists) result)
     nil []
     []  []
     [[:a 1 \x]]             [[:a] [1] [\x]]
-    [[:a 1 \x] [:b 2 \y]]   [[:a :b] [1 2] [\x \y]]))
+    [[:a] [1] [\x]]         [[:a 1 \x]] ;; reversible!
+    [[:a 1 \x] [:b 2 \y]]   [[:a :b] [1 2] [\x \y]]
+    [[:a :b] [1 2] [\x \y]] [[:a 1 \x] [:b 2 \y]])) ;; reversible!
 
 (deftest nested-sort
   (are [input sorted] (= sorted (h/nested-sort input))

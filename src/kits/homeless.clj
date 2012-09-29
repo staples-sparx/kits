@@ -1,5 +1,6 @@
 (ns kits.homeless
-  "Home of unsorted utility functions and macros."
+  "Unfortunate, uncategorized utility functions and macros. Please
+   help one of these poor souls find a home :("
   (:require
    [clojure.pprint :as pprint]
    [clojure.string :as str]
@@ -417,7 +418,7 @@ to return."
 (defn stacktrace->str [e]
   (map #(str % "\n") (.getStackTrace ^Exception e)))
 
-(defn zip-columns
+(defn zip
   "[[:a 1] [:b 2] [:c 3]] ;=> [[:a :b :c] [1 2 3]]"
   [seqs]
   (if (empty? seqs)
