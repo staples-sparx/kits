@@ -103,14 +103,20 @@ to return."
   [min max]
   (+ min (rand-int (- max min))))
 
-(defn time-ns
+(defn- time-ns
   "Current value of the most precise available system timer, in
-  nanoseconds since epoch."
+  nanoseconds. This is NOT a guaranteed absolute time like time-ms and
+  doesn't work the same across all JVM architectures. Use this for
+  measuring TIME INTERVALS ONLY. See javadoc for System.nanoTime() for
+  more details."
   []
   (System/nanoTime))
 
-(defn time-us
-  "Number of micro-seconds since epoch."
+(defn- time-us
+  "Number of micro-seconds since epoch. This is NOT a guaranteed
+  absolute time like time-ms and doesn't work the same across all
+  architectures. Use this for measuring TIME INTERVALS ONLY. See
+  javadoc for System.nanoTime() for more details."
   []
   (long (/ (time-ns) 1000)))
 
