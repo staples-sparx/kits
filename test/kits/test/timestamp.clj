@@ -41,6 +41,21 @@
        1.5
        1M))
 
+(deftest test->Timestamp
+  (are [t expected] (= (->str (.getTime (->Timestamp t))) expected)
+        "2012-05-01" "2012-05-01 00:00:00"
+        "2012-05-01 12:12" "2012-05-01 12:12:00"
+        "2012-05-01 12:12:12" "2012-05-01 12:12:12"
+        "1335830400000" "2012-05-01 00:00:00"
+        1335830400000 "2012-05-01 00:00:00")
+  (are [t] (thrown-with-msg? IllegalArgumentException #"Don't know how to parse" (->Timestamp t))
+        nil
+        "cat"
+        "1.5"
+        ""
+        1.5
+        1M))
+
 (deftest test->timestamp---with-specified-format
   (is (= "2012-01-30 00:00:00" (->str (->timestamp "January 30, 2012" "MMMM dd, yyyy")))))
 
