@@ -316,10 +316,10 @@ to return."
   (when (seq coll)
     (reduce merge (map #(hash-map (first %) (second %)) coll))))
 
-(defn ip-to-integer
+(defn ipv4-dotted-to-integer
   "Convert a dotted notation IPv4 address string to a 32-bit integer.
 
-  (ip-to-integer \"127.0.0.1\")
+  (ipv4-dotted-to-integer \"127.0.0.1\")
   => 2130706433"
   [dotted]
   (let [[b1 b2 b3 b4] (map #(or (parse-int %)
@@ -330,12 +330,12 @@ to return."
                     (bit-shift-left b3 8))
             b4)))
 
-;; (= (ip-to-integer "127.0.0.1") 2130706433)
+;; (= (ipv4-dotted-to-integer "127.0.0.1") 2130706433)
 
-(defn ip-to-dotted
+(defn ipv4-integer-to-dotted
   "Convert a 32-bit integer into a dotted notation IPv4 address string.
 
-  (ip-to-dotted (dotted-to-ip \"127.0.0.1\"))
+  (ipv4-integer-to-dotted (ipv4-dotted-to-integer \"127.0.0.1\"))
   => \"127.0.0.1\""
   [ip]
   (format "%d.%d.%d.%d"
@@ -344,7 +344,7 @@ to return."
           (bit-and (bit-shift-right ip 8) 0xff)
           (bit-and ip 0xff)))
 
-;; (ip-to-dotted (ip-to-integer "127.0.0.1"))
+;; (ipv4-integer-to-dotted (ipv4-dotted-to-integer "127.0.0.1"))
 
 (defn uuid
   "Return a UUID string."

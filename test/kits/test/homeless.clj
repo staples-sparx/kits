@@ -64,11 +64,11 @@
   (is (nil? (h/seq-to-map nil)))
   (is (nil? (h/seq-to-map '()))))
 
-(deftest ip-to-integer
-  (is (= (h/ip-to-integer "127.0.0.1") 2130706433)))
+(deftest ipv4-dotted-to-integer
+  (is (= (h/ipv4-dotted-to-integer "127.0.0.1") 2130706433)))
 
-(deftest ip-to-dotted
-  (is (= "127.0.0.1" (h/ip-to-dotted (h/ip-to-integer "127.0.0.1")))))
+(deftest ipv4-integer-to-dotted
+  (is (= "127.0.0.1" (h/ipv4-integer-to-dotted (h/ipv4-dotted-to-integer "127.0.0.1")))))
 
 (deftest parse-url
   (is (= {:scheme "http", :host "www.runa.com", :path "/design"} (h/parse-url "http://www.runa.com/design")))
