@@ -1,8 +1,7 @@
 (ns kits.timestamp
   (:import
    java.text.SimpleDateFormat
-   [java.util Date Calendar TimeZone GregorianCalendar]
-   java.sql.Timestamp))
+   [java.util Date Calendar TimeZone GregorianCalendar]))
 
 (set! *warn-on-reflection* true)
 
@@ -60,12 +59,6 @@
 
       :else
       (throw (IllegalArgumentException. (str "Don't know how to parse " (pr-str x)))))))
-
-(defn ^Timestamp ->Timestamp
-  ([s format]
-    (Timestamp. ^long (->timestamp s format)))
-  ([s]
-    (Timestamp. ^long (->timestamp s))))
 
 (defn ->str
   ([x]
