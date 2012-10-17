@@ -3,7 +3,6 @@
    java.text.SimpleDateFormat
    [java.util Date Calendar TimeZone GregorianCalendar]))
 
-(set! *warn-on-reflection* true)
 
 ;;; formats
 
