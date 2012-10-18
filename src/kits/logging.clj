@@ -10,20 +10,26 @@
 (def ^:private ^SimpleDateFormat date-formatter
   (timestamp/simple-date-format "yyyy-MM-dd HH:mm:ss"))
 
-(def log-formatter
+(defn default-formatter [^Formatter formatter ^LogRecord record]
+  (print-str (.format date-formatter (Date.))
+             (str (.getLevel record))
+             (.formatMessage formatter record)))
+
+(def ^:dynamic *formatter* nil)
+
+(defmacro with-formatter [formatter & body]
+  `(binding [*formatter* ~formatter]
+     ~@body))
+
+(def formatter
   (proxy [Formatter] []
     (format [^LogRecord record]
-      (str (.getLevel record)
-           " "
-           (.format date-formatter (Date.))
-           " "
-           (.formatMessage ^Formatter this record)
-           "\n"))))
+      ((or *formatter* default-formatter) ^Formatter this record))))
 
 (def ^:dynamic *default-logger*
   (let [logger (Logger/getAnonymousLogger)]
     (doseq [^Handler handler (.getHandlers (.getParent logger))]
-      (.setFormatter handler log-formatter))
+      (.setFormatter handler formatter))
     logger))
 
 (defmacro log [^Level level ^String msg ^Throwable e]
