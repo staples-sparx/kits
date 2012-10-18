@@ -1,11 +1,33 @@
 (ns kits.logging
+  (:require
+   [kits.timestamp :as timestamp])
   (:import
    java.io.IOException
-   java.util.logging.Level
-   java.util.logging.Logger))
+   java.util.Date
+   java.text.SimpleDateFormat
+   [java.util.logging Level Logger Formatter LogRecord Handler]))
+
+(def ^:private ^SimpleDateFormat date-formatter
+  (timestamp/simple-date-format "yyyy-MM-dd HH:mm:ss"))
+
+(def log-formatter
+  (proxy [Formatter] []
+    (format [^LogRecord record]
+      (str (.getLevel record)
+           " "
+           (.format date-formatter (Date.))
+           " "
+           (.formatMessage ^Formatter this record)
+           "\n"))))
+
+(def ^:dynamic *default-logger*
+  (let [logger (Logger/getAnonymousLogger)]
+    (doseq [^Handler handler (.getHandlers (.getParent logger))]
+      (.setFormatter handler log-formatter))
+    logger))
 
 (defmacro log [^Level level ^String msg ^Throwable e]
-  `(let [l# (Logger/getAnonymousLogger)
+  `(let [l# kits.logging/*default-logger*
          e# ~e
          level# ~level]
      (when (.isLoggable ^Logger l# ^Level level#)
