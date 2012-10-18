@@ -11,9 +11,9 @@
   (timestamp/simple-date-format "yyyy-MM-dd HH:mm:ss"))
 
 (defn default-formatter [^Formatter formatter ^LogRecord record]
-  (print-str (.format date-formatter (Date.))
-             (str (.getLevel record))
-             (.formatMessage formatter record)))
+  (println-str (.format date-formatter (Date.))
+               (str (.getLevel record))
+               (.formatMessage formatter record)))
 
 (def ^:dynamic *formatter* nil)
 
