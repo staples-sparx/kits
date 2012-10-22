@@ -37,8 +37,12 @@
        (.setTimeZone (TimeZone/getTimeZone tz-string)))))
 
 (defn ^Long ->timestamp
+  ([s format-string timezone-str]
+     (-> (simple-date-format format-string timezone-str)
+         (.parse s)
+         .getTime))
   ([s format-string]
-     (-> (simple-date-format format-string) (.parse s) .getTime))
+     (->timestamp s format-string "UTC"))
   ([x]
      (cond
       (integer? x)

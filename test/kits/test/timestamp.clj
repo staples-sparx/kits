@@ -124,3 +124,8 @@
   (is (= "2012/05/21"
          (->str (->timestamp "2012-05-21") "yyyy/MM/dd"))))
 
+(deftest test-specifying-timezone
+  (is (= 28800000 ;; 8 hours
+         (- (->timestamp "03/01/2012" "MM/dd/yyyy" "PST")
+            (->timestamp "03/01/2012" "MM/dd/yyyy" "UTC")))))
+
