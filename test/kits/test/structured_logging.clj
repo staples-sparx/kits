@@ -19,7 +19,7 @@
             [1 2 3]
             :info
             nil
-            "{:tags [:my-special-error], :level :info, :function \"kits.test.structured-logging/info-calling-fn\", :namespace \"kits.test.structured-logging\", :data {:a 1, :b 2}}")))
+            "{\"tags\":[\"my-special-error\"],\"level\":\"info\",\"function\":\"kits.test.structured-logging/info-calling-fn\",\"namespace\":\"kits.test.structured-logging\",\"data\":{\"a\":1,\"b\":2}}")))
 
 (deftest test-warn-log-level
   (mocking [log/log*]
@@ -29,4 +29,4 @@
             [1 2 3]
             :warn
             nil
-            "{:tags [], :level :warn, :function \"kits.test.structured-logging/warn-calling-fn\", :namespace \"kits.test.structured-logging\", :data {:c 3, :d 4}}"))) 
+            "{\"tags\":[],\"level\":\"warn\",\"function\":\"kits.test.structured-logging/warn-calling-fn\",\"namespace\":\"kits.test.structured-logging\",\"data\":{\"c\":3,\"d\":4}}"))) 
