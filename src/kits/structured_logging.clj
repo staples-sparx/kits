@@ -1,6 +1,7 @@
 (ns ^{:doc "Logging with Clojure data"}
   kits.structured-logging
-  (:require [clojure.tools.logging :as log]))
+  (:require [clojure.tools.logging :as log]
+            [cheshire.core :as cheshire]))
 
 
 (defn unmangle
@@ -19,11 +20,11 @@
        unmangle))
 
 (defn structured-log [log-level tags the-ns calling-fn-name log-map]
-  (log/logp log-level (pr-str {:tags (vec tags)
-                               :level log-level
-                               :function calling-fn-name
-                               :namespace (str the-ns)
-                               :data log-map})))
+  (log/logp log-level (cheshire/generate-string {:tags (vec tags)
+                                                 :level log-level
+                                                 :function calling-fn-name
+                                                 :namespace (str the-ns)
+                                                 :data log-map})))
 
 
 ;; Use these for logging. The above are public because I can't
