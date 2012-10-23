@@ -12,7 +12,11 @@
 (defmacro current-function-name
   "Returns a string, the name of the current Clojure function."
   []
-  `(-> (Throwable.) .getStackTrace first .getClassName unmangle))
+  `(-> (Throwable.)
+       .getStackTrace
+       first
+       .getClassName
+       unmangle))
 
 (defn structured-log [log-level tags the-ns calling-fn-name log-map]
   (log/logp log-level (pr-str {:tags (vec tags)
