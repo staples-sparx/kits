@@ -5,8 +5,12 @@
   (:require [clojure.tools.logging :as log]
             [kits.core :as c]))
 
+(deftype HasNoDefaultSerializer []
+  Object
+  (toString [_] "<HasNoDefaultSerializer>"))
+
 (defn info-calling-fn []
-  (info {:a 1 :b 2} :tags [:my-special-error]))
+  (info {:a 1 :b 2 :c (HasNoDefaultSerializer.)} :tags [:my-special-error]))
 
 (defn warn-calling-fn []
   (warn {:c 3 :d 4}))
@@ -19,7 +23,7 @@
             [1 2 3]
             :info
             nil
-            "{\"tags\":[\"my-special-error\"],\"level\":\"info\",\"function\":\"kits.test.structured-logging/info-calling-fn\",\"namespace\":\"kits.test.structured-logging\",\"data\":{\"a\":1,\"b\":2}}")))
+            "{\"tags\":[\"my-special-error\"],\"level\":\"info\",\"function\":\"kits.test.structured-logging/info-calling-fn\",\"namespace\":\"kits.test.structured-logging\",\"data\":{\"a\":1,\"b\":2,\"c\":\"<HasNoDefaultSerializer>\"}}")))
 
 (deftest test-warn-log-level
   (mocking [log/log*]
