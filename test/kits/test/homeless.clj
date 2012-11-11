@@ -24,9 +24,16 @@
     10 10 0))
 
 (deftest test-segregate
-  (is (= [["a" "b"] [1 2]] (segregate string? [1 "a" "b" 2])))
   (is (= [nil nil] (segregate string? nil)))
-  (is (= [[] []] (segregate string? []))))
+  
+  (is (= [["a" "b"] [1 2]] (segregate string? [1 "a" "b" 2])))
+  (is (= [[] []] (segregate string? [])))
+
+  (is (= ['("b" "a") '(2 1)] (segregate string? '(1 "a" "b" 2))))
+  (is (= ['() '()] (segregate string? '())))
+
+  (is (= [#{"a" "b"} #{1 2}] (segregate string? #{1 "a" "b" 2})))
+  (is (= [#{} #{}] (segregate string? #{}))))
 
 (deftest test-boolean?
   (are [x bool?] (= bool? (boolean? x))

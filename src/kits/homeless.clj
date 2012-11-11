@@ -184,14 +184,16 @@ to return."
   `(call-with-timeout ~timeout (bound-fn [] ~@body)))
 
 (defn segregate
-  "Returns [(filter f s) (remove f s)], only running through the seq once."
-  [f s]
-  (reduce (fn [[fl rl] i]
-            (if (f i)
-              [(conj fl i) rl]
-              [fl (conj rl i)]))
-          [(empty s) (empty s)]
-          s))
+  "Splits the collection into two collections of the same type. The first
+   collection contains all elements that pass the predicate and the second
+   collection all the items that fail the predicate."
+  [pred coll]
+  (reduce (fn [[passes fails] elem]
+            (if (pred elem)
+              [(conj passes elem) fails]
+              [passes (conj fails elem)]))
+          [(empty coll) (empty coll)]
+          coll))
 
 (defmacro periodic-fn
   "creates a fn that executes 'body' every 'period' calls"
