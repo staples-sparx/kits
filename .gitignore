@@ -8,3 +8,5 @@
 /lib
 /native
 /pom.xml
+*.iml
+/.idea
