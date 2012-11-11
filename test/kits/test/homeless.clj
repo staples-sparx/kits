@@ -1,21 +1,20 @@
 (ns kits.test.homeless
-  (:use clojure.test)
-  (:require [kits.homeless :as h]))
+  (:use clojure.test
+        kits.homeless))
 
-(deftest raise
-  (is (thrown? RuntimeException (h/raise "test exception"))))
+(deftest test-raise
+  (is (thrown? RuntimeException (raise "test exception"))))
 
-(deftest parse-numbers
+(deftest test-parse-numbers
   "Tests parse-int, parse-long, parse-short, parse-float, and parse-double"
-  (is (nil? (h/parse-int "foo")))
-  (is (nil? (h/parse-long nil)))
-  (is (= 1 (h/parse-int "1")))
-  (is (= 1.0 (h/parse-double "1.0")))
-  (is (= 1.0 (h/parse-float "1.0")))
-)
+  (is (nil? (parse-int "foo")))
+  (is (nil? (parse-long nil)))
+  (is (= 1 (parse-int "1")))
+  (is (= 1.0 (parse-double "1.0")))
+  (is (= 1.0 (parse-float "1.0"))))
 
-(deftest parse-number
-  (are [expected str default] (= expected (h/parse-number str default))
+(deftest test-parse-number
+  (are [expected str default] (= expected (parse-number str default))
     nil nil nil
     10 "10" nil
     nil "" nil
@@ -24,13 +23,13 @@
     10.0 "10.00" 0
     10 10 0))
 
-(deftest segregate
-  (is (= [["a" "b"] [1 2]] (h/segregate string? [1 "a" "b" 2])))
-  (is (= [nil nil] (h/segregate string? nil)))
-  (is (= [[] []] (h/segregate string? []))))
+(deftest test-segregate
+  (is (= [["a" "b"] [1 2]] (segregate string? [1 "a" "b" 2])))
+  (is (= [nil nil] (segregate string? nil)))
+  (is (= [[] []] (segregate string? []))))
 
-(deftest boolean?
-  (are [x bool?] (= bool? (h/boolean? x))
+(deftest test-boolean?
+  (are [x bool?] (= bool? (boolean? x))
     false true
     true true
     nil  false
@@ -38,58 +37,55 @@
     []   false
     {}   false))
 
-(deftest wrap-trapping-errors
-  (is (false? ((h/wrap-trapping-errors pos? false) "string")))
-  (is (nil? ((h/wrap-trapping-errors pos?) "string")))
-  (is (true?  ((h/wrap-trapping-errors string?) "string"))))
+(deftest test-wrap-trapping-errors
+  (is (false? ((wrap-trapping-errors pos? false) "string")))
+  (is (nil? ((wrap-trapping-errors pos?) "string")))
+  (is (true?  ((wrap-trapping-errors string?) "string"))))
 
-(deftest ip-address-v4?
-  (is (false? (h/ip-address-v4? "34.342.3.4")))
-  (is (h/ip-address-v4? "192.168.0.1")))
+(deftest test-ip-address-v4?
+  (is (false? (ip-address-v4? "34.342.3.4")))
+  (is (ip-address-v4? "192.168.0.1")))
 
-(deftest str->boolean
-  (is (h/str->boolean "true"))
-  (is (false? (h/str->boolean "")))
-  (is (false? (h/str->boolean "false"))))
+(deftest test-str->boolean
+  (is (str->boolean "true"))
+  (is (false? (str->boolean "")))
+  (is (false? (str->boolean "false"))))
 
-(deftest base-array?
-  (is (h/base-array? (to-array '(1 2 2 :c :d :e))))
-  (is (h/base-array? (into-array {:a 3})))
-  (is (h/base-array? (to-array [:a 3])))
-  (is (false? (h/base-array? '(1 2 2 :c :d :e))))
-)
+(deftest test-base-array?
+  (is (base-array? (to-array '(1 2 2 :c :d :e))))
+  (is (base-array? (into-array {:a 3})))
+  (is (base-array? (to-array [:a 3])))
+  (is (false? (base-array? '(1 2 2 :c :d :e)))))
 
-(deftest seq-to-map
-  (is (= {:a 2, :b 4, :c 5} (h/seq-to-map '([:a 2] [:b 4] [:c 5]))))
-  (is (nil? (h/seq-to-map nil)))
-  (is (nil? (h/seq-to-map '()))))
+(deftest test-seq-to-map
+  (is (= {:a 2, :b 4, :c 5} (seq-to-map '([:a 2] [:b 4] [:c 5]))))
+  (is (nil? (seq-to-map nil)))
+  (is (nil? (seq-to-map '()))))
 
-(deftest ipv4-dotted-to-integer
-  (is (= (h/ipv4-dotted-to-integer "127.0.0.1") 2130706433)))
+(deftest test-ipv4-dotted-to-integer
+  (is (= (ipv4-dotted-to-integer "127.0.0.1") 2130706433)))
 
-(deftest ipv4-integer-to-dotted
-  (is (= "127.0.0.1" (h/ipv4-integer-to-dotted (h/ipv4-dotted-to-integer "127.0.0.1")))))
+(deftest test-ipv4-integer-to-dotted
+  (is (= "127.0.0.1" (ipv4-integer-to-dotted (ipv4-dotted-to-integer "127.0.0.1")))))
 
-(deftest parse-url
-  (is (= {:scheme "http", :host "www.runa.com", :path "/design"} (h/parse-url "http://www.runa.com/design")))
-  (is (= nil (h/parse-url "")))
-  (is (= nil (h/parse-url nil)))
-)
+(deftest test-parse-url
+  (is (= {:scheme "http", :host "www.runa.com", :path "/design"} (parse-url "http://www.runa.com/design")))
+  (is (= nil (parse-url "")))
+  (is (= nil (parse-url nil))))
 
-(deftest rmerge
-  (is (= {:a 1 :b 2} (h/rmerge {:b 2} {:a 1})))
-  (is (= {:a {:x {:y {:z 3}}} :b 2} (h/rmerge {:a {:x 1} :b 2} {:a {:x {:y {:z 3}}}})))
-  (is (= {:a {:x {:y {:z 3}}} :b 2} (h/rmerge {:a {:x {:y {:z 1}}} :b 2} {:a {:x {:y {:z 3}}}})))
-)
+(deftest test-rmerge
+  (is (= {:a 1 :b 2} (rmerge {:b 2} {:a 1})))
+  (is (= {:a {:x {:y {:z 3}}} :b 2} (rmerge {:a {:x 1} :b 2} {:a {:x {:y {:z 3}}}})))
+  (is (= {:a {:x {:y {:z 3}}} :b 2} (rmerge {:a {:x {:y {:z 1}}} :b 2} {:a {:x {:y {:z 3}}}}))))
 
-(deftest url?
-  (is (false? (h/url? "malformedhttp:// url")))
-  (is (false? (h/url? "")))
-  (is (false? (h/url? nil)))
-  (is (h/url? "http://www.runa.com/")))
+(deftest test-url?
+  (is (false? (url? "malformedhttp:// url")))
+  (is (false? (url? "")))
+  (is (false? (url? nil)))
+  (is (url? "http://www.runa.com/")))
 
-(deftest zip
-  (are [lists result] (= (h/zip lists) result)
+(deftest test-zip
+  (are [lists result] (= (zip lists) result)
     nil []
     []  []
     [[:a 1 \x]]             [[:a] [1] [\x]]
@@ -97,16 +93,111 @@
     [[:a 1 \x] [:b 2 \y]]   [[:a :b] [1 2] [\x \y]]
     [[:a :b] [1 2] [\x \y]] [[:a 1 \x] [:b 2 \y]])) ;; reversible!
 
-(deftest nested-sort
-  (are [input sorted] (= sorted (h/nested-sort input))
+(deftest test-nested-sort
+  (are [input sorted] (= sorted (nested-sort input))
     {} {}
     [] []
     nil nil
     #{} #{}
     [[3 2 1]] '((1 2 3))))
 
-(deftest indexed
-  (is (= '([0 a] [1 b] [2 c] [3 d]) (h/indexed '(a b c d))))
-  (is (= '() (h/indexed 'nil))
-  (is (= '() (h/indexed '()))))
-)
+(deftest test-indexed
+  (is (= '([0 a] [1 b] [2 c] [3 d]) (indexed '(a b c d))))
+  (is (= '() (indexed 'nil)))
+  (is (= '() (indexed '()))))
+
+(deftest test-periodic-fn
+  (let [msgs-logged (atom [])
+        log-msg (fn [msg]
+      (swap! msgs-logged conj msg))]
+    (testing "creates a fn that only gets call every period times (2 in this example);
+            has access to the 'call-count' as well, and the fn body is an implicit 'do'"
+      (let [log-every-other (periodic-fn [msg] [call-count 2]
+                                         (log-msg (format "%s-%s" msg call-count))
+                                         (log-msg (format "%s-%s" msg call-count)))]
+
+        (log-every-other "1 message")
+        (is (= [] @msgs-logged) )
+
+        (log-every-other "another message")
+        (is (= ["another message-2" "another message-2"] @msgs-logged))
+
+        (log-every-other "3rd message")
+        (is (= ["another message-2" "another message-2"] @msgs-logged))
+
+        (log-every-other "4th")
+        (is (= ["another message-2" "another message-2" "4th-4" "4th-4"] @msgs-logged))))))
+
+(deftest test-only
+  (testing "when not 1 item"
+    (is (thrown-with-msg? RuntimeException #"should have precisely one item, but had 0" (only [])))
+    (is (= 1 (only [1])))
+    (is (thrown-with-msg? RuntimeException #"should have precisely one item, but had at least 2" (only [1 2])))
+    (is (thrown-with-msg? RuntimeException #"should have precisely one item, but had at least 2" (only (repeat 5))))))
+
+(deftest test-ensure-sequential
+  (are [result x] (= result (ensure-sequential x))
+    [nil]     nil
+    [{}]      {}
+    [{:a 1}]  {:a 1}
+    [1]       1
+    [1 2 3]   [1 2 3]))
+
+(deftest test-timestamp?
+  (are [n result] (= (timestamp? n) result)
+    nil      false
+    -4444444 false
+    -333333  false
+    -10000   false
+    -999     false
+    -77      false
+    -5       false
+    -3       false
+    -2       false
+    -1       false
+    0        true
+    1        true
+    2        true
+    3        true
+    5        true
+    77       true
+    999      true
+    10000    true
+    333333   true
+    4444444  true
+    0.0        false
+    1.0        false
+    2.0        false
+    3.0        false
+    5.0        false
+    77.0       false
+    999.0      false
+    10000.0    false
+    333333.0   false
+    4444444.0  false
+    9223372036854775807 true
+    9223372036854775808 false))
+
+(def throws-on-1st-or-2nd-call
+  (let [cnt (atom 3)]
+    (fn []
+      (swap! cnt dec)
+      (if (< @cnt 1)
+        :foo
+        (raise "BOOM!")))))
+
+(deftest test-with-retries
+  (is (= :foo (with-retries 3 (throws-on-1st-or-2nd-call))))
+  (is (thrown? Exception (with-retries 3 (raise Exception "BLAMMO!")))))
+
+(deftest test-any?
+  (is (= true (any? #{'a 'b} ['a])))
+  (is (= false (any? #{'a 'b} ['c]))))
+
+(let [name-maker (incremental-name-with-prefix "name")]
+  
+  (deftest test-incremental-name-with-prefix
+    (is (= "name-0" (name-maker)))
+    (is (= "name-1" (name-maker)))
+    (is (= "name-2" (name-maker)))))
+

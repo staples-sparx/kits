@@ -46,12 +46,24 @@
                    ['cond]
                    (partition 2 clauses))))))
 
+(defn- time-elapsed*
+  "Returns time elapsed in millis."
+  [f]
+  (let [start (System/nanoTime)]
+    (f)
+    (/ (double (- (System/nanoTime) start)) 1000000.0)))
+
+(defmacro time-elapsed
+  "Returns time elapsed in millis."
+  [& body]
+  `(time-elapsed* (fn [] ~@body)))
+
 (defn raise
   "Raise a RuntimeException with specified message."
   [& msg]
   (throw (RuntimeException. ^String (apply str msg))))
 
-(defn tap
+(defn print-vals
   "Print the specified args, and return the value of the last arg."
   [& args]
   (apply println
@@ -181,18 +193,47 @@ to return."
           [(empty s) (empty s)]
           s))
 
+(defmacro periodic-fn
+  "creates a fn that executes 'body' every 'period' calls"
+  [args [var period] & body]
+  `(let [call-count# (atom 0)]
+     (fn [~@args]
+       (swap! call-count# inc)
+       (when (zero? (mod @call-count# ~period))
+         (let [~var @call-count#]
+           ~@body)))))
+
 (defn wrap-periodic
-  "Add a wrapper fn, which executes `f` once every `period` calls."
+  "Returns a fn which wraps f, that executes `f` once every `period` calls."
   [f period]
   (let [count (atom 0)]
     (fn [& args]
       (swap! count inc)
-      (when (zero? (mod count period))
+      (when (zero? (mod @count period))
         (apply f args)))))
 
-(defn boolean?
-  "Test if `x` is a boolean value."
-  [x]
+(defn safe-sleep
+  "Sleep for `millis` milliseconds."
+  [millis]
+  (try (Thread/sleep millis)
+    (catch InterruptedException e
+      (.interrupt ^Thread (Thread/currentThread)))))
+
+(defn random-sleep
+  "Sleep between 'min-millis' and 'max-millis' milliseconds"
+  [min-millis max-millis]
+  (let [range (- max-millis min-millis)
+        millis (+ min-millis (rand-int range))]
+    (safe-sleep millis)))
+
+(defn wait-until [done-fn? & {:keys [ms-per-loop timeout]
+                              :or {ms-per-loop 1000 timeout 10000}}]
+  (loop [elapsed (long 0)]
+    (when-not (or (>= elapsed timeout) (done-fn?))
+      (Thread/sleep ms-per-loop)
+      (recur (long (+ elapsed ms-per-loop))))))
+
+(defn boolean? [x]
   (or (true? x) (false? x)))
 
 (defn wrap-trapping-errors
@@ -314,7 +355,7 @@ to return."
   {key1 value1 key2 value2}. For empty and nil values, returns nil."
   [coll]
   (when (seq coll)
-    (reduce merge (map #(hash-map (first %) (second %)) coll))))
+    (into {} coll)))
 
 (defn ipv4-dotted-to-integer
   "Convert a dotted notation IPv4 address string to a 32-bit integer.
@@ -330,8 +371,6 @@ to return."
                     (bit-shift-left b3 8))
             b4)))
 
-;; (= (ipv4-dotted-to-integer "127.0.0.1") 2130706433)
-
 (defn ipv4-integer-to-dotted
   "Convert a 32-bit integer into a dotted notation IPv4 address string.
 
@@ -343,8 +382,6 @@ to return."
           (bit-and (bit-shift-right ip 16) 0xff)
           (bit-and (bit-shift-right ip 8) 0xff)
           (bit-and ip 0xff)))
-
-;; (ipv4-integer-to-dotted (ipv4-dotted-to-integer "127.0.0.1"))
 
 (defn uuid
   "Return a UUID string."
@@ -461,7 +498,9 @@ to return."
     :else
     x))
 
-(defn single-element-only
+(def p (comp pprint/pprint nested-sort))
+
+(defn only
   "Gives the sole element of a sequence"
   [coll]
   (if (seq (rest coll))
@@ -506,7 +545,7 @@ to return."
 
 (defmacro with-retries [retry-count & body]
   `((retrying-fn
-      (fn [] ~@body) retry-count)))
+      (fn [] ~@body) ~retry-count)))
 
 (defn any? [pred coll]
   (boolean (some pred coll)))

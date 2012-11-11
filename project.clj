@@ -10,7 +10,7 @@
   :dependencies ~(cons '[org.clojure/clojure "1.3.0"]
                        common-deps)
   :warn-on-reflection true
-  :dev-dependencies [[jonase/kibit "0.0.3"]
+  :dev-dependencies [[jonase/kibit "0.0.6"]
                      [jonase/eastwood "0.0.2"]
                      [org.clojars.runa/conjure "2.0.0"]
                      [lein-multi "1.1.0"]]
