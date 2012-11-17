@@ -269,7 +269,7 @@ to return."
 (defn url? [s]
   (boolean (to-url s)))
 
-(def ^:private valid-ip-address-v4-re
+(def ^{:private true :const true} valid-ip-address-v4-re
   #"^([01]?\d\d?|2[0-4]\d|25[0-5])\.([01]?\d\d?|2[0-4]\d|25[0-5])\.([01]?\d\d?|2[0-4]\d|25[0-5])\.([01]?\d\d?|2[0-4]\d|25[0-5])$")
 
 (defn ip-address-v4?

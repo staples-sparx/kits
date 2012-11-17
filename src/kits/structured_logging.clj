@@ -19,9 +19,9 @@
        .getClassName
        unmangle))
 
-(extend Object
-  cc/JSONable
-  {:to-json cc/encode-str})
+;; logs assorted Objects sanely: good for logging functions or
+;; assorted objects
+(cc/add-encoder Object cc/encode-str)
 
 (defn structured-log [log-level tags the-ns calling-fn-name log-map]
   (log/logp log-level (cc/encode {:tags (vec tags)

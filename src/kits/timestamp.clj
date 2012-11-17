@@ -6,19 +6,19 @@
 
 ;;; formats
 
-(def ^:constant yyyy-mm-dd "yyyy-MM-dd")
+(def ^:const yyyy-mm-dd "yyyy-MM-dd")
 
 (defn yyyy-mm-dd? [x]
   (and (string? x)
        (boolean (re-matches #"\d{4}-\d{2}-\d{2}" x))))
 
-(def ^:constant yyyy-mm-dd-hh-mm "yyyy-MM-dd HH:mm")
+(def ^:const yyyy-mm-dd-hh-mm "yyyy-MM-dd HH:mm")
 
 (defn yyyy-mm-dd-hh-mm? [x]
   (and (string? x)
        (boolean (re-matches #"\d{4}-\d{2}-\d{2} \d{2}:\d{2}" x))))
 
-(def ^:constant yyyy-mm-dd-hh-mm-ss "yyyy-MM-dd HH:mm:ss")
+(def ^:const yyyy-mm-dd-hh-mm-ss "yyyy-MM-dd HH:mm:ss")
 
 (defn yyyy-mm-dd-hh-mm-ss? [x]
   (and (string? x)
@@ -78,7 +78,7 @@
 
 ;;;
 
-(def ordered-units
+(def ^:const ordered-units
   [:milli
    :second
    :minute
