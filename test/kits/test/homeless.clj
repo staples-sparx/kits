@@ -208,3 +208,7 @@
     (is (= "name-1" (name-maker)))
     (is (= "name-2" (name-maker)))))
 
+
+(deftest test-make-comparator
+  (is (= 1 ((make-comparator < :key-fn :id) {:name "foo" :id 2} {:name "bar" :id 1})))
+  (is (= -1 ((make-comparator < :key-fn :id) {:name "bar" :id 1} {:name "foo" :id 2}))))

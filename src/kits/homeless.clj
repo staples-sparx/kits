@@ -654,3 +654,15 @@ to return."
           ([x y z] (every? #(and (% x) (% y) (% z)) ps))
           ([x y z & args] (boolean (and (epn x y z)
                                      (every? #(every? % args) ps)))))))))
+
+(defn make-comparator
+  "Similar to clojure.core/comparator but optionally accepts a
+  `key-fn` arg which is applied to each arg of the `pred-fn`, e.g.,
+
+   ((make-comparator < :key-fn :id) {:name \"foo\" :id 2} {:name \"bar\" :id 1})
+   => 1"
+  [pred-fn & {:keys [key-fn]}]
+  (let [key-fn (or key-fn identity)]
+    (comparator
+     (fn [a b]
+       (pred-fn (key-fn a) (key-fn b))))))
