@@ -13,6 +13,7 @@
 (defn default-formatter [^Formatter formatter ^LogRecord record]
   (println-str (.format date-formatter (Date.))
                (str (.getLevel record))
+               (.getName (Thread/currentThread))
                (.formatMessage formatter record)))
 
 (def ^:dynamic *formatter* nil)
