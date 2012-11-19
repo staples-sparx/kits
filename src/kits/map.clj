@@ -142,39 +142,42 @@
     :else
     data))
 
+;; Alex - TODO - 6/23/12 (M/D/Y) - copied from contrib.
+;; Add some unit tests
+
 (defn deep-merge-with
   "Like merge-with, but merges maps recursively, applying the given fn
   only when there's a non-map at a particular level.
 
   (deep-merge-with + {:a {:b {:c 1 :d {:x 1 :y 2}} :e 3} :f 4}
-                     {:a {:b {:c 2 :d {:z 9} :z 3} :e 100}})
+		     {:a {:b {:c 2 :d {:z 9} :z 3} :e 100}})
   -> {:a {:b {:z 3, :c 3, :d {:z 9, :x 1, :y 2}}, :e 103}, :f 4}"
   [f & maps]
   (apply
     (fn m [& maps]
       (if (every? map? maps)
-        (apply merge-with m maps)
-        (apply f maps)))
+	(apply merge-with m maps)
+	(apply f maps)))
     maps))
 
 (defn map-difference [m1 m2]
   (let [ks1 (set (keys m1))
-        ks2 (set (keys m2))
-        ks1-ks2 (set/difference ks1 ks2)
-        ks2-ks1 (set/difference ks2 ks1)
-        ks1*ks2 (set/intersection ks1 ks2)]
+	ks2 (set (keys m2))
+	ks1-ks2 (set/difference ks1 ks2)
+	ks2-ks1 (set/difference ks2 ks1)
+	ks1*ks2 (set/intersection ks1 ks2)]
     (merge (select-keys m1 ks1-ks2)
       (select-keys m2 ks2-ks1)
       (select-keys m1
-        (remove (fn [k] (= (m1 k) (m2 k)))
-          ks1*ks2)))))
+	(remove (fn [k] (= (m1 k) (m2 k)))
+	  ks1*ks2)))))
 
 (defn keys-to-keywords [m & {:keys [underscore-to-hyphens?]
-                             :or {underscore-to-hyphens? true}}]
+			     :or {underscore-to-hyphens? true}}]
   (if-not (map? m)
     m
     (zipmap
       (if underscore-to-hyphens?
-        (map #(-> % (str/replace "_" "-") keyword) (keys m))
-        (map keyword (keys m)))
+	(map #(-> % (str/replace "_" "-") keyword) (keys m))
+	(map keyword (keys m)))
       (map #(keys-to-keywords % :underscore-to-hyphens? underscore-to-hyphens?) (vals m)))))
