@@ -51,6 +51,6 @@
   "Any calls to structured-logging info, warn or error macros
    will have the surrounding context added"
   [log-context-map & body]
-  `(binding [*log-context* (merge kits.structured-logging/*log-context* ~log-context-map)]
+  `(binding [kits.structured-logging/*log-context* (merge kits.structured-logging/*log-context* ~log-context-map)]
      ~@body))
 
