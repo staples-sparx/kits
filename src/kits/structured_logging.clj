@@ -47,7 +47,10 @@
 (defmacro error [log-map & {:keys [tags]}]
   `(structured-log :error ~tags ~*ns* (current-function-name) ~log-map))
 
-(defmacro in-context [log-context-map & body]
-  `(binding [*log-context* ~log-context-map]
+(defmacro in-context
+  "Any calls to structured-logging info, warn or error macros
+   will have the surrounding context added"
+  [log-context-map & body]
+  `(binding [*log-context* (merge kits.structured-logging/*log-context* ~log-context-map)]
      ~@body))
 

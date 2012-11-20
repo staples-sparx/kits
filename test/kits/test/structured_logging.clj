@@ -40,13 +40,14 @@
 
 (deftest test-error-log-level---and-contexts
   (mocking [log/log*]
-           (in-context {:request/id "foo123"}
-                       (error-calling-fn))
+           (in-context {:request/id "req123"}
+                       (in-context {:transaction/id "txn123"}
+                                   (error-calling-fn)))
            (verify-first-call-args-for-indices
             log/log*
             [1 2 3]
             :error
             nil
-            "{\"context\":{\"request/id\":\"foo123\"},\"tags\":[],\"level\":\"error\",\"function\":\"kits.test.structured-logging/error-calling-fn\",\"namespace\":\"kits.test.structured-logging\",\"data\":{\"c\":3,\"d\":4}}")))
+            "{\"context\":{\"transaction/id\":\"txn123\",\"request/id\":\"req123\"},\"tags\":[],\"level\":\"error\",\"function\":\"kits.test.structured-logging/error-calling-fn\",\"namespace\":\"kits.test.structured-logging\",\"data\":{\"c\":3,\"d\":4}}")))
 
 
