@@ -4,6 +4,8 @@
             [cheshire.custom :as cc]))
 
 
+(def ^:dynamic *log-context* nil)
+
 (defn unmangle
   "Given the name of a class that implements a Clojure function, returns the function's name in Clojure."
   [class-name]
@@ -24,11 +26,13 @@
 (cc/add-encoder Object cc/encode-str)
 
 (defn structured-log [log-level tags the-ns calling-fn-name log-map]
-  (log/logp log-level (cc/encode {:tags (vec tags)
-                                  :level log-level
-                                  :function calling-fn-name
-                                  :namespace (str the-ns)
-                                  :data log-map})))
+  (log/logp log-level (cc/encode (merge {:tags (vec tags)
+                                         :level log-level
+                                         :function calling-fn-name
+                                         :namespace (str the-ns)
+                                         :data log-map}
+                                        (when *log-context*
+                                          {:context *log-context*})))))
 
 
 ;; Use these for logging. The above are public because I can't
@@ -42,3 +46,8 @@
 
 (defmacro error [log-map & {:keys [tags]}]
   `(structured-log :error ~tags ~*ns* (current-function-name) ~log-map))
+
+(defmacro in-context [log-context-map & body]
+  `(binding [*log-context* ~log-context-map]
+     ~@body))
+

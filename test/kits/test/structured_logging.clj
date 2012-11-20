@@ -15,6 +15,9 @@
 (defn warn-calling-fn []
   (warn {:c 3 :d 4}))
 
+(defn error-calling-fn []
+  (error {:c 3 :d 4}))
+
 (deftest test-info-log-level
   (mocking [log/log*]
            (info-calling-fn)
@@ -33,4 +36,17 @@
             [1 2 3]
             :warn
             nil
-            "{\"tags\":[],\"level\":\"warn\",\"function\":\"kits.test.structured-logging/warn-calling-fn\",\"namespace\":\"kits.test.structured-logging\",\"data\":{\"c\":3,\"d\":4}}"))) 
+            "{\"tags\":[],\"level\":\"warn\",\"function\":\"kits.test.structured-logging/warn-calling-fn\",\"namespace\":\"kits.test.structured-logging\",\"data\":{\"c\":3,\"d\":4}}")))
+
+(deftest test-error-log-level---and-contexts
+  (mocking [log/log*]
+           (in-context {:request/id "foo123"}
+                       (error-calling-fn))
+           (verify-first-call-args-for-indices
+            log/log*
+            [1 2 3]
+            :error
+            nil
+            "{\"context\":{\"request/id\":\"foo123\"},\"tags\":[],\"level\":\"error\",\"function\":\"kits.test.structured-logging/error-calling-fn\",\"namespace\":\"kits.test.structured-logging\",\"data\":{\"c\":3,\"d\":4}}")))
+
+
