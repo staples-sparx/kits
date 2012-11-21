@@ -1,7 +1,7 @@
 (def common-deps '[[org.clojure/tools.logging "0.2.3"]
                    [cheshire "4.0.3"]])
 
-(defproject com.runa/kits "1.2.18"
+(defproject com.runa/kits "1.2.19"
   :description "Runa base libraries"
   :plugins [[s3-wagon-private "1.1.2"]
             [lein-swank "1.4.4"]]

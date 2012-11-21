@@ -1,7 +1,9 @@
 (ns ^{:doc "Logging with Clojure data"}
   kits.structured-logging
   (:require [clojure.tools.logging :as log]
-            [cheshire.custom :as cc]))
+            [cheshire.custom :as cc]
+            [kits.homeless :as hl]
+            [kits.timestamp :as ts]))
 
 
 (def ^:dynamic *log-context* nil)
@@ -53,4 +55,27 @@
   [log-context-map & body]
   `(binding [kits.structured-logging/*log-context* (merge kits.structured-logging/*log-context* ~log-context-map)]
      ~@body))
+
+(defmacro log-time [tag extra-info-map & body]
+  `(let [start-ms# (ts/now)]
+     (log/info {:start start-ms#
+                :start-pretty (ts/->str start-ms#)}
+               :tags [~(keyword (str (name tag) "-timing-start"))])
+
+     (let [result# (do ~@body)
+           millis-elapsed# (- (ts/now) start-ms#)]
+       (log/info {:start start-ms#
+                  :start-pretty (ts/->str start-ms#)
+                  :millis-elapsed millis-elapsed#
+                  :extra-info ~extra-info-map}
+                 :tags [~(keyword (str (name tag) "-timing-summary"))])
+       result#)))
+
+(defmacro logging-exceptions [& body]
+  `(try
+     ~@body
+     (catch Throwable e#
+       (log/error {:exception-message (str e#)
+                   :stacktrace (hl/stacktrace->str e#)})
+       (throw e#))))
 
