@@ -2,6 +2,12 @@
   (:require [clj-webdriver.taxi :as wd]))
 
 
+(defn- remove-td [s]
+  (->> (.trim ^String s)
+       (take (- (count s) 5))
+       (drop 4)
+       (apply str)))
+
 (defn extract-html-table
   "Extracts a table from a webpage, representing it as a vector of vectors."
   [tbody-id num-cols]

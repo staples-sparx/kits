@@ -3,6 +3,8 @@
         kits.core
         conjure.core))
 
+;; WARNING: Use of this namespace is deprecated.  Please stop depending on it whereever you can.
+
 (deftest test-parse-number
   (are [expected str default] (= expected (parse-number str default))
     nil nil nil

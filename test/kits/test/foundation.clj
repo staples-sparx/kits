@@ -5,6 +5,9 @@
    [clojure.string :as str]
    [kits.foundation :as f]))
 
+
+;; WARNING: Use of this namespace is deprecated.  Please stop depending on it whereever you can.
+
 (deftest raise
   (is (thrown? RuntimeException (f/raise "test exception")))
   )
