@@ -100,14 +100,6 @@
     [[:a 1 \x] [:b 2 \y]]   [[:a :b] [1 2] [\x \y]]
     [[:a :b] [1 2] [\x \y]] [[:a 1 \x] [:b 2 \y]])) ;; reversible!
 
-(deftest test-nested-sort
-  (are [input sorted] (= sorted (nested-sort input))
-    {} {}
-    [] []
-    nil nil
-    #{} #{}
-    [[3 2 1]] '((1 2 3))))
-
 (deftest test-indexed
   (is (= '([0 a] [1 b] [2 c] [3 d]) (indexed '(a b c d))))
   (is (= '() (indexed 'nil)))
@@ -211,4 +203,43 @@
 
 (deftest test-make-comparator
   (is (= 1 ((make-comparator < :key-fn :id) {:name "foo" :id 2} {:name "bar" :id 1})))
+  (is (= 0 ((make-comparator < :key-fn :id) {:name "foo" :id 2} {:name "foo" :id 2})))
   (is (= -1 ((make-comparator < :key-fn :id) {:name "bar" :id 1} {:name "foo" :id 2}))))
+
+(deftest test-div
+  (is (= 0.5 (div 1 2)))
+  (is (= 0.5 (div 1.0 2.0)))
+  (is (= nil (div 100 0))))
+
+(deftest test-parse-cents
+  (is (= nil (parse-cents nil)))
+  (is (= 199 (parse-cents "1.99")))
+  (is (= true (long? (parse-cents "1.99"))))
+
+  (is (= 199 (parse-cents "1.992")))
+  (is (thrown? Exception (parse-cents :not-a-string))))
+
+(deftest test-average
+  (is (= 3 (average 2 3 4)))
+  (is (= nil (average))))
+
+(deftest test-long?
+  (is (= true (long? (long 123))))
+  (is (= false (long? 1.99))))
+
+(deftest test-blank->nil
+  (is (= nil (blank->nil nil)))
+  (is (= nil (blank->nil "")))
+  (is (= "   " (blank->nil "   ")))
+  (is (= 222 (blank->nil 222))))
+
+(deftest test-ensure-long
+  (is (= (long 5) (ensure-long (int 5))))
+  (is (= true (long? (ensure-long (int 5)))))
+
+  (is (= (long 5) (ensure-long (long 5))))
+  (is (= true (long? (ensure-long (long 5)))))
+  
+  (is (= (long 5) (ensure-long "5")))
+  (is (= true (long? (ensure-long "5")))))
+

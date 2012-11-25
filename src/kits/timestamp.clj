@@ -24,6 +24,8 @@
   (and (string? x)
        (boolean (re-matches #"\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}" x))))
 
+(def ^:const american-date-format "MM/dd/yyyy")
+
 ;;;
 
 (defn now []

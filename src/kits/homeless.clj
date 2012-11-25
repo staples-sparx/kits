@@ -4,6 +4,7 @@
   (:require
    [clojure.pprint :as pprint]
    [clojure.string :as str]
+   [gui-diff.internal :as gd]
    [kits.map :as m])
   (:import
    java.util.concurrent.Future
@@ -476,31 +477,13 @@ to return."
   (let [f ^File (File. path)]
     (.mkdirs f)))
 
-(defn cents->dollar-str [cents]
-  (format "%.2f" (/ cents 100.0)))
-
 (defn max-by [sort-by-fn xs]
   (last (sort-by sort-by-fn xs)))
 
 (defn min-by [sort-by-fn xs]
   (first (sort-by sort-by-fn xs)))
 
-(defn nested-sort [x]
-  (cond (sequential? x)
-    (if (instance? java.lang.Comparable (first x))
-      (sort (map nested-sort x))
-      (map nested-sort x))
-
-    (map? x)
-    (if (and (not= {} x)
-          (instance? java.lang.Comparable (key (first x))))
-      (into (sorted-map) (m/map-values nested-sort x))
-      (m/map-values nested-sort x))
-
-    :else
-    x))
-
-(def p (comp pprint/pprint nested-sort))
+(def p (comp pprint/pprint gd/nested-sort))
 
 (defn only
   "Gives the sole element of a sequence"
@@ -560,21 +543,60 @@ to return."
       []
       (subvec v 0 (dec cnt)))))
 
-(defn clojure-version-as-double
-  "Clojure 1.2.1 => 1.21
-   Clojure 1.4.0 => 1.4"
-  []
-  (+ (:major *clojure-version*)
-    (/ (:minor *clojure-version*) 10)
-    (/ (:incremental *clojure-version*) 100)))
+(defn make-comparator
+  "Similar to clojure.core/comparator but optionally accepts a
+  `key-fn` arg which is applied to each arg of the `pred-fn`, e.g.,
 
-(defmacro when-1-2 [& body]
-  (when (= 2 (:minor *clojure-version*))
+   ((make-comparator < :key-fn :id) {:name \"foo\" :id 2} {:name \"bar\" :id 1})
+   => 1"
+  [pred-fn & {:keys [key-fn]}]
+  (let [key-fn (or key-fn identity)]
+    (comparator
+     (fn [a b]
+       (pred-fn (key-fn a) (key-fn b))))))
+
+(defn average
+  "If nums is empty returns nil.
+   This is optimized for speed to loop over the nums only once."
+  [& nums]
+  (let [[sum cnt] (reduce (fn [[sum* cnt*] n]
+                            [(+ sum* n) (inc cnt*)])
+                          [0 0]
+                          nums)]
+    (when-not (zero? cnt)
+      (/ sum cnt))))
+
+(defn long? [x]
+  (instance? Long x))
+
+(defn blank->nil [x]
+  (if (= x "")
+    nil
+    x))
+
+(defn div [x by-y]
+  (when-not (zero? by-y)
+    (double (/ x by-y))))
+
+(defn ensure-long [x]
+  (if (integer? x)
+    (long x)
+    (Long/parseLong x)))
+
+(defmacro when-before-clojure-1-3 [& body]
+  (when (and (= 1 (:major *clojure-version*))
+             (< (:minor *clojure-version*) 3))
     `(do ~@body)))
+
+(defmacro when-before-clojure-1-5 [& body]
+  (when (and (= 1 (:major *clojure-version*))
+             (< (:minor *clojure-version*) 5))
+    `(do ~@body)))
+
 
 ;;;; Copied out of Clojure 1.3+
 
-(when-1-2
+(when-before-clojure-1-3
   (defn some-fn
     "Takes a set of predicates and returns a function f that returns the first logical true value
     returned by one of its composing predicates against any of its arguments, else it returns
@@ -615,7 +637,7 @@ to return."
           ([x y z & args] (or (spn x y z)
                             (some #(some % args) ps))))))))
 
-(when-1-2
+(when-before-clojure-1-3
   (defn every-pred
     "Takes a set of predicates and returns a function f that returns true if all of its
     composing predicates return a logical true value against all of its arguments, else it returns
@@ -655,14 +677,45 @@ to return."
           ([x y z & args] (boolean (and (epn x y z)
                                      (every? #(every? % args) ps)))))))))
 
-(defn make-comparator
-  "Similar to clojure.core/comparator but optionally accepts a
-  `key-fn` arg which is applied to each arg of the `pred-fn`, e.g.,
 
-   ((make-comparator < :key-fn :id) {:name \"foo\" :id 2} {:name \"bar\" :id 1})
-   => 1"
-  [pred-fn & {:keys [key-fn]}]
-  (let [key-fn (or key-fn identity)]
-    (comparator
-     (fn [a b]
-       (pred-fn (key-fn a) (key-fn b))))))
+;;;; Copied out of Clojure 1.5+
+
+(when-before-clojure-1-5
+ (defmacro test->
+   "Takes an expression and a set of test/form pairs. Threads expr (via ->)
+   through each form for which the corresponding test expression (not threaded) is true."
+   {:added "1.5"}
+   [expr & clauses]
+   (assert (even? (count clauses)))
+   (let [g (gensym)
+         pstep (fn [[test step]] `(if ~test (-> ~g ~step) ~g))]
+     `(let [~g ~expr
+            ~@(interleave (repeat g) (map pstep (partition 2 clauses)))]
+        ~g))))
+
+(when-before-clojure-1-5
+ (defmacro when->
+   "When expr is logical true, threads it into the first form (via ->),
+   and when that result is logical true, through the next etc"
+   {:added "1.5"}
+   [expr & forms]
+   (let [g (gensym)
+         pstep (fn [step] `(when ~g (-> ~g ~step)))]
+     `(let [~g ~expr
+            ~@(interleave (repeat g) (map pstep forms))]
+        ~g))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn parse-cents
+  "Parses a string like '1.99', which represents a dollar value into a
+   Long representing the number of cents, in this case 199"
+  [s]
+  (when-> s
+          Double/parseDouble
+          (* 100)
+          long))
+
+(defn cents->dollar-str [cents]
+  (format "%.2f" (/ cents 100.0)))
+
