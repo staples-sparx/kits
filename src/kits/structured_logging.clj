@@ -58,24 +58,24 @@
 
 (defmacro log-time [tag extra-info-map & body]
   `(let [start-ms# (ts/now)]
-     (log/info {:start start-ms#
-                :start-pretty (ts/->str start-ms#)}
-               :tags [~(keyword (str (name tag) "-timing-start"))])
+     (info {:start start-ms#
+            :start-pretty (ts/->str start-ms#)}
+           :tags [~(keyword (str (name tag) "-timing-start"))])
 
      (let [result# (do ~@body)
            millis-elapsed# (- (ts/now) start-ms#)]
-       (log/info {:start start-ms#
-                  :start-pretty (ts/->str start-ms#)
-                  :millis-elapsed millis-elapsed#
-                  :extra-info ~extra-info-map}
-                 :tags [~(keyword (str (name tag) "-timing-summary"))])
+       (info {:start start-ms#
+              :start-pretty (ts/->str start-ms#)
+              :millis-elapsed millis-elapsed#
+              :extra-info ~extra-info-map}
+             :tags [~(keyword (str (name tag) "-timing-summary"))])
        result#)))
 
 (defmacro logging-exceptions [& body]
   `(try
      ~@body
      (catch Throwable e#
-       (log/error {:exception-message (str e#)
-                   :stacktrace (hl/stacktrace->str e#)})
+       (error {:exception-message (str e#)
+               :stacktrace (hl/stacktrace->str e#)})
        (throw e#))))
 

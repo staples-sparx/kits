@@ -50,4 +50,17 @@
             nil
             "{\"context\":{\"transaction/id\":\"txn123\",\"request/id\":\"req123\"},\"tags\":[],\"level\":\"error\",\"function\":\"kits.test.structured-logging/error-calling-fn\",\"namespace\":\"kits.test.structured-logging\",\"data\":{\"c\":3,\"d\":4}}")))
 
+(deftest test-logging-exceptions
+  (mocking [log/log*]
+           (try
+             (logging-exceptions (throw (Exception. "BOOM")))
+             (is (= false "If you see this, there is a test failure. An Exception should have been thrown."))
+             (catch Exception _))
+           (verify-first-call-args-for-indices
+            log/log*
+            [1 2]
+            :error
+            nil))) ;; wanted to test the string logged here, but with
+                   ;; the stacktrace in it, it is very hard to use equality on it
+
 
