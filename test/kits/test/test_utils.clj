@@ -1,5 +1,7 @@
 (ns kits.test.test-utils
-  (:use kits.test-utils))
+  (:use kits.test-utils
+        clojure.test))
 
-;;; Even though there are no tests in this file it still serves the purpose of
-;;; testing that the namespace can be loaded
+(deftest test-not-thrown?
+  (is (not-thrown? Exception (+ 1 2))))
+
