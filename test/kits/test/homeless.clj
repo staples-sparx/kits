@@ -243,3 +243,17 @@
   (is (= (long 5) (ensure-long "5")))
   (is (= true (long? (ensure-long "5")))))
 
+(deftest test-single-destructuring-arg->form+name
+  (stubbing [gensym 'unique-3]
+    (are [original form name] (let [[frm nm] (single-destructuring-arg->form+name original)]
+                                (and (= frm form)
+                                  (= nm name)))
+      'a                     'a                          'a
+      '[a b]                 '[a b :as unique-3]         'unique-3
+      '[a b & c :as all]     '[a b & c :as all]          'all
+      '{:keys [a b]}         '{:keys [a b] :as unique-3} 'unique-3
+      '{:keys [a b] :as all} '{:keys [a b] :as all}      'all
+      ;; pathological cases
+      '[a]                   '[a :as unique-3]           'unique-3
+      '[a :as b]             '[a :as b]                  'b)))
+
