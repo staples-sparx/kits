@@ -103,7 +103,21 @@
 
 (defn contains-path? [m path]
   (and (not (empty? path))
-    (not= ::not-found (get-in m path ::not-found))))
+       (not= ::not-found (get-in m path ::not-found))))
+
+(defn assoc-if-not-present
+  "Like assoc, except only adds the key-value pair if the key doesn't exist in the map"
+  ([m k v]
+     (if (contains? m k)
+       m
+       (assoc m k v)))
+  ([m k v & kvs]
+     (let [ret (if (contains? m k)
+                 m
+                 (assoc m k v))]
+       (if kvs
+         (recur ret (first kvs) (second kvs) (nnext kvs))
+         ret))))
 
 (defn update-in-if-present [m path f]
   (if (contains-path? m path)

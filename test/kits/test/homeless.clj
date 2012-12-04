@@ -1,5 +1,6 @@
 (ns kits.test.homeless
   (:use clojure.test
+        conjure.core
         kits.homeless))
 
 (deftest test-raise

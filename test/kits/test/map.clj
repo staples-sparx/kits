@@ -148,9 +148,15 @@
   (is (true? (contains-path? {:a 1} [:a])))
   (is (true? (contains-path? {:a {:b 1}} [:a :b]))))
 
+(deftest test-assoc-if-not-present
+  (is (= {:a 22} (assoc-if-not-present {:a 22} :a 99)))
+  (is (= {:a 99 :b 22} (assoc-if-not-present {:b 22} :a 99)))
+  (is (= {:a 99 :b 22 :c 88} (assoc-if-not-present {:b 22} :a 99 :c 88)))
+  (is (= {:a 99} (assoc-if-not-present nil :a 99)))
+  (is (= {:a 99} (assoc-if-not-present {} :a 99))))
 
 (deftest test-update-in-if-present
-  (are [result m] (= result (update-in-if-present m [:a :b]  (constantly 99)))
+  (are [result m] (= result (update-in-if-present m [:a :b] (constantly 99)))
 
     ;; result       inputted map
     {:a {:b 99}}    {:a {:b 1}}
