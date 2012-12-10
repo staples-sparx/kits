@@ -258,12 +258,3 @@
       '[a]                   '[a :as unique-3]           'unique-3
       '[a :as b]             '[a :as b]                  'b)))
 
-(defn foo [] ;; NOTE: it isn't :dynamic
-  5)
-
-(deftest test-with-altered-var-root
-  (is (= 5 (foo)))
-  (with-altered-var-root [#'foo (constantly 9)]
-    (is (= 9 (foo))))
-  (is (= 5 (foo))))
-

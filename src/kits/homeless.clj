@@ -588,6 +588,11 @@ to return."
              (< (:minor *clojure-version*) 3))
     `(do ~@body)))
 
+(defmacro when-after-clojure-1-2 [& body]
+  (when (and (< 0 (:major *clojure-version*))
+             (> (:minor *clojure-version*) 2))
+    `(do ~@body)))
+
 (defmacro when-before-clojure-1-5 [& body]
   (when (and (= 1 (:major *clojure-version*))
              (< (:minor *clojure-version*) 5))
@@ -740,15 +745,4 @@ to return."
 
       :else
       [arg-form arg-form])))
-
-(defmacro with-altered-var-root
-  "Swap a var then put it back after leaving the context.
-   Useful for moving Furtive to 1.3+."
-  [[^clojure.lang.Var the-var new-value] & body]
-  `(let [old-value# (deref ~the-var)]
-     (try
-       (alter-var-root ~the-var (constantly ~new-value))
-       ~@body
-       (finally
-        (alter-var-root ~the-var (constantly old-value#))))))
 
