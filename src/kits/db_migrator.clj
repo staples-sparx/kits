@@ -25,7 +25,10 @@
 (defn migrate
   "Takes a db connection map and a sequence of migrations, like such:
      [[\"Add permalink field\" (fn [] (do-commands \"ALTER TABLE foo ADD INDEX ...\" ))]
-      [...]]"
+      [...]]
+   It executes only those schema migration functions which have not already been executed,
+   and marks their names in a table called `migrations`. Creates the `migrations`
+   table if it does not exist.`"
   [db migrations]
   (validate-migrations migrations)
   (jdbc/with-connection db
