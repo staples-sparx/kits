@@ -6,7 +6,8 @@
             [kits.timestamp :as ts]))
 
 
-(def ^:dynamic ^{:doc "Used internally by kits.structured-logging, to maintain the current logging context."}
+(def ^{:dynamic true
+       :doc "Used internally by kits.structured-logging, to maintain the current logging context."}
   *log-context* nil)
 
 (defn unmangle
@@ -18,11 +19,10 @@
 (defmacro current-function-name
   "Returns the name of the current Clojure function."
   []
-  `(-> (Throwable.)
-       .getStackTrace
-       first
-       .getClassName
-       unmangle))
+  `(let [^StackTraceElement element# (-> (Throwable.)
+                                        .getStackTrace
+                                        first)]
+     (unmangle (.getClassName element#))))
 
 ;; logs assorted Objects sanely: good for logging functions or
 ;; assorted objects
