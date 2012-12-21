@@ -4,7 +4,7 @@
                    [org.clojure/java.jdbc "0.2.3"]
                    [org.clojure/tools.logging "0.2.4"]])
 
-(defproject com.runa/kits "1.2.28"
+(defproject com.runa/kits "1.2.29"
   :description "Runa base libraries"
   :plugins [[s3-wagon-private "1.1.2"]
             [lein-swank "1.4.4"]]
