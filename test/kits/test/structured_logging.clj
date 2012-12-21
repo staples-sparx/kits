@@ -5,6 +5,9 @@
   (:require [clojure.tools.logging :as log]
             [kits.core :as c]))
 
+(deftest all-public-vars-have-docstrings
+  (is (= [] (remove (comp :doc meta) (vals (ns-publics 'kits.structured-logging))))))
+
 (deftype HasNoDefaultSerializer []
   Object
   (toString [_] "<HasNoDefaultSerializer>"))
@@ -36,7 +39,7 @@
             [1 2 3]
             :warn
             nil
-            "{\"tags\":[],\"level\":\"warn\",\"function\":\"kits.test.structured-logging/warn-calling-fn\",\"namespace\":\"kits.test.structured-logging\",\"data\":{\"c\":3,\"d\":4}}")))
+            "{\"level\":\"warn\",\"function\":\"kits.test.structured-logging/warn-calling-fn\",\"namespace\":\"kits.test.structured-logging\",\"data\":{\"c\":3,\"d\":4}}")))
 
 (deftest test-error-log-level---and-contexts
   (mocking [log/log*]
@@ -48,7 +51,7 @@
             [1 2 3]
             :error
             nil
-            "{\"context\":{\"transaction/id\":\"txn123\",\"request/id\":\"req123\"},\"tags\":[],\"level\":\"error\",\"function\":\"kits.test.structured-logging/error-calling-fn\",\"namespace\":\"kits.test.structured-logging\",\"data\":{\"c\":3,\"d\":4}}")))
+            "{\"context\":{\"transaction/id\":\"txn123\",\"request/id\":\"req123\"},\"level\":\"error\",\"function\":\"kits.test.structured-logging/error-calling-fn\",\"namespace\":\"kits.test.structured-logging\",\"data\":{\"c\":3,\"d\":4}}")))
 
 (deftest test-logging-exceptions
   (mocking [log/log*]
