@@ -67,3 +67,7 @@
                    ;; the stacktrace in it, it is very hard to use equality on it
 
 
+(deftest test-log-time
+  (mocking [log/log*] ;; this is here to suppress console output
+           (is (= 2 (log-time :test {}
+                              (inc 1))))))

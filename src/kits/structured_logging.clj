@@ -72,15 +72,15 @@
   (let [start-ms (ts/now)]
     (info {:start start-ms
            :start-pretty (ts/->str start-ms)}
-          :tags [~(keyword (str (name tag) "-timing-start"))])
+          :tags [(keyword (str (name tag) "-timing-start"))])
 
     (let [result (body-fn)
           millis-elapsed (- (ts/now) start-ms)]
       (info {:start start-ms
              :start-pretty (ts/->str start-ms)
              :millis-elapsed millis-elapsed
-             :extra-info ~extra-info-map}
-            :tags [~(keyword (str (name tag) "-timing-summary"))])
+             :extra-info extra-info-map}
+            :tags [(keyword (str (name tag) "-timing-summary"))])
       result)))
 
 (defmacro log-time
