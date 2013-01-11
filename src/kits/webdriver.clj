@@ -40,7 +40,7 @@
                         (catch Exception ex
                           :webdriver/table-exhausted)))]
      (->> (for [row (iterate inc 1)
-                col (range 1 (+ num-cols 1))]
+                col (range 1 (inc num-cols))]
             (table-elem row col))
           (take-while #(not= % :webdriver/table-exhausted))
           (partition num-cols)

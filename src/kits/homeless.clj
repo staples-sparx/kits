@@ -513,7 +513,7 @@ to return."
     `(do ~@body)))
 
 (defmacro when-after-clojure-1-2 [& body]
-  (when (and (< 0 (:major *clojure-version*))
+  (when (and (pos? (:major *clojure-version*))
              (> (:minor *clojure-version*) 2))
     `(do ~@body)))
 
