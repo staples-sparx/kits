@@ -1,9 +1,7 @@
 (ns kits.test.foundation
-  (:use
-   clojure.test)
-  (:require
-   [clojure.string :as str]
-   [kits.foundation :as f]))
+  (:use [clojure.test :only [are deftest is]])
+  (:require [clojure.string :as str]
+            [kits.foundation :as f]))
 
 
 ;; WARNING: Use of this namespace is deprecated.  Please stop depending on it whereever you can.

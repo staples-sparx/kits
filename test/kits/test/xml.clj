@@ -1,6 +1,6 @@
 (ns kits.test.xml
-  (:use clojure.test
-        kits.xml))
+  (:use [clojure.test :only [deftest is]]
+        [kits.xml :only [content-of-node-with-tag parse]]))
 
 (deftest test-content-of-node-with-tag
   (is (= ["Gomez"]

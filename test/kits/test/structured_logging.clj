@@ -1,9 +1,12 @@
 (ns kits.test.structured-logging
-  (:use clojure.test
-        conjure.core
-        kits.structured-logging)
-  (:require [clojure.tools.logging :as log]
-            [kits.core :as c]))
+  (:require [clojure.tools.logging :as log])
+  (:use [clojure.test :only [deftest is]]
+        [clojure.tools.logging :only [error info warn]]
+        [conjure.core :only [mocking
+                             verify-first-call-args-for-indices]]
+        [kits.structured-logging :only [in-context
+                                        log-time
+                                        logging-exceptions]]))
 
 (deftest all-public-vars-have-docstrings
   (is (= [] (remove (comp :doc meta) (vals (ns-publics 'kits.structured-logging))))))

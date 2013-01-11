@@ -1,8 +1,7 @@
 (ns kits.db-migrator
   "SQL schema migration library"
-  (:require [clojure.java.jdbc :as jdbc]
-            [clojure.java.io :as io])
-  (:import java.sql.Timestamp))
+  (:require [clojure.java.jdbc :as jdbc])
+  (:import (java.sql Timestamp)))
 
 
 (defn- run-and-record [[migration-name migration-fn]]

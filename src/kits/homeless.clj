@@ -1,16 +1,12 @@
 (ns kits.homeless
   "Unfortunate, uncategorized utility functions and macros. Please
    help one of these poor souls find a home :("
-  (:require
-   [clojure.pprint :as pprint]
-   [clojure.string :as str]
-   [gui-diff.internal :as gd]
-   [kits.map :as m])
-  (:import
-   java.util.concurrent.Future
-   java.util.concurrent.TimeoutException
-   java.io.File
-   java.net.MalformedURLException))
+  (:require [clojure.pprint :as pprint]
+            [clojure.string :as str]
+            [gui-diff.internal :as gd])
+  (:import (java.io File)
+           (java.net MalformedURLException)
+           (java.util.concurrent Future TimeoutException)))
 
 (defmacro ignore-exceptions
   "Evaluate body, but return nil if any exceptions are thrown."

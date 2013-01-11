@@ -1,10 +1,8 @@
 (ns kits.core
-  (:use clojure.pprint)
   (:require [clojure.string :as str]
-            [clojure.java.shell :as sh]
-            [kits.foundation :as f]
             [kits.map :as m])
-  (:import [java.io File FileOutputStream]))
+  (:use [clojure.pprint :only [pprint]])
+  (:import (java.io File)))
 
 
 (defn raise [& x]

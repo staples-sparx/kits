@@ -1,10 +1,7 @@
 (ns kits.foundation
-  (:require
-   [clojure.pprint :as pprint]
-   [clojure.string :as str])
-  (:import
-   java.util.concurrent.Future
-   java.util.concurrent.TimeoutException))
+  (:require [clojure.pprint :as pprint]
+            [clojure.string :as str])
+  (:import (java.util.concurrent Future TimeoutException)))
 
 (defn raise
   "Raise a RuntimeException with specified message."
