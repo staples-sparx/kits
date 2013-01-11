@@ -49,7 +49,7 @@
   `(doseq [dispatch-val# ~dispatch-values]
      (defmethod ~name dispatch-val# ~@body)))
 
-(defn- time-elapsed*
+(defn time-elapsed*
   "Returns time elapsed in millis."
   [f]
   (let [start (System/nanoTime)]
