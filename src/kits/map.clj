@@ -195,3 +195,10 @@
        (map #(-> % (str/replace "_" "-") keyword) (keys m))
        (map keyword (keys m)))
      (map #(keys-to-keywords % :underscore-to-hyphens? underscore-to-hyphens?) (vals m)))))
+
+(defn rmerge
+  "Recursive merge of the provided maps."
+  [& maps]
+  (if (every? map? maps)
+    (apply merge-with rmerge maps)
+    (last maps)))

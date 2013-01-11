@@ -432,13 +432,6 @@ to return."
       (catch Exception ex
         nil))))
 
-(defn rmerge
-  "Recursive merge of the provided maps."
-  [& maps]
-  (if (every? map? maps)
-    (apply merge-with rmerge maps)
-    (last maps)))
-
 (defn print-error
   "Println to *err*"
   [& args]

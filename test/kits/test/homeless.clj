@@ -81,11 +81,6 @@
   (is (= nil (parse-url "")))
   (is (= nil (parse-url nil))))
 
-(deftest test-rmerge
-  (is (= {:a 1 :b 2} (rmerge {:b 2} {:a 1})))
-  (is (= {:a {:x {:y {:z 3}}} :b 2} (rmerge {:a {:x 1} :b 2} {:a {:x {:y {:z 3}}}})))
-  (is (= {:a {:x {:y {:z 3}}} :b 2} (rmerge {:a {:x {:y {:z 1}}} :b 2} {:a {:x {:y {:z 3}}}}))))
-
 (deftest test-url?
   (is (false? (url? "malformedhttp:// url")))
   (is (false? (url? "")))
