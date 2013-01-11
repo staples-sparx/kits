@@ -1,6 +1,6 @@
 (ns kits.match
-  (:require [kits.string :as str]
-            [kits.homeless :as hl]))
+  (:require [kits.seq :as sq]
+            [kits.string :as str]))
 
 (defn- create-wildcard-regex [^String regex]
   (re-pattern
@@ -10,20 +10,20 @@
   (<= 0 (.indexOf m "*")))
 
 (defn- segregate-and-compile-matches [matches]
-  (let [[wildcards exacts] (hl/segregate wildcard-match? matches)]
+  (let [[wildcards exacts] (sq/segregate wildcard-match? matches)]
     [(vec (map create-wildcard-regex wildcards)) (set exacts)]))
 
 (defn regex-matches? [^String src matches]
   (cond
     (string? src) (let [src (.toLowerCase src)]
-                    (hl/any? #(re-find % src) matches))
-    (coll? src) (hl/any? #(regex-matches? % matches) src)
+                    (sq/any? #(re-find % src) matches))
+    (coll? src) (sq/any? #(regex-matches? % matches) src)
     :else false))
 
 (defn exact-matches? [src match-set]
   (cond
     (string? src) (contains? match-set src)
-    (coll? src) (hl/any? #(exact-matches? % match-set) src)
+    (coll? src) (sq/any? #(exact-matches? % match-set) src)
     :else false))
 
 ;;; matches? has been redefined as a macro in order to improve the

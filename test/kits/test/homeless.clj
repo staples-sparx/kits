@@ -24,18 +24,6 @@
     10.0 "10.00" 0
     10 10 0))
 
-(deftest test-segregate
-  (is (= [nil nil] (segregate string? nil)))
-  
-  (is (= [["a" "b"] [1 2]] (segregate string? [1 "a" "b" 2])))
-  (is (= [[] []] (segregate string? [])))
-
-  (is (= ['("b" "a") '(2 1)] (segregate string? '(1 "a" "b" 2))))
-  (is (= ['() '()] (segregate string? '())))
-
-  (is (= [#{"a" "b"} #{1 2}] (segregate string? #{1 "a" "b" 2})))
-  (is (= [#{} #{}] (segregate string? #{}))))
-
 (deftest test-boolean?
   (are [x bool?] (= bool? (boolean? x))
     false true
@@ -65,11 +53,6 @@
   (is (base-array? (to-array [:a 3])))
   (is (false? (base-array? '(1 2 2 :c :d :e)))))
 
-(deftest test-seq-to-map
-  (is (= {:a 2, :b 4, :c 5} (seq-to-map '([:a 2] [:b 4] [:c 5]))))
-  (is (nil? (seq-to-map nil)))
-  (is (nil? (seq-to-map '()))))
-
 (deftest test-ipv4-dotted-to-integer
   (is (= (ipv4-dotted-to-integer "127.0.0.1") 2130706433)))
 
@@ -86,20 +69,6 @@
   (is (false? (url? "")))
   (is (false? (url? nil)))
   (is (url? "http://www.runa.com/")))
-
-(deftest test-zip
-  (are [lists result] (= (zip lists) result)
-    nil []
-    []  []
-    [[:a 1 \x]]             [[:a] [1] [\x]]
-    [[:a] [1] [\x]]         [[:a 1 \x]] ;; reversible!
-    [[:a 1 \x] [:b 2 \y]]   [[:a :b] [1 2] [\x \y]]
-    [[:a :b] [1 2] [\x \y]] [[:a 1 \x] [:b 2 \y]])) ;; reversible!
-
-(deftest test-indexed
-  (is (= '([0 a] [1 b] [2 c] [3 d]) (indexed '(a b c d))))
-  (is (= '() (indexed 'nil)))
-  (is (= '() (indexed '()))))
 
 (deftest test-periodic-fn
   (let [msgs-logged (atom [])
@@ -122,21 +91,6 @@
 
         (log-every-other "4th")
         (is (= ["another message-2" "another message-2" "4th-4" "4th-4"] @msgs-logged))))))
-
-(deftest test-only
-  (testing "when not 1 item"
-    (is (thrown-with-msg? RuntimeException #"should have precisely one item, but had 0" (only [])))
-    (is (= 1 (only [1])))
-    (is (thrown-with-msg? RuntimeException #"should have precisely one item, but had at least 2" (only [1 2])))
-    (is (thrown-with-msg? RuntimeException #"should have precisely one item, but had at least 2" (only (repeat 5))))))
-
-(deftest test-ensure-sequential
-  (are [result x] (= result (ensure-sequential x))
-    [nil]     nil
-    [{}]      {}
-    [{:a 1}]  {:a 1}
-    [1]       1
-    [1 2 3]   [1 2 3]))
 
 (deftest test-timestamp?
   (are [n result] (= (timestamp? n) result)
@@ -184,10 +138,6 @@
 (deftest test-with-retries
   (is (= :foo (with-retries 3 (throws-on-1st-or-2nd-call))))
   (is (thrown? Exception (with-retries 3 (raise Exception "BLAMMO!")))))
-
-(deftest test-any?
-  (is (= true (any? #{'a 'b} ['a])))
-  (is (= false (any? #{'a 'b} ['c]))))
 
 (let [name-maker (incremental-name-with-prefix "name")]
   

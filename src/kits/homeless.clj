@@ -180,18 +180,6 @@ to return."
   [timeout & body]
   `(call-with-timeout ~timeout (bound-fn [] ~@body)))
 
-(defn segregate
-  "Splits the collection into two collections of the same type. The first
-   collection contains all elements that pass the predicate and the second
-   collection all the items that fail the predicate."
-  [pred coll]
-  (reduce (fn [[passes fails] elem]
-            (if (pred elem)
-              [(conj passes elem) fails]
-              [passes (conj fails elem)]))
-          [(empty coll) (empty coll)]
-          coll))
-
 (defmacro periodic-fn
   "creates a fn that executes 'body' every 'period' calls"
   [args [var period] & body]
@@ -349,13 +337,6 @@ to return."
          (report# true)
          val#))))
 
-(defn seq-to-map
-  "Transforms a seq of ([key1 value1] [key2 value2]) pairs to a map
-  {key1 value1 key2 value2}. For empty and nil values, returns nil."
-  [coll]
-  (when (seq coll)
-    (into {} coll)))
-
 (defn ipv4-dotted-to-integer
   "Convert a dotted notation IPv4 address string to a 32-bit integer.
 
@@ -453,54 +434,19 @@ to return."
 (defn stacktrace->str [e]
   (map #(str % "\n") (.getStackTrace ^Exception e)))
 
-(defn zip
-  "[[:a 1] [:b 2] [:c 3]] ;=> [[:a :b :c] [1 2 3]]"
-  [seqs]
-  (if (empty? seqs)
-    []
-    (apply map list seqs)))
-
 (defn mkdir-p
   "Create directory and parent directories if any"
   [^String path]
   (let [f ^File (File. path)]
     (.mkdirs f)))
 
-(defn max-by [sort-by-fn xs]
-  (last (sort-by sort-by-fn xs)))
-
-(defn min-by [sort-by-fn xs]
-  (first (sort-by sort-by-fn xs)))
-
 (def p (comp pprint/pprint gd/nested-sort))
-
-(defn only
-  "Gives the sole element of a sequence"
-  [coll]
-  (if (seq (rest coll))
-    (throw (RuntimeException. "should have precisely one item, but had at least 2"))
-    (if (seq coll)
-      (first coll)
-      (throw (RuntimeException. "should have precisely one item, but had 0")))))
-
-(defn indexed
-  "Returns a lazy sequence of [index, item] pairs, where items come
-  from 's' and indexes count up from zero.
-
-  (indexed '(a b c d))  =>  ([0 a] [1 b] [2 c] [3 d])"
-  [s]
-  (map vector (iterate inc 0) s))
 
 (defn incremental-name-with-prefix [prefix]
   (let [cnt (atom -1)]
     (fn []
       (swap! cnt inc)
       (str prefix "-" @cnt))))
-
-(defn ensure-sequential [x]
-  (if (sequential? x)
-    x
-    [x]))
 
 (defn retrying-fn
   "Take a no-arg function f and max times it should be called, returns a new no-arg
@@ -520,17 +466,6 @@ to return."
 (defmacro with-retries [retry-count & body]
   `((retrying-fn
       (fn [] ~@body) ~retry-count)))
-
-(defn any? [pred coll]
-  (boolean (some pred coll)))
-
-(defn butlastv
-  "Like (vec (butlast v))' but efficient for vectors"
-  [v]
-  (let [cnt (count v)]
-    (if (< cnt 2)
-      []
-      (subvec v 0 (dec cnt)))))
 
 (defn make-comparator
   "Similar to clojure.core/comparator but optionally accepts a
