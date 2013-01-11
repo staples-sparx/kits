@@ -51,7 +51,7 @@
 
 (defn is-in? [^String item elements]
   (if item
-    (not (nil? (some #{(.toUpperCase item)} (map #(.toUpperCase %) elements))))
+    (not (nil? (some #{(.toUpperCase item)} (map #(.toUpperCase ^String %) elements))))
     false))
 
 (def is-not-in? (complement is-in?))
