@@ -43,6 +43,12 @@
                    ['cond]
                    (partition 2 clauses))))))
 
+(defmacro def-many-methods
+  "Creates multiple multimethods with different dispatch values, but the same implementation."
+  [name dispatch-values & body]
+  `(doseq [dispatch-val# ~dispatch-values]
+     (defmethod ~name dispatch-val# ~@body)))
+
 (defn- time-elapsed*
   "Returns time elapsed in millis."
   [f]
@@ -707,3 +713,18 @@ to return."
       :else
       [arg-form arg-form])))
 
+(defn rand-int* [min max]
+  (+ min (rand-int (- max min))))
+
+(defn rand-long [n]
+  (long (rand-int n)))
+
+(defn rand-long* [min max]
+  (+ min (rand-long (- max min))))
+
+(defn random-sleep
+  "Sleep between 'min-millis' and 'max-millis' milliseconds"
+  [min-millis max-millis]
+  (let [range (- max-millis min-millis)
+        millis (+ min-millis (rand-int range))]
+    (safe-sleep millis)))

@@ -1,4 +1,5 @@
-(ns kits.seq)
+(ns kits.seq
+  (:require [clojure.walk :as walk]))
 
 
 (defn any? [pred coll]
@@ -39,6 +40,19 @@
     (if (seq coll)
       (first coll)
       (throw (RuntimeException. "should have precisely one item, but had 0")))))
+
+(defn rand-take [coll n]
+  (cond (nil? coll)
+        []
+
+        (> n (count coll))
+        (shuffle coll)
+
+        :else
+        (take n (shuffle coll))))
+
+(defn realize [x]
+  (walk/postwalk identity x))
 
 (defn segregate
   "Splits the collection into two collections of the same type. The first
