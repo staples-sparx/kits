@@ -17,7 +17,7 @@
                      [jonase/eastwood "0.0.2"]
                      [org.clojars.runa/conjure "2.0.0"]
                      [lein-multi "1.1.0"]
-                     [org.clojars.alexbaranosky/slamhound "1.3.0-SNAPSHOT"]]
+                     [slamhound "1.3.1"]]
   :multi-deps {"1.2.0" [[org.clojure/clojure "1.2.0"]]
                "1.2.1" [[org.clojure/clojure "1.2.1"]]
                "1.3.0" [[org.clojure/clojure "1.3.0"]]

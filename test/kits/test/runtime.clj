@@ -1,5 +1,5 @@
 (ns kits.test.runtime
-  (:use [clojure.test :only [deftest is]])
+  (:use clojure.test)
   (:require [kits.runtime :as r]))
 
 (deftest smoke-test

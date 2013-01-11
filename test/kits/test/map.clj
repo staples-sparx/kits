@@ -1,19 +1,6 @@
 (ns kits.test.map
-  (:use [clojure.test :only [are deftest is testing]]
-        [kits.map :only [assoc-if-not-present contains-path?
-                         deep-merge-with dissoc-in filter-by-key
-                         filter-by-val filter-map invert-map
-                         keys-to-keywords
-                         keyword->hyphenated-keyword
-                         keyword->hyphenated-string
-                         keyword->underscored-keyword
-                         keyword->underscored-string
-                         keywords->underscored-keywords
-                         keywords->underscored-strings
-                         map-difference map-keys map-over-map
-                         map-values nested-dissoc paths
-                         select-paths subpath? subpaths
-                         update-in-if-present]]))
+  (:use clojure.test
+        kits.map))
 
 (deftest test-keyword-munging
   (is (= "a-foo-1" (keyword->hyphenated-string :a_foo_1)))

@@ -1,5 +1,5 @@
 (ns kits.test.foundation
-  (:use [clojure.test :only [are deftest is]])
+  (:use clojure.test)
   (:require [clojure.string :as str]
             [kits.foundation :as f]))
 

@@ -1,12 +1,6 @@
 (ns kits.test.timestamp
-  (:use [clojure.test :only [are deftest is testing]]
-        [kits.timestamp :only [->str
-                               ->timestamp
-                               ->timestamp-at-day-end
-                               ->timestamp-at-day-start
-                               add
-                               subtract
-                               timestamp-ranges truncate]]))
+  (:use clojure.test
+        kits.timestamp))
 
 
 (deftest test->timestamp-at-day-end

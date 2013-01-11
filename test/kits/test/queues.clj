@@ -1,5 +1,5 @@
 (ns kits.test.queues
-  (:use [clojure.test :only [deftest is]])
+  (:use clojure.test)
   (:require [kits.homeless :as kits]
             [kits.queues :as q]))
 
