@@ -3,6 +3,13 @@
         kits.string))
 
 
+(deftest test-keyword-munging
+  (is (= "a-foo-1" (keyword->hyphenated-string :a_foo_1)))
+  (is (= :a-foo-1 (keyword->hyphenated-keyword :a_foo_1)))
+  (is (= "a_foo_1" (keyword->underscored-string :a-foo-1)))
+  (is (= :a_foo_1 (keyword->underscored-keyword :a-foo-1))))
+
+
 (deftest ^:unit test-decode-string
   (are [expected s] (= expected (decode-string s))
        

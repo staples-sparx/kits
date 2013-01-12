@@ -1,37 +1,12 @@
-(ns kits.map
+(ns ^{:doc "Functions that operate on Clojure maps."}
+  kits.map
   (:require [clojure.set :as set]
             [clojure.string :as str]
-            [clojure.walk :as w]))
+            [clojure.walk :as w]
+            [kits.string :as kstr]))
 
-(defn transform-keywords [f m]
-  (w/postwalk #(if (keyword? %)
-               (f %)
-               %)
-    m))
 
-(defn keyword->hyphenated-string [k]
-  (-> k name (.replace "_" "-")))
-
-(defn keyword->hyphenated-keyword [k]
-  (-> k keyword->hyphenated-string keyword))
-
-(defn keyword->underscored-string [k]
-  (-> k name (.replace "-" "_")))
-
-(defn keyword->underscored-keyword [k]
-  (-> k keyword->underscored-string keyword))
-
-(defn keywords->hyphenated-keywords [m]
-  (transform-keywords keyword->hyphenated-keyword m))
-
-(defn keywords->underscored-strings [m]
-  (transform-keywords keyword->underscored-string m))
-
-(defn keywords->underscored-keywords [m]
-  (transform-keywords keyword->underscored-keyword m))
-
-(defn invert-map [m]
-  (zipmap (vals m) (keys m)))
+;;; Mapping and Filtering Over Maps
 
 (defn filter-map
   "given a predicate like (fn [k v] ...) returns a map with only entries that match it."
@@ -39,7 +14,7 @@
   (into {}
     (filter (fn [[k v]] (pred k v))
       m)))
-;;;;;;
+
 (defn filter-by-key
   "given a predicate like (fn [k] ...) returns a map with only entries with keys that match it."
   [pred m]
@@ -75,35 +50,8 @@
     (keys m)
     (map f (vals m))))
 
-(defn paths
-  "Return the paths of the leaves in the map"
-  [m]
-  (when m
-    (letfn [(key-paths [prefix m]
-              (if (map? m)
-                (into {} (map (fn [[k v]] (key-paths (conj prefix k) v)) m))
-                {prefix m}))]
-      (keys (key-paths [] m)))))
 
-(defn subpaths [path]
-  (rest (reductions conj [] path)))
-
-(defn subpath?
-  "true if 'path' is a child of 'root-path'"
-  [root-path path]
-  (= root-path
-    (take (count root-path) path)))
-
-(defn select-paths [m & paths]
-  (reduce
-    (fn [result path]
-      (assoc-in result path (get-in m path)))
-    {}
-    paths))
-
-(defn contains-path? [m path]
-  (and (not (empty? path))
-       (not= ::not-found (get-in m path ::not-found))))
+;;; Everything Else
 
 (defn assoc-if-not-present
   "Like assoc, except only adds the key-value pair if the key doesn't exist in the map"
@@ -119,10 +67,9 @@
          (recur ret (first kvs) (second kvs) (nnext kvs))
          ret))))
 
-(defn update-in-if-present [m path f]
-  (if (contains-path? m path)
-    (update-in m path f)
-    m))
+(defn contains-path? [m path]
+  (and (not (empty? path))
+       (not= ::not-found (get-in m path ::not-found))))
 
 (defn dissoc-in
   "Dissociates an entry from a nested associative structure returning a new
@@ -139,22 +86,6 @@
       (dissoc m k)))
   ([m path & more-paths]
     (apply dissoc-in (dissoc-in m path) more-paths)))
-
-(defn nested-dissoc
-  "dissoc keys from every map at every level of a nested data structure"
-  [data & ks]
-  (cond (map? data)
-    (let [map-minus-ks (apply dissoc data ks)]
-      (map-values #(apply nested-dissoc % ks) map-minus-ks))
-
-    (set? data)
-    (into (empty data) (map #(apply nested-dissoc % ks) data))
-
-    (sequential? data)
-    (map #(apply nested-dissoc % ks) data)
-
-    :else
-    data))
 
 ;; Alex - TODO - 6/23/12 (M/D/Y) - copied from contrib.
 ;; Add some unit tests
@@ -174,6 +105,19 @@
        (apply f maps)))
    maps))
 
+(defn invert-map [m]
+  (zipmap (vals m) (keys m)))
+
+(defn keys-to-keywords [m & {:keys [underscore-to-hyphens?]
+                             :or {underscore-to-hyphens? true}}]
+  (if-not (map? m)
+    m
+    (zipmap
+     (if underscore-to-hyphens?
+       (map #(-> % (str/replace "_" "-") keyword) (keys m))
+       (map keyword (keys m)))
+     (map #(keys-to-keywords % :underscore-to-hyphens? underscore-to-hyphens?) (vals m)))))
+
 (defn map-difference [m1 m2]
   (let [ks1 (set (keys m1))
         ks2 (set (keys m2))
@@ -186,15 +130,31 @@
                         (remove (fn [k] (= (m1 k) (m2 k)))
                                 ks1*ks2)))))
 
-(defn keys-to-keywords [m & {:keys [underscore-to-hyphens?]
-                             :or {underscore-to-hyphens? true}}]
-  (if-not (map? m)
-    m
-    (zipmap
-     (if underscore-to-hyphens?
-       (map #(-> % (str/replace "_" "-") keyword) (keys m))
-       (map keyword (keys m)))
-     (map #(keys-to-keywords % :underscore-to-hyphens? underscore-to-hyphens?) (vals m)))))
+(defn nested-dissoc
+  "dissoc keys from every map at every level of a nested data structure"
+  [data & ks]
+  (cond (map? data)
+    (let [map-minus-ks (apply dissoc data ks)]
+      (map-values #(apply nested-dissoc % ks) map-minus-ks))
+
+    (set? data)
+    (into (empty data) (map #(apply nested-dissoc % ks) data))
+
+    (sequential? data)
+    (map #(apply nested-dissoc % ks) data)
+
+    :else
+    data))
+
+(defn paths
+  "Return the paths of the leaves in the map"
+  [m]
+  (when m
+    (letfn [(key-paths [prefix m]
+              (if (map? m)
+                (into {} (map (fn [[k v]] (key-paths (conj prefix k) v)) m))
+                {prefix m}))]
+      (keys (key-paths [] m)))))
 
 (defn rmerge
   "Recursive merge of the provided maps."
@@ -202,3 +162,39 @@
   (if (every? map? maps)
     (apply merge-with rmerge maps)
     (last maps)))
+
+(defn select-paths [m & paths]
+  (reduce
+    (fn [result path]
+      (assoc-in result path (get-in m path)))
+    {}
+    paths))
+
+(defn subpath?
+  "true if 'path' is a child of 'root-path'"
+  [root-path path]
+  (= root-path
+    (take (count root-path) path)))
+
+(defn subpaths [path]
+  (rest (reductions conj [] path)))
+
+(defn transform-keywords [f m]
+  (w/postwalk #(if (keyword? %)
+               (f %)
+               %)
+    m))
+
+(defn keywords->hyphenated-keywords [m]
+  (transform-keywords kstr/keyword->hyphenated-keyword m))
+
+(defn keywords->underscored-keywords [m]
+  (transform-keywords kstr/keyword->underscored-keyword m))
+
+(defn keywords->underscored-strings [m]
+  (transform-keywords kstr/keyword->underscored-string m))
+
+(defn update-in-if-present [m path f]
+  (if (contains-path? m path)
+    (update-in m path f)
+    m))

@@ -2,12 +2,6 @@
   (:use clojure.test
         kits.map))
 
-(deftest test-keyword-munging
-  (is (= "a-foo-1" (keyword->hyphenated-string :a_foo_1)))
-  (is (= :a-foo-1 (keyword->hyphenated-keyword :a_foo_1)))
-  (is (= "a_foo_1" (keyword->underscored-string :a-foo-1)))
-  (is (= :a_foo_1 (keyword->underscored-keyword :a-foo-1)))
-)
 
 (deftest test-keywords->underscored-strings
   (is (= {"a_1" 1

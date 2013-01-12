@@ -1,4 +1,5 @@
-(ns kits.seq
+(ns ^{:doc "Functions that operate on Clojure sequences."}
+  kits.seq
   (:require [clojure.walk :as walk]))
 
 
