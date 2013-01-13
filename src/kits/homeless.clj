@@ -728,3 +728,7 @@ to return."
   (let [range (- max-millis min-millis)
         millis (+ min-millis (rand-int range))]
     (safe-sleep millis)))
+
+(defn read-string-securely [s]
+  (binding [*read-eval* false]
+    (read-string-safely s)))

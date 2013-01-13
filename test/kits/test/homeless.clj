@@ -203,3 +203,8 @@
       '[a]                   '[a :as unique-3]           'unique-3
       '[a :as b]             '[a :as b]                  'b)))
 
+(deftest test-read-string-securely
+  (is (= '(list 1 2 3)
+         (read-string-securely "(list 1 2 3)")))
+  (is (= nil (read-string-securely nil)))
+  (is (thrown? RuntimeException (read-string-securely "#=(eval (def x 3))"))))

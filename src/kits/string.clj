@@ -1,4 +1,4 @@
-(ns ^{:doc "Functions that operate on Strings and Keywords."}
+(ns ^{:doc "Functions that operate on Strings or Keywords."}
   kits.string
   (:require [clojure.string :as str])
   (:import (java.net URLDecoder)))
