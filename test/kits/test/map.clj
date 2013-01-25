@@ -218,3 +218,11 @@
   (is (= {:a 1 :b 2} (rmerge {:b 2} {:a 1})))
   (is (= {:a {:x {:y {:z 3}}} :b 2} (rmerge {:a {:x 1} :b 2} {:a {:x {:y {:z 3}}}})))
   (is (= {:a {:x {:y {:z 3}}} :b 2} (rmerge {:a {:x {:y {:z 1}}} :b 2} {:a {:x {:y {:z 3}}}}))))
+
+(deftest test-submap?
+  (is (= true (submap? {} {})))
+  (is (= true (submap? nil nil)))
+  (is (= true (submap? {:a 1} {:a 1 :b 2})))
+  (is (= true (submap? {} {:a 1 :b 2})))
+  (is (= true (submap? nil {:a 1 :b 2})))
+  (is (= false (submap? {:a 1 :b 2} {:a 1}))))

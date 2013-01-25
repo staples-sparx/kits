@@ -198,3 +198,8 @@
   (if (contains-path? m path)
     (update-in m path f)
     m))
+
+(defn submap? [sub-map m]
+  (every? (fn [[k v]]
+            (= v (get m k)))
+    (seq sub-map)))
