@@ -202,4 +202,4 @@
 (defn submap? [sub-map m]
   (every? (fn [[k v]]
             (= v (get m k)))
-    (seq sub-map)))
+          sub-map))
