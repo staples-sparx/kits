@@ -1,4 +1,5 @@
 (ns kits.queues
+  "Wrappers for constructing various java.util.concurrent queues."
   (:import (java.util.concurrent ArrayBlockingQueue BlockingQueue
                                  PriorityBlockingQueue TimeUnit))
   (:refer-clojure :exclude [get peek]))

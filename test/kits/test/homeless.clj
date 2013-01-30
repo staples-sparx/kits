@@ -3,6 +3,14 @@
         conjure.core
         kits.homeless))
 
+(deftest all-kits.namespaces-have-doc-strings
+  (testing "Since Kits is a set of core libraries for Runa, we want things to be well documented.
+            Each namespace should have a clear Single Responsibility explained in its doc string."
+    (is (= true   (->> (all-ns)
+                       (filter #(.startsWith (str (ns-name %)) "kits."))
+                       (remove #(.startsWith (str (ns-name %)) "kits.test"))
+                       (every? (fn [ns] (:doc (meta ns)))))))))
+
 (deftest test-raise
   (is (thrown? RuntimeException (raise "test exception"))))
 

@@ -1,4 +1,6 @@
 (ns kits.match
+  "Supports the speed optimized 'matches?' macro and 'fmatches?' fn for
+   checking if a string matches a sequence of strings or wildcard strings."
   (:require [kits.seq :as sq]
             [kits.string :as str]))
 

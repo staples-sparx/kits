@@ -1,5 +1,5 @@
-(ns ^{:doc "Functions that operate on Clojure maps."}
-  kits.map
+(ns kits.map
+  "Functions that operate on Clojure maps."
   (:require [clojure.set :as set]
             [clojure.string :as str]
             [clojure.walk :as w]

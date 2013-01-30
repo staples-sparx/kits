@@ -1,9 +1,9 @@
 (ns kits.homeless
-  "Unfortunate, uncategorized utility functions and macros. Please
-   help one of these poor souls find a home :("
+  "Unfortunate, uncategorized utility functions and macros.
+   Please help one of these poor souls find a home in a
+   focused, Single-Responsibility namespace instead :("
   (:require [clojure.pprint :as pprint]
-            [clojure.string :as str]
-            [gui-diff.internal :as gd])
+            [clojure.string :as str])
   (:import (java.io File)
            (java.net MalformedURLException)
            (java.util.concurrent Future TimeoutException)))
@@ -299,7 +299,7 @@ to return."
 
 ;; progress reporting
 
-(def ^{:dynamic true} *print-progress* true)
+(def ^:dynamic *print-progress* true)
 
 (defn make-default-progress-reporter
   "A basic progress reporter function which can be used with
@@ -445,8 +445,6 @@ to return."
   [^String path]
   (let [f ^File (File. path)]
     (.mkdirs f)))
-
-(def p (comp pprint/pprint gd/nested-sort))
 
 (defn incremental-name-with-prefix [prefix]
   (let [cnt (atom -1)]

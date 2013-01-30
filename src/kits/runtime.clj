@@ -1,13 +1,14 @@
 (ns kits.runtime
+  "Library to access run-time info from the JVM"
   (:require [clojure.string :as str])
   (:import (java.io File)
            (java.lang.management ManagementFactory
                                  OperatingSystemMXBean RuntimeMXBean)))
 
-(def ^{:private true} ^Runtime runtime (Runtime/getRuntime))
-(def ^{:private true} ^java.lang.management.RuntimeMXBean runtime-mx
+(def ^:private ^Runtime runtime (Runtime/getRuntime))
+(def ^:private ^java.lang.management.RuntimeMXBean runtime-mx
   (ManagementFactory/getRuntimeMXBean))
-(def ^{:private true} ^OperatingSystemMXBean os-mx
+(def ^:private ^OperatingSystemMXBean os-mx
   (ManagementFactory/getOperatingSystemMXBean))
 
 (defn process-info
@@ -34,7 +35,7 @@
      :vm-name (.getVmName runtime-mx)
      :vm-vendor (.getVmVendor runtime-mx)
      :vm-version (.getVmVersion runtime-mx)
-     :args (into [] (.getInputArguments runtime-mx))
+     :args (vec (.getInputArguments runtime-mx))
      :classpath (.getClassPath runtime-mx)
      :boot-classpath (.getBootClassPath runtime-mx)
      :system-properties (into {} (.getSystemProperties runtime-mx))}))

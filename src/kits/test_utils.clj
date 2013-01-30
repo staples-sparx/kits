@@ -1,4 +1,5 @@
 (ns kits.test-utils
+  "Functions and macros for making writing tests more effectively."
   (:use clojure.test))
 
 

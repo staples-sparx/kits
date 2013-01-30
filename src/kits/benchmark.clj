@@ -1,8 +1,9 @@
 (ns kits.benchmark
+;;  "A tool for timing code"
   (:require [org.rathore.amit.utils.logger :as log]
             [furtive.utils.calendar :as cal]))
 
-(def ^{:dynamic true} timings nil)
+(def ^:dynamic timings nil)
 
 (defn benchmark* [message body-fn]
   (binding [timings (atom [])]

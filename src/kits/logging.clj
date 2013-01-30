@@ -1,4 +1,5 @@
 (ns kits.logging
+  "Simple wrapper library for java.util.logging"
   (:require
    [kits.timestamp :as timestamp])
   (:import

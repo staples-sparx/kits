@@ -1,7 +1,11 @@
 (ns kits.foundation
+  "Deprecated!!!!! A catchall namespace originally pulled from Pythia"
   (:require [clojure.pprint :as pprint]
             [clojure.string :as str])
   (:import (java.util.concurrent Future TimeoutException)))
+
+;; WARNING: this namespace is deprecated.  Use kits.homeless instead, and
+;; consider adding your code to a focused, Single-Responsibility namespace instead
 
 (defn raise
   "Raise a RuntimeException with specified message."
@@ -76,7 +80,7 @@
 
 ;; progress reporting
 
-(def ^{:dynamic true} *print-progress* true)
+(def ^:dynamic *print-progress* true)
 
 (defn make-default-progress-reporter
   "A basic progress reporter function which can be used with

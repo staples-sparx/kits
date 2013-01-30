@@ -1,4 +1,5 @@
 (ns kits.timestamp
+  "Functions for creating and formatting timestamps (Longs)"
   (:import (java.text SimpleDateFormat)
            (java.util Calendar Date GregorianCalendar TimeZone)))
 

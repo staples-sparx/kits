@@ -1,5 +1,5 @@
-(ns ^{:doc "Logging Clojure data as JSON"}
-  kits.structured-logging
+(ns kits.structured-logging
+  "Logging Clojure data as JSON"
   (:require [clojure.tools.logging :as log]
             [cheshire.custom :as cc]
             [kits.homeless :as hl]
