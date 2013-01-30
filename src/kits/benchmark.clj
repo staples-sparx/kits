@@ -1,5 +1,5 @@
 (ns kits.benchmark
-;;  "A tool for timing code"
+  "A tool for timing code"
   (:require [org.rathore.amit.utils.logger :as log]
             [furtive.utils.calendar :as cal]))
 
