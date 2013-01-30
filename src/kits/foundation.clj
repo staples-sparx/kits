@@ -32,6 +32,11 @@
   [^String s]
   (if (not-empty s) (not= "false" (.toLowerCase s)) false))
 
+(defn csv-string->keyword-set
+  "Parses comma seperated string into keyword set"
+  [csv-string]
+  (into #{} (map keyword (str/split csv-string #","))))
+
 (defn base-array?
   "Test if specified array is of a base-type (long/double etc.)"
   [a]
@@ -195,7 +200,7 @@
                                 [nil nil])
           [path & [query]] (str/split raw-path #"\?")]
       (into {}
-            (filter val 
+            (filter val
                     {:scheme scheme
                      :username (not-empty username)
                      :password (not-empty password)
@@ -273,7 +278,7 @@
 
 (defn value-and-elapsed-time
   "Return the value of `thunk` and time taken to evaluate in
-  microseconds." 
+  microseconds."
   [thunk]
   (let [start (time-us)
         value (thunk)]

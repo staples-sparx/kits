@@ -30,6 +30,10 @@
   (is (false? (f/str->boolean nil)))
   )
 
+(deftest csv-string->keyword-set
+  (is (= #{:geodb :generic :fallback}
+         (f/csv-string->keyword-set "geodb,generic,fallback"))))
+
 (deftest with-progress-reporting
   (is (= (str/join "\n"
                    [".........      10 rows"
@@ -63,7 +67,7 @@
     2130706433 "127.0.0.1"
     67240450 "4.2.2.2"
     )
-  
+
   (is (thrown? RuntimeException (= (f/dotted-to-ip "127.0.0.1&abc") 2130706433)))
 
   )
@@ -97,7 +101,7 @@
      :host "runa.com"
      :path "/foo/bar.clj"}
     "http://user:passwd@runa.com/foo/bar.clj"
-     
+
     {:scheme "s3"
      :host "pythia-production-logs"
      :path "/foo/bar.clj"}
