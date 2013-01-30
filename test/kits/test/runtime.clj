@@ -1,8 +1,6 @@
 (ns kits.test.runtime
-  (:use
-   clojure.test)
-  (:require
-   [kits.runtime :as r]))
+  (:use clojure.test)
+  (:require [kits.runtime :as r]))
 
 (deftest smoke-test
   (is (not (nil? (r/process-info))))

@@ -1,8 +1,7 @@
 (ns kits.queues
-  (:refer-clojure :exclude [get peek])
-  (:import
-   [java.util.concurrent
-    TimeUnit BlockingQueue ArrayBlockingQueue PriorityBlockingQueue]))
+  (:import (java.util.concurrent ArrayBlockingQueue BlockingQueue
+                                 PriorityBlockingQueue TimeUnit))
+  (:refer-clojure :exclude [get peek]))
 
 (defn make-basic-queue
   "Create a new queue that can hold at max 'capacity' items"

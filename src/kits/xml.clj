@@ -1,7 +1,7 @@
 (ns kits.xml
   "To simplify working with clojure.xml"
   (:require [clojure.xml :as xml])
-  (:import java.io.StringBufferInputStream))
+  (:import (java.io StringBufferInputStream)))
 
 
 (defn parse [xml-string]

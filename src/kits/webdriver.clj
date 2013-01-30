@@ -1,11 +1,22 @@
-;; clj-webdriver does not support Clojure 1.2, so these utils only
-;; exist when the Clojure version is past 1.2
-(in-ns 'kits.homeless)
 
-(when-after-clojure-1-3
+;;; Clojure 1.2
+
+(use 'kits.homeless)
+
+(when-before-clojure-1-3
+ (ns kits.webdriver
+   ;; ;; doesn't include any functionality in CLojure 1.2, since
+   ;; clj-webdriver doesnt' support it
+   ))
+
+
+;;; Clojure 1.3+
+
+(use 'kits.homeless)
+
+(when-after-clojure-1-2
   (ns kits.webdriver
    (:require [clj-webdriver.taxi :as wd]))
-
 
  (defn- remove-td [s]
    (->> (.trim ^String s)
@@ -29,7 +40,7 @@
                         (catch Exception ex
                           :webdriver/table-exhausted)))]
      (->> (for [row (iterate inc 1)
-                col (range 1 (+ num-cols 1))]
+                col (range 1 (inc num-cols))]
             (table-elem row col))
           (take-while #(not= % :webdriver/table-exhausted))
           (partition num-cols)

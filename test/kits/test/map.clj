@@ -2,12 +2,6 @@
   (:use clojure.test
         kits.map))
 
-(deftest test-keyword-munging
-  (is (= "a-foo-1" (keyword->hyphenated-string :a_foo_1)))
-  (is (= :a-foo-1 (keyword->hyphenated-keyword :a_foo_1)))
-  (is (= "a_foo_1" (keyword->underscored-string :a-foo-1)))
-  (is (= :a_foo_1 (keyword->underscored-keyword :a-foo-1)))
-)
 
 (deftest test-keywords->underscored-strings
   (is (= {"a_1" 1
@@ -206,9 +200,6 @@
 
   (is (= {:b 1} (map-difference {:a 0 :b 1 :c 0} {:a 0 :b 0 :c 0})))
 
-;;
-
-
 (deftest test-keys-to-keywords
   (testing "when :underscore-to-hyphens? is true (true by default)"
     (are [expected m] (= expected (keys-to-keywords m :underscore-to-hyphens? true))
@@ -222,3 +213,16 @@
       {:a "1"} {"a" "1"}
       {:a {:b {:c {:d "e"}}}} {"a" {"b" {"c" {"d" "e"}}}}
       {:a-1 {:b_2 {:c_d-3 "e"}}} {"a-1" {"b_2" {"c_d-3" "e"}}})))
+
+(deftest test-rmerge
+  (is (= {:a 1 :b 2} (rmerge {:b 2} {:a 1})))
+  (is (= {:a {:x {:y {:z 3}}} :b 2} (rmerge {:a {:x 1} :b 2} {:a {:x {:y {:z 3}}}})))
+  (is (= {:a {:x {:y {:z 3}}} :b 2} (rmerge {:a {:x {:y {:z 1}}} :b 2} {:a {:x {:y {:z 3}}}}))))
+
+(deftest test-submap?
+  (is (= true (submap? {} {})))
+  (is (= true (submap? nil nil)))
+  (is (= true (submap? {:a 1} {:a 1 :b 2})))
+  (is (= true (submap? {} {:a 1 :b 2})))
+  (is (= true (submap? nil {:a 1 :b 2})))
+  (is (= false (submap? {:a 1 :b 2} {:a 1}))))

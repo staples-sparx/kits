@@ -1,11 +1,8 @@
 (ns kits.runtime
-  (:require
-   [clojure.string :as str])
-  (:import
-   java.io.File
-   java.lang.management.ManagementFactory
-   java.lang.management.OperatingSystemMXBean
-   java.lang.management.RuntimeMXBean))
+  (:require [clojure.string :as str])
+  (:import (java.io File)
+           (java.lang.management ManagementFactory
+                                 OperatingSystemMXBean RuntimeMXBean)))
 
 (def ^{:private true} ^Runtime runtime (Runtime/getRuntime))
 (def ^{:private true} ^java.lang.management.RuntimeMXBean runtime-mx

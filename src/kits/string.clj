@@ -1,0 +1,173 @@
+(ns ^{:doc "Functions that operate on Strings or Keywords."}
+  kits.string
+  (:require [clojure.string :as str])
+  (:import (java.net URLDecoder)))
+
+
+;;; String Functions
+
+(declare nil-str re-matches? split)
+
+(defn all-whitespace? [s]
+  (re-matches? #"^\s*$" s))
+
+(defn as-str
+  ([] "")
+  ([x] (if (instance? clojure.lang.Named x)
+         (name x)
+         (str x))))
+
+(defn build-query-params
+  [p]
+  (org.apache.commons.lang.StringUtils/chop (str "?" (apply str (map (fn [a] (str (first a) "=" (last a) "&")) p)))))
+
+(defn decamelize [s]
+  (when s
+    (letfn [(hump? [^Character a ^Character b]
+              (and a b (Character/isLowerCase a) (Character/isUpperCase b)))
+            (smooth-hump [result ch]
+              (if (hump? (last result) ch)
+                (str result \- ch)
+                (str result ch)))]
+      (str/lower-case (reduce smooth-hump "" s)))))
+
+(defn decode-string [s]
+  (when s
+    (let [ds (.replace (URLDecoder/decode (str s) "UTF-8") " " "_")]
+      (.replaceAll (re-matcher #"[\W]" ds) "_"))))
+
+(defn domain-name [host-name]
+  (let [hns (split host-name #"\.")]
+    (if (= 1 (count hns))
+      (first hns)
+      (nth hns (- (count hns) 2)))))
+
+(defn empty-str
+  "Returns nil if x is empty or nil, otherwise x as a string"
+  [x]
+  (if (or (string? x)
+          (sequential? x))
+    (when-not (empty? x)
+      (str x))
+    (nil-str x)))
+
+(defn extract-number [s]
+  (when s
+    (if (number? s)
+      s
+      (read-string (last (re-seq #"[\-]?[0-9]+[.,]?[0-9]*" s))))))
+
+(def escape-regex-except-*
+  (memoize (fn 
+         ;"Escapes special Regex symbols except *."
+             [^String s]
+             (.. s
+                 (replace "\\" "\\\\")
+                 (replace "("  "\\(")
+                 (replace ")"  "\\)")
+                 (replace "."  "\\.")
+                 (replace "["  "\\[")
+                 (replace "]"  "\\]")
+                 (replace "^"  "\\^")
+                 (replace "$"  "\\$")
+                 (replace "|"  "\\|")
+                 (replace "?"  "\\?")
+                 (replace "*"  ".*") ;; Only WildChar * will work
+                 (replace "+"  "\\+")))))
+
+(defn git-sha? [s]
+  (re-matches? #"([a-f]|\d){40}" s))
+
+(defn hyphenize [s]
+  (when s
+    (str/replace s #"_" "-")))
+
+(defn mapify [s sep]
+  (when s
+    (let [kv (split s sep)]
+      (hash-map (first kv) (or (second kv) "")))))
+
+(defn nil-or-empty-string? [s]
+  (or (nil? s) (= "" s)))
+
+(defn nil-str [x]
+  (when x (str x)))
+
+(defn parse-query-param
+  [q]
+  (if q
+    (reduce (fn [a s] (merge a (mapify s "="))) {} (split q "&"))
+    {}))
+
+(defn parse-url [url-str]
+  (when-not (empty? url-str)
+    (try
+      (let [url (java.net.URL. url-str)]
+	{:host (.getHost url) :query (.getQuery url)})
+      (catch java.net.MalformedURLException e
+	(println "Trying to get QUERY string from Mal Formed URL :: " url-str)))))
+
+(defn query-string [url-str]
+  (when-let [url-m (parse-url url-str)]
+    (:query url-m)))
+
+(defn query-url [url param]
+  (when-let [query (query-string url)]
+    ((parse-query-param query) param)))
+
+(defn remove-dashes [guid]
+  (str/replace guid #"-" ""))
+
+(defn repeat-str [n x]
+  (apply str (repeat n x)))
+
+(defn re-matches? [re s]
+  (if s
+    (boolean (re-matches re s))
+    false))
+
+(defn split [s delim]
+  (cond
+    (nil? s)        nil
+    (string? delim) (str/split s (re-pattern delim))
+    :else           (str/split s delim)))
+
+(defn stringify-map-values [the-map]
+  (let [stringify-entry (fn [[k v]] {k (str v)})]
+    (apply merge (map stringify-entry the-map))))
+
+(defn strip-whitespace [s]
+  (str/replace s #"[\s\t\r]" ""))
+
+(defn urldecode [s]
+  (when s
+    (URLDecoder/decode s "UTF-8")))
+
+(defn uuid? [s]
+  (re-matches? #"[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}" s))
+
+(defn uuid+timestamp? [s]
+  (re-matches? #"[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}-\d{13}" s))
+
+
+;; Keyword Functions
+
+(defn underscores->hyphens [k]
+  (when k
+    (-> k name (.replace "_" "-") keyword)))
+
+(defn hyphens->underscores [k]
+  (when k
+    (-> k name (.replace "-" "_") keyword)))
+
+(defn keyword->hyphenated-string [k]
+  (-> k name (.replace "_" "-")))
+
+(defn keyword->hyphenated-keyword [k]
+  (-> k keyword->hyphenated-string keyword))
+
+(defn keyword->underscored-string [k]
+  (-> k name (.replace "-" "_")))
+
+(defn keyword->underscored-keyword [k]
+  (-> k keyword->underscored-string keyword))

@@ -1,7 +1,6 @@
 (ns kits.timestamp
-  (:import
-   java.text.SimpleDateFormat
-   [java.util Date Calendar TimeZone GregorianCalendar]))
+  (:import (java.text SimpleDateFormat)
+           (java.util Calendar Date GregorianCalendar TimeZone)))
 
 
 ;;; formats

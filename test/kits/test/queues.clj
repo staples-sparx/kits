@@ -1,9 +1,7 @@
 (ns kits.test.queues
-  (:use
-   clojure.test)
-  (:require
-   [kits.homeless :as kits]
-   [kits.queues :as q]))
+  (:use clojure.test)
+  (:require [kits.homeless :as kits]
+            [kits.queues :as q]))
 
 (deftest basic-queue-mechanics
   (let [q (q/make-basic-queue 1)]

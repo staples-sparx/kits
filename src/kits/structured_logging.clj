@@ -1,4 +1,4 @@
-(ns ^{:doc "Logging with Clojure data"}
+(ns ^{:doc "Logging Clojure data as JSON"}
   kits.structured-logging
   (:require [clojure.tools.logging :as log]
             [cheshire.custom :as cc]
@@ -6,7 +6,9 @@
             [kits.timestamp :as ts]))
 
 
-(def ^:dynamic *log-context* nil)
+(def ^{:dynamic true
+       :doc "Used internally by kits.structured-logging, to maintain the current logging context."}
+  *log-context* nil)
 
 (defn unmangle
   "Given the name of a class that implements a Clojure function, returns the function's name in Clojure."
@@ -15,39 +17,47 @@
     (clojure.string/replace class-name #"^(.+)\$(.+)$" "$1/$2") \_ \-))
 
 (defmacro current-function-name
-  "Returns a string, the name of the current Clojure function."
+  "Returns the name of the current Clojure function."
   []
-  `(-> (Throwable.)
-       .getStackTrace
-       first
-       .getClassName
-       unmangle))
+  `(let [^StackTraceElement element# (-> (Throwable.)
+                                        .getStackTrace
+                                        first)]
+     (unmangle (.getClassName element#))))
 
 ;; logs assorted Objects sanely: good for logging functions or
 ;; assorted objects
 (cc/add-encoder Object cc/encode-str)
 
-(defn structured-log [log-level tags the-ns calling-fn-name log-map]
-  (log/logp log-level (cc/encode (merge {:tags (vec tags)
-                                         :level log-level
+(defn structured-log*
+  "Used internally by kits.structured-logging"
+  [log-level tags the-ns calling-fn-name log-map]
+  (log/logp log-level (cc/encode (merge {:level log-level
                                          :function calling-fn-name
                                          :namespace (str the-ns)
                                          :data log-map}
+                                        (when tags
+                                          {:tags (vec tags)})
                                         (when *log-context*
                                           {:context *log-context*})))))
 
 
-;; Use these for logging. The above are public because I can't
-;; get these funky macros to work with them private
+(defmacro info
+  "Log level info. Logs `log-map` param as JSON, appending any surrounding
+   context from `in-context` and adds any supplied :tags."
+  [log-map & {:keys [tags]}]
+  `(structured-log* :info ~tags ~*ns* (current-function-name) ~log-map))
 
-(defmacro info [log-map & {:keys [tags]}]
-  `(structured-log :info ~tags ~*ns* (current-function-name) ~log-map))
+(defmacro warn
+  "Log level warn. Logs `log-map` param as JSON, appending any surrounding
+   context from `in-context` and adds any supplied :tags."
+  [log-map & {:keys [tags]}]
+  `(structured-log* :warn ~tags ~*ns* (current-function-name) ~log-map))
 
-(defmacro warn [log-map & {:keys [tags]}]
-  `(structured-log :warn ~tags ~*ns* (current-function-name) ~log-map))
-
-(defmacro error [log-map & {:keys [tags]}]
-  `(structured-log :error ~tags ~*ns* (current-function-name) ~log-map))
+(defmacro error
+  "Log level error. Logs `log-map` param as JSON, appending any surrounding
+   context from `in-context` and adds any supplied :tags."
+  [log-map & {:keys [tags]}]
+  `(structured-log* :error ~tags ~*ns* (current-function-name) ~log-map))
 
 (defmacro in-context
   "Any calls to structured-logging info, warn or error macros
@@ -56,26 +66,40 @@
   `(binding [kits.structured-logging/*log-context* (merge kits.structured-logging/*log-context* ~log-context-map)]
      ~@body))
 
-(defmacro log-time [tag extra-info-map & body]
-  `(let [start-ms# (ts/now)]
-     (info {:start start-ms#
-            :start-pretty (ts/->str start-ms#)}
-           :tags [~(keyword (str (name tag) "-timing-start"))])
+(defn log-time*
+  "Higher order function version of `log-time` macro"
+  [tag extra-info-map body-fn]
+  (let [start-ms (ts/now)]
+    (info {:start start-ms
+           :start-pretty (ts/->str start-ms)}
+          :tags [(keyword (str (name tag) "-timing-start"))])
 
-     (let [result# (do ~@body)
-           millis-elapsed# (- (ts/now) start-ms#)]
-       (info {:start start-ms#
-              :start-pretty (ts/->str start-ms#)
-              :millis-elapsed millis-elapsed#
-              :extra-info ~extra-info-map}
-             :tags [~(keyword (str (name tag) "-timing-summary"))])
-       result#)))
+    (let [result (body-fn)
+          millis-elapsed (- (ts/now) start-ms)]
+      (info {:start start-ms
+             :start-pretty (ts/->str start-ms)
+             :millis-elapsed millis-elapsed
+             :extra-info extra-info-map}
+            :tags [(keyword (str (name tag) "-timing-summary"))])
+      result)))
 
-(defmacro logging-exceptions [& body]
-  `(try
-     ~@body
-     (catch Throwable e#
-       (error {:exception-message (str e#)
-               :stacktrace (hl/stacktrace->str e#)})
-       (throw e#))))
+(defmacro log-time
+  "Process the body, and log info about how long it took."
+  [tag extra-info-map & body]
+  `(log-time* ~tag ~extra-info-map (fn [] ~@body)))
+
+(defn logging-exceptions*
+  "Higher order function version of `logging-exceptions` macro"
+  [body-fn]
+  (try
+    (body-fn)
+    (catch Throwable e
+      (error {:exception-message (str e)
+              :stacktrace (hl/stacktrace->str e)})
+      (throw e))))
+
+(defmacro logging-exceptions
+  "Executes the body. Any Throwables are logged then re-thrown."
+  [& body]
+  `(logging-exceptions* (fn [] ~@body)))
 

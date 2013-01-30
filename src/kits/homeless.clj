@@ -1,16 +1,12 @@
 (ns kits.homeless
   "Unfortunate, uncategorized utility functions and macros. Please
    help one of these poor souls find a home :("
-  (:require
-   [clojure.pprint :as pprint]
-   [clojure.string :as str]
-   [gui-diff.internal :as gd]
-   [kits.map :as m])
-  (:import
-   java.util.concurrent.Future
-   java.util.concurrent.TimeoutException
-   java.io.File
-   java.net.MalformedURLException))
+  (:require [clojure.pprint :as pprint]
+            [clojure.string :as str]
+            [gui-diff.internal :as gd])
+  (:import (java.io File)
+           (java.net MalformedURLException)
+           (java.util.concurrent Future TimeoutException)))
 
 (defmacro ignore-exceptions
   "Evaluate body, but return nil if any exceptions are thrown."
@@ -47,7 +43,13 @@
                    ['cond]
                    (partition 2 clauses))))))
 
-(defn- time-elapsed*
+(defmacro def-many-methods
+  "Creates multiple multimethods with different dispatch values, but the same implementation."
+  [name dispatch-values & body]
+  `(doseq [dispatch-val# ~dispatch-values]
+     (defmethod ~name dispatch-val# ~@body)))
+
+(defn time-elapsed*
   "Returns time elapsed in millis."
   [f]
   (let [start (System/nanoTime)]
@@ -183,18 +185,6 @@ to return."
   than `timeout` milliseconds."
   [timeout & body]
   `(call-with-timeout ~timeout (bound-fn [] ~@body)))
-
-(defn segregate
-  "Splits the collection into two collections of the same type. The first
-   collection contains all elements that pass the predicate and the second
-   collection all the items that fail the predicate."
-  [pred coll]
-  (reduce (fn [[passes fails] elem]
-            (if (pred elem)
-              [(conj passes elem) fails]
-              [passes (conj fails elem)]))
-          [(empty coll) (empty coll)]
-          coll))
 
 (defmacro periodic-fn
   "creates a fn that executes 'body' every 'period' calls"
@@ -353,13 +343,6 @@ to return."
          (report# true)
          val#))))
 
-(defn seq-to-map
-  "Transforms a seq of ([key1 value1] [key2 value2]) pairs to a map
-  {key1 value1 key2 value2}. For empty and nil values, returns nil."
-  [coll]
-  (when (seq coll)
-    (into {} coll)))
-
 (defn ipv4-dotted-to-integer
   "Convert a dotted notation IPv4 address string to a 32-bit integer.
 
@@ -436,13 +419,6 @@ to return."
       (catch Exception ex
         nil))))
 
-(defn rmerge
-  "Recursive merge of the provided maps."
-  [& maps]
-  (if (every? map? maps)
-    (apply merge-with rmerge maps)
-    (last maps)))
-
 (defn print-error
   "Println to *err*"
   [& args]
@@ -464,54 +440,19 @@ to return."
 (defn stacktrace->str [e]
   (map #(str % "\n") (.getStackTrace ^Exception e)))
 
-(defn zip
-  "[[:a 1] [:b 2] [:c 3]] ;=> [[:a :b :c] [1 2 3]]"
-  [seqs]
-  (if (empty? seqs)
-    []
-    (apply map list seqs)))
-
 (defn mkdir-p
   "Create directory and parent directories if any"
   [^String path]
   (let [f ^File (File. path)]
     (.mkdirs f)))
 
-(defn max-by [sort-by-fn xs]
-  (last (sort-by sort-by-fn xs)))
-
-(defn min-by [sort-by-fn xs]
-  (first (sort-by sort-by-fn xs)))
-
 (def p (comp pprint/pprint gd/nested-sort))
-
-(defn only
-  "Gives the sole element of a sequence"
-  [coll]
-  (if (seq (rest coll))
-    (throw (RuntimeException. "should have precisely one item, but had at least 2"))
-    (if (seq coll)
-      (first coll)
-      (throw (RuntimeException. "should have precisely one item, but had 0")))))
-
-(defn indexed
-  "Returns a lazy sequence of [index, item] pairs, where items come
-  from 's' and indexes count up from zero.
-
-  (indexed '(a b c d))  =>  ([0 a] [1 b] [2 c] [3 d])"
-  [s]
-  (map vector (iterate inc 0) s))
 
 (defn incremental-name-with-prefix [prefix]
   (let [cnt (atom -1)]
     (fn []
       (swap! cnt inc)
       (str prefix "-" @cnt))))
-
-(defn ensure-sequential [x]
-  (if (sequential? x)
-    x
-    [x]))
 
 (defn retrying-fn
   "Take a no-arg function f and max times it should be called, returns a new no-arg
@@ -531,17 +472,6 @@ to return."
 (defmacro with-retries [retry-count & body]
   `((retrying-fn
       (fn [] ~@body) ~retry-count)))
-
-(defn any? [pred coll]
-  (boolean (some pred coll)))
-
-(defn butlastv
-  "Like (vec (butlast v))' but efficient for vectors"
-  [v]
-  (let [cnt (count v)]
-    (if (< cnt 2)
-      []
-      (subvec v 0 (dec cnt)))))
 
 (defn make-comparator
   "Similar to clojure.core/comparator but optionally accepts a
@@ -589,7 +519,7 @@ to return."
     `(do ~@body)))
 
 (defmacro when-after-clojure-1-2 [& body]
-  (when (and (< 0 (:major *clojure-version*))
+  (when (and (pos? (:major *clojure-version*))
              (> (:minor *clojure-version*) 2))
     `(do ~@body)))
 
@@ -686,29 +616,66 @@ to return."
 ;;;; Copied out of Clojure 1.5+
 
 (when-before-clojure-1-5
- (defmacro test->
-   "Takes an expression and a set of test/form pairs. Threads expr (via ->)
-   through each form for which the corresponding test expression (not threaded) is true."
-   {:added "1.5"}
-   [expr & clauses]
-   (assert (even? (count clauses)))
-   (let [g (gensym)
-         pstep (fn [[test step]] `(if ~test (-> ~g ~step) ~g))]
-     `(let [~g ~expr
-            ~@(interleave (repeat g) (map pstep (partition 2 clauses)))]
-        ~g))))
+ (defmacro cond->
+  "Takes an expression and a set of test/form pairs. Threads expr (via ->)
+  through each form for which the corresponding test
+  expression is true. Note that, unlike cond branching, cond-> threading does
+  not short circuit after the first true test expression."
+  {:added "1.5"}
+  [expr & clauses]
+  (assert (even? (count clauses)))
+  (let [g (gensym)
+        pstep (fn [[test step]] `(if ~test (-> ~g ~step) ~g))]
+    `(let [~g ~expr
+           ~@(interleave (repeat g) (map pstep (partition 2 clauses)))]
+       ~g)))
 
-(when-before-clojure-1-5
- (defmacro when->
-   "When expr is logical true, threads it into the first form (via ->),
-   and when that result is logical true, through the next etc"
-   {:added "1.5"}
-   [expr & forms]
-   (let [g (gensym)
-         pstep (fn [step] `(when ~g (-> ~g ~step)))]
-     `(let [~g ~expr
-            ~@(interleave (repeat g) (map pstep forms))]
-        ~g))))
+(defmacro cond->>
+  "Takes an expression and a set of test/form pairs. Threads expr (via ->>)
+  through each form for which the corresponding test expression
+  is true.  Note that, unlike cond branching, cond->> threading does not short circuit
+  after the first true test expression."
+  {:added "1.5"}
+  [expr & clauses]
+  (assert (even? (count clauses)))
+  (let [g (gensym)
+        pstep (fn [[test step]] `(if ~test (->> ~g ~step) ~g))]
+    `(let [~g ~expr
+           ~@(interleave (repeat g) (map pstep (partition 2 clauses)))]
+       ~g)))
+
+(defmacro as->
+  "Binds name to expr, evaluates the first form in the lexical context
+  of that binding, then binds name to that result, repeating for each
+  successive form, returning the result of the last form."
+  {:added "1.5"}
+  [expr name & forms]
+  `(let [~name ~expr
+         ~@(interleave (repeat name) forms)]
+     ~name))
+
+(defmacro some->
+  "When expr is not nil, threads it into the first form (via ->),
+  and when that result is not nil, through the next etc"
+  {:added "1.5"}
+  [expr & forms]
+  (let [g (gensym)
+        pstep (fn [step] `(if (nil? ~g) nil (-> ~g ~step)))]
+    `(let [~g ~expr
+           ~@(interleave (repeat g) (map pstep forms))]
+       ~g)))
+
+(defmacro some->>
+  "When expr is not nil, threads it into the first form (via ->>),
+  and when that result is not nil, through the next etc"
+  {:added "1.5"}
+  [expr & forms]
+  (let [g (gensym)
+        pstep (fn [step] `(if (nil? ~g) nil (->> ~g ~step)))]
+    `(let [~g ~expr
+           ~@(interleave (repeat g) (map pstep forms))]
+       ~g))))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -716,7 +683,7 @@ to return."
   "Parses a string like '1.99', which represents a dollar value into a
    Long representing the number of cents, in this case 199"
   [s]
-  (when-> s
+  (some-> s
           Double/parseDouble
           (* 100)
           long))
@@ -746,3 +713,22 @@ to return."
       :else
       [arg-form arg-form])))
 
+(defn rand-int* [min max]
+  (+ min (rand-int (- max min))))
+
+(defn rand-long [n]
+  (long (rand-int n)))
+
+(defn rand-long* [min max]
+  (+ min (rand-long (- max min))))
+
+(defn random-sleep
+  "Sleep between 'min-millis' and 'max-millis' milliseconds"
+  [min-millis max-millis]
+  (let [range (- max-millis min-millis)
+        millis (+ min-millis (rand-int range))]
+    (safe-sleep millis)))
+
+(defn read-string-securely [s]
+  (binding [*read-eval* false]
+    (read-string-safely s)))
