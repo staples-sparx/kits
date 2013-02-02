@@ -739,17 +739,24 @@ to return."
    Has built-in assertion that you have not accidentally passed in keys that
    were not listed in the key destructuring."
   [name arg-vec & body]
-  (let [valid-key-set (set (map keyword (:keys (last arg-vec))))
+  (let [valid-key-set (if (map? (last arg-vec))
+                        (set (map keyword (:keys (last arg-vec))))
+                        #{})
         num-args (count arg-vec)
-        [_ name*] (single-destructuring-arg->form+name (last arg-vec))]
-    (assert (map? (last arg-vec)) "Last arg should be a map.")
-    (assert (contains? (last arg-vec) :keys) "Last arg should have a :keys key.")
-    (assert (= '& (last (butlast arg-vec))) "Second to last symbol in the arg vector should be an '&")
+        num-non-kw-args (- num-args 2)
+        [_ kw-arg-map] (single-destructuring-arg->form+name (last arg-vec))]
+    (assert (map? (last arg-vec))
+            "defn-kw expects the final element of the arg list to be a map destructuring.")
+    (assert (contains? (last arg-vec) :keys)
+            "defn-kw expects the map destructuring to have a :keys key.")
+    (assert (= '& (last (butlast arg-vec)))
+            "defn-kw expects the second to last element of the arg list to be an '&")
     `(defn ~name ~arg-vec
-       (let [opts# ~name*
-             actual-key-set# (set (keys opts#))
+       (let [kw-arg-map# ~kw-arg-map
+             actual-key-set# (set (keys kw-arg-map#))
              extra-keys# (set/difference actual-key-set# ~valid-key-set)]
-         (assert (empty? extra-keys#)
-                 (str "Was passed these keyword args " extra-keys#
-                      " which were not listed in the arg list " '~arg-vec))
+         (when-not (empty? kw-arg-map#)
+           (assert (empty? extra-keys#)
+                   (str "Was passed these keyword args " extra-keys#
+                        " which were not listed in the arg list " '~arg-vec)))
          ~@body))))

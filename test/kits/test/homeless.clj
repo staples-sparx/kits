@@ -218,10 +218,26 @@
   (is (thrown? RuntimeException (read-string-securely "#=(eval (def x 3))"))))
 
 (defn-kw my-fn [one two & {:keys [k1 k2] :as opts}]
-  (+ one two k1 k2 (:k1 opts) (:k2 opts)))
+  (+ one
+     two 
+     (if k1 k1 0)
+     (if k2 k2 0)))
 
 (deftest test-defn-kw
-  (is (= 40 (my-fn 1 3 :k1 7 :k2 11)))
+  (is (= 22 (my-fn 1 3 :k1 7 :k2 11)))
+  (is (= 4 (my-fn 1 3)))
+
+  (is (thrown-with-msg? AssertionError
+        #"defn-kw expects the final element of the arg list to be a map destructuring."
+        (eval `(defn-kw f [a b c] nil))))
+
+  (is (thrown-with-msg? AssertionError
+        #"defn-kw expects the map destructuring to have a :keys key."
+        (eval `(defn-kw f [a b c & {:doorknobs [d e]}] nil))))
+
+  (is (thrown-with-msg? AssertionError
+        #"defn-kw expects the second to last element of the arg list to be an '&"
+        (eval `(defn-kw f [a b c not-ampersand {:keys [d e]}] nil))))
   
-  (is (thrown-with-msg? AssertionError #".*Was passed these keyword args #\{:k9999\} which were not listed in the arg list \[one two & \{:keys \[k1 k2\], :as opts\}\]"
+  (is (thrown-with-msg? AssertionError #"Was passed these keyword args #\{:k9999\} which were not listed in the arg list \[one two & \{:keys \[k1 k2\], :as opts\}\]"
         (my-fn 1 2 :k9999 4))))
