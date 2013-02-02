@@ -743,15 +743,15 @@ to return."
                         (set (map keyword (:keys (last arg-vec))))
                         #{})
         num-args (count arg-vec)
-        num-non-kw-args (- num-args 2)
-        [_ kw-arg-map] (single-destructuring-arg->form+name (last arg-vec))]
+        [kw-destructuring kw-arg-map] (single-destructuring-arg->form+name (last arg-vec))
+        new-arg-vec (vec (concat (drop-last 2 arg-vec) ['& kw-destructuring]))]
     (assert (map? (last arg-vec))
             "defn-kw expects the final element of the arg list to be a map destructuring.")
     (assert (contains? (last arg-vec) :keys)
             "defn-kw expects the map destructuring to have a :keys key.")
     (assert (= '& (last (butlast arg-vec)))
             "defn-kw expects the second to last element of the arg list to be an '&")
-    `(defn ~name ~arg-vec
+    `(defn ~name ~new-arg-vec
        (let [actual-key-set# (set (keys ~kw-arg-map))
              extra-keys# (set/difference actual-key-set# ~valid-key-set)]
          (when-not (empty? ~kw-arg-map)
