@@ -217,3 +217,11 @@
   (is (= nil (read-string-securely nil)))
   (is (thrown? RuntimeException (read-string-securely "#=(eval (def x 3))"))))
 
+(defn-kw my-fn [one two & {:keys [k1 k2] :as opts}]
+  (+ one two k1 k2 (:k1 opts) (:k2 opts)))
+
+(deftest test-defn-kw
+  (is (= 40 (my-fn 1 3 :k1 7 :k2 11)))
+  
+  (is (thrown-with-msg? AssertionError #".*Was passed these keyword args #\{:k9999\} which were not listed in the arg list \[one two & \{:keys \[k1 k2\], :as opts\}\]"
+        (my-fn 1 2 :k9999 4))))

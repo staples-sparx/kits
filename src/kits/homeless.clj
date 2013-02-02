@@ -3,6 +3,7 @@
    Please help one of these poor souls find a home in a
    focused, Single-Responsibility namespace instead :("
   (:require [clojure.pprint :as pprint]
+            [clojure.set :as set]
             [clojure.string :as str])
   (:import (java.io File)
            (java.net MalformedURLException)
@@ -730,3 +731,25 @@ to return."
 (defn read-string-securely [s]
   (binding [*read-eval* false]
     (read-string-safely s)))
+
+(defmacro defn-kw
+  "A form of defn where the last arg is assumed to be keywords args, i.e.
+   (defn-kw f [a b & {:keys [c d]}]
+     (+ a b c d))
+   Has built-in assertion that you have not accidentally passed in keys that
+   were not listed in the key destructuring."
+  [name arg-vec & body]
+  (let [valid-key-set (set (map keyword (:keys (last arg-vec))))
+        num-args (count arg-vec)
+        [_ name*] (single-destructuring-arg->form+name (last arg-vec))]
+    (assert (map? (last arg-vec)) "Last arg should be a map.")
+    (assert (contains? (last arg-vec) :keys) "Last arg should have a :keys key.")
+    (assert (= '& (last (butlast arg-vec))) "Second to last symbol in the arg vector should be an '&")
+    `(defn ~name ~arg-vec
+       (let [opts# ~name*
+             actual-key-set# (set (keys opts#))
+             extra-keys# (set/difference actual-key-set# ~valid-key-set)]
+         (assert (empty? extra-keys#)
+                 (str "Was passed these keyword args " extra-keys#
+                      " which were not listed in the arg list " '~arg-vec))
+         ~@body))))
