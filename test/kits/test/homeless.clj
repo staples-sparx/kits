@@ -223,6 +223,11 @@
      (if k1 k1 0)
      (if k2 k2 0)))
 
+(defn-kw ^:private doc-string-fn
+  "def-kw w/ doc string"
+  [& {:keys [k1 k2]}]
+  (+ k1 k2))
+
 (deftest test-defn-kw
   (is (= 22 (my-fn 1 3 :k1 7 :k2 11)))
   (is (= 4 (my-fn 1 3)))
@@ -240,4 +245,7 @@
         (eval `(defn-kw f [a b c not-ampersand {:keys [d e]}] nil))))
   
   (is (thrown-with-msg? AssertionError #"Was passed these keyword args #\{:k9999\} which were not listed in the arg list \[one two & \{:keys \[k1 k2\], :as opts\}\]"
-        (my-fn 1 2 :k9999 4))))
+        (my-fn 1 2 :k9999 4)))
+
+  (is (= "def-kw w/ doc string" (:doc (meta #'doc-string-fn))))
+  (is (= true (:private (meta #'doc-string-fn)))))

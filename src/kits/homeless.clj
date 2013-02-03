@@ -738,8 +738,13 @@ to return."
      (+ a b c d))
    Has built-in assertion that you have not accidentally passed in keys that
    were not listed in the key destructuring."
-  [name arg-vec & body]
-  (let [valid-key-set (if (map? (last arg-vec))
+  [& args]
+  {:arglists '([name arg-vec & body]
+               [name doc-string arg-vec & body])}
+  (let [[name doc-string arg-vec & body] (if (string? (second args))
+                                           args
+                                           (concat [(first args) nil] (rest args)))
+        valid-key-set (if (map? (last arg-vec))
                         (set (map keyword (:keys (last arg-vec))))
                         #{})
         num-args (count arg-vec)
@@ -751,11 +756,12 @@ to return."
             "defn-kw expects the map destructuring to have a :keys key.")
     (assert (= '& (last (butlast arg-vec)))
             "defn-kw expects the second to last element of the arg list to be an '&")
-    `(defn ~name ~new-arg-vec
-       (let [actual-key-set# (set (keys ~kw-arg-map))
-             extra-keys# (set/difference actual-key-set# ~valid-key-set)]
-         (when-not (empty? ~kw-arg-map)
-           (assert (empty? extra-keys#)
-                   (str "Was passed these keyword args " extra-keys#
-                        " which were not listed in the arg list " '~arg-vec)))
-         ~@body))))
+    `(-> (defn ~name ~new-arg-vec
+           (let [actual-key-set# (set (keys ~kw-arg-map))
+                 extra-keys# (set/difference actual-key-set# ~valid-key-set)]
+             (when-not (empty? ~kw-arg-map)
+               (assert (empty? extra-keys#)
+                       (str "Was passed these keyword args " extra-keys#
+                            " which were not listed in the arg list " '~arg-vec)))
+             ~@body))
+         (alter-meta! assoc :doc ~doc-string))))
