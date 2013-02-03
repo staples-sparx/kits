@@ -749,7 +749,6 @@ to return."
         valid-key-set (if (map? (last arg-vec))
                         (set (map keyword (:keys (last arg-vec))))
                         #{})
-        num-args (count arg-vec)
         [kw-destructuring kw-arg-map] (single-destructuring-arg->form+name (last arg-vec))
         new-arg-vec (vec (concat (drop-last 2 arg-vec) ['& kw-destructuring]))]
     (assert (map? (last arg-vec))
