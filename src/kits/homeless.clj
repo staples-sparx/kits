@@ -734,7 +734,9 @@ to return."
 
 (defmacro defn-kw
   "A form of defn where the last arg is assumed to be keywords args, i.e.
-   (defn-kw f [a b & {:keys [c d]}]
+   (defn-kw f
+     \"optional doc-string here.\"
+     [a b & {:keys [c d]}]
      (+ a b c d))
    Has built-in assertion that you have not accidentally passed in keys that
    were not listed in the key destructuring."
