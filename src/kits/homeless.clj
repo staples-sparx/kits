@@ -746,11 +746,9 @@ to return."
   (let [[name doc-string arg-vec & body] (if (string? (second args))
                                            args
                                            (concat [(first args) nil] (rest args)))
-        valid-key-set (if (map? (last arg-vec))
-                        (set (map keyword (:keys (last arg-vec))))
-                        #{})
-        [kw-destructuring kw-arg-map] (single-destructuring-arg->form+name (last arg-vec))
-        new-arg-vec (vec (concat (drop-last 2 arg-vec) ['& kw-destructuring]))]
+        valid-key-set (set (map keyword (:keys (last arg-vec))))
+        [kw-args-binding-with-as kw-args-map-sym] (single-destructuring-arg->form+name (last arg-vec))
+        new-arg-vec (vec (concat (drop-last 2 arg-vec) ['& kw-args-binding-with-as]))]
     (assert (map? (last arg-vec))
             "defn-kw expects the final element of the arg list to be a map destructuring.")
     (assert (contains? (last arg-vec) :keys)
@@ -758,8 +756,8 @@ to return."
     (assert (= '& (last (butlast arg-vec)))
             "defn-kw expects the second to last element of the arg list to be an '&")
     `(-> (defn ~name ~new-arg-vec
-           (when-not (empty? ~kw-arg-map)
-             (let [actual-key-set# (set (keys ~kw-arg-map))
+           (when-not (empty? ~kw-args-map-sym)
+             (let [actual-key-set# (set (keys ~kw-args-map-sym))
                    extra-keys# (set/difference actual-key-set# ~valid-key-set)]
                (assert (empty? extra-keys#)
                        (str "Was passed these keyword args " extra-keys#

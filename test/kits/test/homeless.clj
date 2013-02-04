@@ -230,7 +230,7 @@
 
 (deftest test-defn-kw
   (is (= 22 (my-fn 1 3 :k1 7 :k2 11)))
-  (is (= 4 (my-fn 1 3)))
+  (is (= 4 (my-fn 1 3))) ;; testing it works w/ no keyword args passed in
 
   (is (thrown-with-msg? AssertionError
         #"defn-kw expects the final element of the arg list to be a map destructuring."
