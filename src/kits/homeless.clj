@@ -758,11 +758,11 @@ to return."
     (assert (= '& (last (butlast arg-vec)))
             "defn-kw expects the second to last element of the arg list to be an '&")
     `(-> (defn ~name ~new-arg-vec
-           (let [actual-key-set# (set (keys ~kw-arg-map))
-                 extra-keys# (set/difference actual-key-set# ~valid-key-set)]
-             (when-not (empty? ~kw-arg-map)
+           (when-not (empty? ~kw-arg-map)
+             (let [actual-key-set# (set (keys ~kw-arg-map))
+                   extra-keys# (set/difference actual-key-set# ~valid-key-set)]
                (assert (empty? extra-keys#)
                        (str "Was passed these keyword args " extra-keys#
-                            " which were not listed in the arg list " '~arg-vec)))
-             ~@body))
+                            " which were not listed in the arg list " '~arg-vec))))
+           ~@body)
          (alter-meta! assoc :doc ~doc-string))))
