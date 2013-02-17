@@ -203,3 +203,11 @@
   (every? (fn [[k v]]
             (= v (get m k)))
           sub-map))
+
+(defn move-key [m old-key new-key]
+  (let [v (get m old-key ::missing)]
+    (if (= v ::missing)
+      m
+      (-> m
+          (assoc new-key v)
+          (dissoc old-key)))))
