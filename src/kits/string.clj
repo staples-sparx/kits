@@ -103,9 +103,10 @@
   (when-not (empty? url-str)
     (try
       (let [url (java.net.URL. url-str)]
-	{:host (.getHost url) :query (.getQuery url)})
+	{:host (.getHost url)
+         :query (.getQuery url)})
       (catch java.net.MalformedURLException e
-	(println "Trying to get QUERY string from Mal Formed URL :: " url-str)))))
+        nil))))
 
 (defn query-string [url-str]
   (when-let [url-m (parse-url url-str)]
