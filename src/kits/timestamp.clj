@@ -28,7 +28,7 @@
 
 ;;;
 
-(defn now []
+(defn ^:dynamic now []
   (System/currentTimeMillis))
 
 (defn ^SimpleDateFormat simple-date-format
