@@ -764,3 +764,11 @@ to return."
                             " which were not listed in the arg list " '~arg-vec))))
            ~@body)
          (alter-meta! assoc :doc ~doc-string))))
+
+(defn apply-kw
+  "Like apply, but f take kw-args.  The last arg to apply-kw is
+   a map of the kw-args to pass to f.
+  EXPECTS: {:pre [(map? (last args))]}"
+  [f & args]
+  (apply f (apply concat
+                  (butlast args) (last args))))

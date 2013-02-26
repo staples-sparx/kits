@@ -249,3 +249,9 @@
 
   (is (= "def-kw w/ doc string" (:doc (meta #'doc-string-fn))))
   (is (= true (:private (meta #'doc-string-fn)))))
+
+(defn kw-fn [a b & {:keys [c d]}]
+  (str a b c d))
+
+(deftest test-apply-kw
+  (is (= "abcd" (apply-kw kw-fn "a" "b" {:c "c" :d "d"}))))
