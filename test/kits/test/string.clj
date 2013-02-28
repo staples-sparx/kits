@@ -73,15 +73,6 @@
        -12.23   "abc-12.23"
        -23      "12-23"))
 
-(deftest ^:unit test-build-query-params
-  (are [expected s] (= expected (build-query-params s))
-       "" {}
-       "?socash=hash1" {"socash" "hash1"}
-       "?param1=foo&param2=bar" {"param1" "foo" "param2" "bar"})
-
-  (is (or (= "?facebook-id=test.user&socash=hash" (build-query-params {"socash" "hash" "facebook-id" "test.user"}))
-          (= "?socash=hash&facebook-id=test.user" (build-query-params {"socash" "hash" "facebook-id" "test.user"})))))
-
 (deftest ^:unit hyphenize-replaces-all-underscores-with-hyphens
   (are [result arg] (= result (hyphenize arg))
     nil nil

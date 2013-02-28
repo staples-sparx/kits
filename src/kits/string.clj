@@ -17,10 +17,6 @@
          (name x)
          (str x))))
 
-(defn build-query-params
-  [p]
-  (org.apache.commons.lang.StringUtils/chop (str "?" (apply str (map (fn [a] (str (first a) "=" (last a) "&")) p)))))
-
 (defn decamelize [s]
   (when s
     (letfn [(hump? [^Character a ^Character b]

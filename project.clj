@@ -1,9 +1,8 @@
 (def common-deps '[[cheshire "5.0.1"]
-                   [clj-webdriver "0.6.0-alpha11"]
                    [org.clojure/java.jdbc "0.2.3"]
                    [org.clojure/tools.logging "0.2.4"]])
 
-(defproject com.runa/kits "1.3.15"
+(defproject com.runa/kits "1.3.16"
   :description "Runa base libraries"
   :plugins [[jonase/eastwood "0.0.2"]
             [lein-cloverage "1.0.2"]
