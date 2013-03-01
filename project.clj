@@ -1,8 +1,9 @@
 (def common-deps '[[cheshire "5.0.1"]
+                   [clj-utils "1.2.5"]
                    [org.clojure/java.jdbc "0.2.3"]
                    [org.clojure/tools.logging "0.2.4"]])
 
-(defproject com.runa/kits "1.3.16"
+(defproject com.runa/kits "1.4.0"
   :description "Runa base libraries"
   :plugins [[jonase/eastwood "0.0.2"]
             [lein-cloverage "1.0.2"]
@@ -19,5 +20,5 @@
                      [slamhound "1.3.1"]]
   :multi-deps {"1.3.0" [[org.clojure/clojure "1.3.0"]]
                "1.4.0" [[org.clojure/clojure "1.4.0"]]
-               "1.5.0" [[org.clojure/clojure "1.5.0-RC1"]]
+               "1.5.0" [[org.clojure/clojure "1.5.0-RC17"]]
                :all ~common-deps})
