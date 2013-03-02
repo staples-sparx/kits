@@ -15,7 +15,7 @@
       (subvec v 0 (dec cnt)))))
 
 (defn ensure-sequential [x]
-  (if (sequential? x)
+  (if (or (nil? x) (sequential? x))
     x
     [x]))
 

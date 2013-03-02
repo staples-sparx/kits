@@ -9,11 +9,11 @@
 
 (deftest test-ensure-sequential
   (are [result x] (= result (ensure-sequential x))
-    [nil]     nil
-    [{}]      {}
-    [{:a 1}]  {:a 1}
-    [1]       1
-    [1 2 3]   [1 2 3]))
+       nil     nil
+       [{}]      {}
+       [{:a 1}]  {:a 1}
+       [1]       1
+       [1 2 3]   [1 2 3]))
 
 (deftest test-indexed
   (is (= '([0 a] [1 b] [2 c] [3 d]) (indexed '(a b c d))))
