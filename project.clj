@@ -3,7 +3,7 @@
                    [org.clojure/java.jdbc "0.2.3"]
                    [org.clojure/tools.logging "0.2.4"]])
 
-(defproject com.runa/kits "1.4.2"
+(defproject com.runa/kits "1.4.3"
   :description "Runa base libraries"
   :plugins [[jonase/eastwood "0.0.2"]
             [lein-cloverage "1.0.2"]
@@ -20,5 +20,5 @@
                      [slamhound "1.3.3"]]
   :multi-deps {"1.3.0" [[org.clojure/clojure "1.3.0"]]
                "1.4.0" [[org.clojure/clojure "1.4.0"]]
-               "1.5.0" [[org.clojure/clojure "1.5.0-RC17"]]
+               "1.5.0" [[org.clojure/clojure "1.5.0"]]
                :all ~common-deps})

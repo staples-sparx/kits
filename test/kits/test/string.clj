@@ -164,3 +164,7 @@
 
 (deftest ^:unit test-remove-dashes
   (is (= (remove-dashes "123-2451") "1232451")))
+
+(deftest ^:unit test-starts-with?
+  (is (starts-with? "care" "car"))
+  (is (not (starts-with? "dynamic" "car"))))
