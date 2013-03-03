@@ -8,7 +8,9 @@
        :doc "Used internally by kits.contextual-logging, to maintain the current logging context."}
   *log-context* {})
 
-(defn- stringify-context [m]
+(defn stringify
+  "Turn a map into key-value pairs.  Useful for logging Clojure code."
+  [m]
   (if (empty? m)
     ""
     (->> m
@@ -20,14 +22,14 @@
 (defn log-message
   "Delegates to amit/log-message, appending the context to the messages"
   [& message-tokens]
-  (apply amit/log-message (str (stringify-context *log-context*) (first message-tokens)) (rest message-tokens)))
+  (apply amit/log-message (str (stringify *log-context*) (first message-tokens)) (rest message-tokens)))
 
 (defn log-exception
   "Delegates to amit/log-message, appending the context to the messages"
   ([e additional-message]
-    (amit/log-exception e (str (stringify-context *log-context*) additional-message)))
+    (amit/log-exception e (str (stringify *log-context*) additional-message)))
   ([e]
-    (let [context (stringify-context *log-context*)]
+    (let [context (stringify *log-context*)]
       (if (= "" context)
         (amit/log-exception e)
         (amit/log-exception e context)))))
