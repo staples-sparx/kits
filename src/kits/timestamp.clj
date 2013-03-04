@@ -28,6 +28,9 @@
 
 ;;;
 
+(defn now-datetime []
+  (.format  (SimpleDateFormat. "yyyy-MM-dd HH:mm:ss") (Date.)))
+
 (defn ^:dynamic now []
   (System/currentTimeMillis))
 
