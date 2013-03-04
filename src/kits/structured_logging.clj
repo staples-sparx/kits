@@ -32,6 +32,7 @@
   "Used internally by kits.structured-logging"
   [log-level tags the-ns calling-fn-name log-map]
   (log/logp log-level (cc/encode (merge {:level log-level
+                                         :now (ts/now-datetime)
                                          :function calling-fn-name
                                          :namespace (str the-ns)
                                          :data log-map}
