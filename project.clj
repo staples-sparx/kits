@@ -3,7 +3,7 @@
                    [org.clojure/java.jdbc "0.2.3"]
                    [org.clojure/tools.logging "0.2.4"]])
 
-(defproject com.runa/kits "1.4.5"
+(defproject com.runa/kits "1.4.6"
   :description "Runa base libraries"
   :plugins [[jonase/eastwood "0.0.2"]
             [lein-cloverage "1.0.2"]
