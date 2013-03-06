@@ -229,7 +229,7 @@
 
 (deftest test-select-keys-always
   (is (= {:a 1 :b nil :c :default}
-         (select-keys-always [:a :b :c] {:a 1 :b nil} :default))))
+         (select-keys-always {:a 1 :b nil} [:a :b :c] :default))))
 
 (deftest test-move-key
   (is (= {:c 1 :b 2}

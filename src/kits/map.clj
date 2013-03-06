@@ -205,9 +205,9 @@
           sub-map))
 
 (defn select-keys-always
-  ([ks m]
-     (select-keys-always ks m nil))
-  ([ks m default]
+  ([m ks]
+     (select-keys-always m ks nil))
+  ([m ks default]
      (into {}
            (for [k ks]
              [k (get m k default)]))))
