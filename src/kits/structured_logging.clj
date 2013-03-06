@@ -50,23 +50,23 @@
 
 (defmacro info
   "Log level info. Logs `log-map` param as JSON, appending any surrounding
-   context from `in-context` and adds any supplied :tags."
+   context from `in-log-context` and adds any supplied :tags."
   [{:keys [tags] :as log-map}]
   `(structured-log* :info ~tags ~*ns* (current-function-name) (dissoc ~log-map :tags)))
 
 (defmacro warn
   "Log level warn. Logs `log-map` param as JSON, appending any surrounding
-   context from `in-context` and adds any supplied :tags."
+   context from `in-log-context` and adds any supplied :tags."
   [{:keys [tags] :as log-map}]
   `(structured-log* :warn ~tags ~*ns* (current-function-name) (dissoc ~log-map :tags)))
 
 (defmacro error
   "Log level error. Logs `log-map` param as JSON, appending any surrounding
-   context from `in-context` and adds any supplied :tags."
+   context from `in-log-context` and adds any supplied :tags."
   [{:keys [tags] :as log-map}]
   `(structured-log* :error ~tags ~*ns* (current-function-name) (dissoc ~log-map :tags)))
 
-(defmacro in-context
+(defmacro in-log-context
   "Any calls to structured-logging info, warn or error macros
    will have the surrounding context added"
   [{:keys [tags] :as log-context-map} & body]
