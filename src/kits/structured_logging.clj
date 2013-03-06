@@ -20,7 +20,7 @@
   (merge (:data *log-context*)
          {:tags (:tags *log-context*)}))
 
-(defn unmangle
+(defn- unmangle-class-name
   "Given the name of a class that implements a Clojure function, returns the function's name in Clojure."
   [class-name]
   (.replace
@@ -32,7 +32,7 @@
   `(let [^StackTraceElement element# (-> (Throwable.)
                                         .getStackTrace
                                         first)]
-     (unmangle (.getClassName element#))))
+     (#'unmangle-class-name (.getClassName element#))))
 
 ;; logs assorted Objects sanely: good for logging functions or
 ;; assorted objects
