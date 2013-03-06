@@ -46,7 +46,7 @@
 (deftest test-error-log-level---and-contexts
   (stubbing [log/log* nil
              ts/now 123456789]
-           (in-log-context {:request/id "req123" :tags [:import]}
+           (in-log-context (do {:request/id "req123" :tags [:import]})
                        (in-log-context {:transaction/id "txn123"}
                                    (error-calling-fn)))
            (verify-first-call-args-for-indices
