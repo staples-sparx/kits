@@ -227,6 +227,10 @@
   (is (= true (submap? nil {:a 1 :b 2})))
   (is (= false (submap? {:a 1 :b 2} {:a 1}))))
 
+(deftest test-select-keys-always
+  (is (= {:a 1 :b nil :c :default}
+         (select-keys-always [:a :b :c] {:a 1 :b nil} :default))))
+
 (deftest test-move-key
   (is (= {:c 1 :b 2}
          (move-key {:a 1 :b 2} :a :c)))

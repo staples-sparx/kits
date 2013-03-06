@@ -204,6 +204,14 @@
             (= v (get m k)))
           sub-map))
 
+(defn select-keys-always
+  ([ks m]
+     (select-keys-always ks m nil))
+  ([ks m default]
+     (into {}
+           (for [k ks]
+             [k (get m k default)]))))
+
 (defn move-key [m old-key new-key]
   (let [v (get m old-key ::missing)]
     (if (= v ::missing)
