@@ -47,7 +47,11 @@
   (stubbing [log/log* nil
              ts/now 123456789]
            (in-log-context (do {:request/id "req123" :tags [:import]})
-                       (in-log-context {:transaction/id "txn123"}
+                           (in-log-context {:transaction/id "txn123"}
+                                           (is (= {:request/id "req123"
+                                                   :transaction/id "txn123"
+                                                   :tags [:import]}
+                                                  (log-context)))
                                    (error-calling-fn)))
            (verify-first-call-args-for-indices
             log/log*

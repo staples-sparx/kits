@@ -12,6 +12,14 @@
   *log-context* {:data {}
                  :tags []})
 
+(defn log-context
+  "Context with :tags as a top-level key.  Useful for transporting
+   the context across processes, to be passed back into
+   in-log-context at a later point"
+  []
+  (merge (:data *log-context*)
+         {:tags (:tags *log-context*)}))
+
 (defn unmangle
   "Given the name of a class that implements a Clojure function, returns the function's name in Clojure."
   [class-name]
