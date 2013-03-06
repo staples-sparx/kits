@@ -72,6 +72,6 @@
 
 
 (deftest test-log-time
-  (mocking [log/log*] ;; this is here to suppress console output
+  (stubbing [log/log* nil] ;; this is here to suppress console output
            (is (= 2 (log-time :test {}
                               (inc 1))))))
