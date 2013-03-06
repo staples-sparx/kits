@@ -1,5 +1,6 @@
 (ns kits.test.structured-logging
-  (:require [clojure.tools.logging :as log])
+  (:require [clojure.tools.logging :as log]
+            [kits.timestamp :as ts])
   (:use clojure.test
         conjure.core
         kits.structured-logging))
@@ -12,37 +13,40 @@
   (toString [_] "<HasNoDefaultSerializer>"))
 
 (defn info-calling-fn []
-  (info {:a 1 :b 2 :c (HasNoDefaultSerializer.)} :tags [:my-special-error]))
+  (info {:a 1 :b 2 :c (HasNoDefaultSerializer.) :tags [:my-special-error]}))
 
 (defn warn-calling-fn []
   (warn {:c 3 :d 4}))
 
 (defn error-calling-fn []
-  (error {:c 3 :d 4}))
+  (error {:c 3 :d 4 :tags [:bad-csv-row]}))
 
 (deftest test-info-log-level
-  (mocking [log/log*]
+  (stubbing [log/log* nil
+             ts/now 123456789]
            (info-calling-fn)
            (verify-first-call-args-for-indices
             log/log*
             [1 2 3]
             :info
             nil
-            "{\"tags\":[\"my-special-error\"],\"level\":\"info\",\"function\":\"kits.test.structured-logging/info-calling-fn\",\"namespace\":\"kits.test.structured-logging\",\"data\":{\"a\":1,\"b\":2,\"c\":\"<HasNoDefaultSerializer>\"}}")))
+            "{\"tags\":[\"my-special-error\"],\"level\":\"INFO\",\"timestamp\":\"1970-01-02 10:17:36\",\"function\":\"kits.test.structured-logging/info-calling-fn\",\"namespace\":\"kits.test.structured-logging\",\"data\":{\"a\":1,\"b\":2,\"c\":\"<HasNoDefaultSerializer>\"}}")))
 
 (deftest test-warn-log-level
-  (mocking [log/log*]
+  (stubbing [log/log* nil
+             ts/now 123456789]
            (warn-calling-fn)
            (verify-first-call-args-for-indices
             log/log*
             [1 2 3]
             :warn
             nil
-            "{\"level\":\"warn\",\"function\":\"kits.test.structured-logging/warn-calling-fn\",\"namespace\":\"kits.test.structured-logging\",\"data\":{\"c\":3,\"d\":4}}")))
+            "{\"level\":\"WARN\",\"timestamp\":\"1970-01-02 10:17:36\",\"function\":\"kits.test.structured-logging/warn-calling-fn\",\"namespace\":\"kits.test.structured-logging\",\"data\":{\"c\":3,\"d\":4}}")))
 
 (deftest test-error-log-level---and-contexts
-  (mocking [log/log*]
-           (in-context {:request/id "req123"}
+  (stubbing [log/log* nil
+             ts/now 123456789]
+           (in-context {:request/id "req123" :tags [:import]}
                        (in-context {:transaction/id "txn123"}
                                    (error-calling-fn)))
            (verify-first-call-args-for-indices
@@ -50,10 +54,11 @@
             [1 2 3]
             :error
             nil
-            "{\"context\":{\"transaction/id\":\"txn123\",\"request/id\":\"req123\"},\"level\":\"error\",\"function\":\"kits.test.structured-logging/error-calling-fn\",\"namespace\":\"kits.test.structured-logging\",\"data\":{\"c\":3,\"d\":4}}")))
+            "{\"context\":{\"request/id\":\"req123\",\"transaction/id\":\"txn123\"},\"tags\":[\"import\",\"bad-csv-row\"],\"level\":\"ERROR\",\"timestamp\":\"1970-01-02 10:17:36\",\"function\":\"kits.test.structured-logging/error-calling-fn\",\"namespace\":\"kits.test.structured-logging\",\"data\":{\"c\":3,\"d\":4}}")))
 
 (deftest test-logging-exceptions
-  (mocking [log/log*]
+  (stubbing [log/log* nil
+             ts/now 123456789]
            (try
              (logging-exceptions (throw (Exception. "BOOM")))
              (is (= false "If you see this, there is a test failure. An Exception should have been thrown."))
