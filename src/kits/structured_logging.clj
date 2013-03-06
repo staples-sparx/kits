@@ -9,11 +9,8 @@
 
 (def ^{:dynamic true
        :doc "Used internally by kits.structured-logging, to maintain the current logging context."}
-  *log-context* {})
-
-(def ^{:dynamic true
-       :doc "Used internally by kits.structured-logging, to maintain the current logging context tags."}
-  *log-context-tags* [])
+  *log-context* {:data {}
+                 :tags []})
 
 (defn unmangle
   "Given the name of a class that implements a Clojure function, returns the function's name in Clojure."
@@ -36,7 +33,7 @@
 (defn structured-log*
   "Used internally by kits.structured-logging"
   [log-level tags the-ns calling-fn-name log-map]
-  (let [all-tags (vec (distinct (into *log-context-tags* tags)))]
+  (let [all-tags (vec (distinct (into (:tags *log-context*) tags)))]
     (log/logp log-level (cc/encode (merge {:level (str/upper-case (name log-level))
                                            :timestamp (ts/->str (ts/now))
                                            :function calling-fn-name
@@ -44,8 +41,8 @@
                                            :data log-map}
                                           (when-not (empty? all-tags)
                                             {:tags all-tags})
-                                          (when-not (empty? *log-context*)
-                                            {:context *log-context*}))))))
+                                          (when-not (empty? (:data *log-context*))
+                                            {:context (:data *log-context*)}))))))
 
 
 (defmacro info
@@ -74,8 +71,8 @@
    will have the surrounding context added"
   [log-context-map & body]
   `(let [log-context-map# ~log-context-map]
-     (binding [*log-context* (merge (dissoc log-context-map# :tags) *log-context*)
-               *log-context-tags* (into *log-context-tags* (sort (:tags log-context-map#)))]
+     (binding [*log-context* {:data (merge (dissoc log-context-map# :tags) (:data *log-context*))
+                              :tags (into (:tags *log-context*) (sort (:tags log-context-map#)))}]
      ~@body)))
 
 (defn log-time*
