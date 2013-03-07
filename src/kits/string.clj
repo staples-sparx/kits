@@ -47,6 +47,9 @@
       (str x))
     (nil-str x)))
 
+(defn equals-ignore-case? [^String s1 ^String s2]
+  (.equalsIgnoreCase s1 s2))
+
 (defn extract-number [s]
   (when s
     (if (number? s)

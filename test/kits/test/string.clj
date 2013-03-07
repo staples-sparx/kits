@@ -168,3 +168,8 @@
 (deftest ^:unit test-starts-with?
   (is (starts-with? "care" "car"))
   (is (not (starts-with? "dynamic" "car"))))
+
+(deftest ^:unit test-equals-ignore-case?
+  (is (equals-ignore-case? "S" "s"))
+  (is (equals-ignore-case? "s" "s"))
+  (is (not (equals-ignore-case? "SSS" "s"))))
