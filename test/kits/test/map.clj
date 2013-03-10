@@ -160,6 +160,18 @@
     nil             nil
     {}              {}))
 
+(deftest test-assoc-in-if-present
+  (are [result m] (= result (assoc-in-if-present m [:a :b] 99))
+
+    ;; result       inputted map
+    {:a {:b 99}}    {:a {:b 1}}
+    {:a 2}          {:a 2}
+    {:a {:b 99}}  {:a {:b nil}}
+    {:a {:b 99}}  {:a {:b false}}
+    nil             nil
+    {}              {}))
+
+
 (deftest test-dissoc-in
   (are [m paths result] (= result (apply dissoc-in m paths))
     {} [[:a :b]] {}

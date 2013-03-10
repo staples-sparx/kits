@@ -71,6 +71,11 @@
   (and (not (empty? path))
        (not= ::not-found (get-in m path ::not-found))))
 
+(defn assoc-in-if-present [m path f]
+  (if (contains-path? m path)
+    (assoc-in m path f)
+    m))
+
 (defn dissoc-in
   "Dissociates an entry from a nested associative structure returning a new
   nested structure. path is a sequence of keys. Any empty maps that result
