@@ -4,6 +4,7 @@
             [clojure.tools.logging :as log]
             [cheshire.custom :as cc]
             [kits.homeless :as hl]
+            [kits.map :as m]
             [kits.timestamp :as ts]))
 
 
@@ -50,7 +51,8 @@
                                           (when-not (empty? all-tags)
                                             {:tags all-tags})
                                           (when-not (empty? (:data *log-context*))
-                                            {:context (:data *log-context*)}))))))
+                                            {:context (m/map-values #(if (fn? %) (%) %)
+                                                                    (:data *log-context*))}))))))
 
 
 (defmacro info
@@ -76,7 +78,8 @@
 
 (defmacro in-log-context
   "Any calls to structured-logging info, warn or error macros
-   will have the surrounding context added"
+   will have the surrounding context added. Context map values can be no-arg
+   functions that get evaluated at log-time."
   [log-context-map & body]
   `(let [log-context-map# ~log-context-map]
      (binding [*log-context* {:data (merge (dissoc log-context-map# :tags) (:data *log-context*))

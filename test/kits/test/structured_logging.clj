@@ -18,7 +18,10 @@
 (defn warn-calling-fn []
   (warn {:c 3 :d 4}))
 
+(def state (atom 4))
+
 (defn error-calling-fn []
+  (reset! state 88)
   (error {:c 3 :d 4 :tags [:bad-csv-row]}))
 
 (deftest test-info-log-level
@@ -44,21 +47,23 @@
             "{\"level\":\"WARN\",\"timestamp\":\"1970-01-02 10:17:36\",\"function\":\"kits.test.structured-logging/warn-calling-fn\",\"namespace\":\"kits.test.structured-logging\",\"data\":{\"c\":3,\"d\":4}}")))
 
 (deftest test-error-log-level---and-contexts
-  (stubbing [log/log* nil
-             ts/now 123456789]
-           (in-log-context (do {:request/id "req123" :tags [:import]})
-                           (in-log-context {:transaction/id "txn123"}
-                                           (is (= {:request/id "req123"
-                                                   :transaction/id "txn123"
-                                                   :tags [:import]}
-                                                  (log-context)))
-                                   (error-calling-fn)))
-           (verify-first-call-args-for-indices
-            log/log*
-            [1 2 3]
-            :error
-            nil
-            "{\"context\":{\"request/id\":\"req123\",\"transaction/id\":\"txn123\"},\"tags\":[\"import\",\"bad-csv-row\"],\"level\":\"ERROR\",\"timestamp\":\"1970-01-02 10:17:36\",\"function\":\"kits.test.structured-logging/error-calling-fn\",\"namespace\":\"kits.test.structured-logging\",\"data\":{\"c\":3,\"d\":4}}")))
+  (let [state-checker (fn [] @state)]
+    (stubbing [log/log* nil
+               ts/now 123456789]
+             (in-log-context (do {:request/id "req123" :state state-checker :tags [:import]})
+                             (in-log-context {:transaction/id "txn123"}
+                                             (is (= {:request/id "req123"
+                                                     :transaction/id "txn123"
+                                                     :state state-checker
+                                                     :tags [:import]}
+                                                    (log-context)))
+                                     (error-calling-fn)))
+             (verify-first-call-args-for-indices
+              log/log*
+              [1 2 3]
+              :error
+              nil
+              "{\"context\":{\"transaction/id\":\"txn123\",\"request/id\":\"req123\",\"state\":88},\"tags\":[\"import\",\"bad-csv-row\"],\"level\":\"ERROR\",\"timestamp\":\"1970-01-02 10:17:36\",\"function\":\"kits.test.structured-logging/error-calling-fn\",\"namespace\":\"kits.test.structured-logging\",\"data\":{\"c\":3,\"d\":4}}"))))
 
 (deftest test-logging-exceptions
   (stubbing [log/log* nil
