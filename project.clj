@@ -1,5 +1,5 @@
 (def common-deps '[[cheshire "5.0.1"]
-                   [clj-utils "1.2.5"]
+                   [clj-utils "1.2.7"]
                    [org.clojure/java.jdbc "0.2.3"]
                    [org.clojure/tools.logging "0.2.4"]])
 
