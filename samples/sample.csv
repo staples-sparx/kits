@@ -1,0 +1,5 @@
+"id" "left" "right" "split_var" "split_point" "status" "prediction"
+"1" 2 3 "most_expensive_product_in_cart" 1990 1 NA
+"2" 4 5 "os.Windows" 0.5 1 NA
+"3" 6 7 "cart_actions" 1.5 1 NA
+"4" 8 9 "price" 8983.5 1 NA

@@ -11,7 +11,8 @@
                  [cheshire "5.0.1"]
                  [org.clojars.runa/clj-utils "1.2.8"]
                  [org.clojure/java.jdbc "0.2.3"]
-                 [org.clojure/tools.logging "0.2.4"]]
+                 [org.clojure/tools.logging "0.2.4"]
+                 [clojure-csv/clojure-csv "2.0.0-alpha1"]]
   :warn-on-reflection true
   :profiles {:dev {:dependencies [[org.clojars.runa/conjure "2.0.0"]
                                   [lein-multi "1.1.0"]
