@@ -37,7 +37,7 @@
 
     nil
     (constantly true)
-    {}
+    nil
 
     {:a 1 :b 2}
     (fn [k v] (and (= k :a) (= v 1)))
@@ -51,7 +51,7 @@
 
     nil
     (constantly true)
-    {}
+    nil
 
     {:a 1 :b 2}
     (fn [k] (= k :a))
@@ -65,7 +65,7 @@
 
     nil
     (constantly true)
-    {}
+    nil
 
     {:a 1 :b 2}
     (fn [v] (= v 1))
@@ -79,7 +79,7 @@
 
     nil
     (constantly true)
-    {}
+    nil
 
     {:a 1 :b 2}
     (fn [k v] [(name k) (inc v)])
@@ -91,8 +91,7 @@
 (deftest test-map-values
   (is (= {:b 8, :a 7} (map-values #(+ 5 %) {:a 2 :b 3})))
   (is (= {} (map-values #(+ 5 %) {})))
-  (is (= {} (map-values #(+ 5 %) nil)))
-)
+  (is (= nil (map-values #(+ 5 %) nil))))
 
 (deftest test-paths
   (are [m result] (= (paths m) result)

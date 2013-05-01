@@ -63,7 +63,7 @@
               [1 2 3]
               :error
               nil
-              "{\"context\":{\"transaction/id\":\"txn123\",\"request/id\":\"req123\",\"state\":88},\"tags\":[\"import\",\"bad-csv-row\"],\"level\":\"ERROR\",\"timestamp\":\"1970-01-02 10:17:36\",\"function\":\"kits.test.structured-logging/error-calling-fn\",\"namespace\":\"kits.test.structured-logging\",\"data\":{\"c\":3,\"d\":4}}"))))
+              "{\"context\":{\"state\":88,\"request/id\":\"req123\",\"transaction/id\":\"txn123\"},\"tags\":[\"import\",\"bad-csv-row\"],\"level\":\"ERROR\",\"timestamp\":\"1970-01-02 10:17:36\",\"function\":\"kits.test.structured-logging/error-calling-fn\",\"namespace\":\"kits.test.structured-logging\",\"data\":{\"c\":3,\"d\":4}}"))))
 
 (deftest test-logging-exceptions
   (stubbing [log/log* nil

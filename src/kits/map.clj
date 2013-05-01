@@ -11,44 +11,44 @@
 (defn filter-map
   "given a predicate like (fn [k v] ...) returns a map with only entries that match it."
   [pred m]
-  (into {}
-    (filter (fn [[k v]] (pred k v))
-      m)))
+  (into (empty m)
+        (filter (fn [[k v]] (pred k v))
+                m)))
 
 (defn filter-by-key
   "given a predicate like (fn [k] ...) returns a map with only entries with keys that match it."
   [pred m]
-  (into {}
-    (filter (fn [[k v]] (pred k))
-      m)))
+  (into (empty m)
+        (filter (fn [[k v]] (pred k))
+                m)))
 
 (defn filter-by-val
   "given a predicate like (fn [v] ...) returns a map with only entries with vals that match it."
   [pred m]
-  (into {}
-    (filter (fn [[k v]] (pred v))
-      m)))
+  (into (empty m)
+        (filter (fn [[k v]] (pred v))
+                m)))
 
 (defn map-over-map
   "given a function like (fn [k v] ...) returns a new map with each entry mapped by it."
   [f m]
-  (into {}
-    (map (fn [[k v]] (f k v))
-      m)))
+  (into (empty m)
+        (map (fn [[k v]] (f k v))
+             m)))
 
 (defn map-keys
   "Apply a function on all keys of a map and return the corresponding map (all values untouched)"
   [f m]
-  (zipmap
-    (map f (keys m))
-    (vals m)))
+  (into (empty m)
+        (for [[k v] m]
+          [(f k) v])))
 
 (defn map-values
   "Apply a function on all values of a map and return the corresponding map (all keys untouched)"
   [f m]
-  (zipmap
-    (keys m)
-    (map f (vals m))))
+  (into (empty m)
+        (for [[k v] m]
+          [k (f v)])))
 
 
 ;;; Everything Else
@@ -81,16 +81,16 @@
   nested structure. path is a sequence of keys. Any empty maps that result
   will not be present in the new structure."
   ([m [k & ks :as path]]
-    (if ks
-      (if-let [nextmap (get m k)]
-        (let [newmap (dissoc-in nextmap ks)]
-          (if (seq newmap)
-            (assoc m k newmap)
-            (dissoc m k)))
-        m)
-      (dissoc m k)))
+     (if ks
+       (if-let [nextmap (get m k)]
+         (let [newmap (dissoc-in nextmap ks)]
+           (if (seq newmap)
+             (assoc m k newmap)
+             (dissoc m k)))
+         m)
+       (dissoc m k)))
   ([m path & more-paths]
-    (apply dissoc-in (dissoc-in m path) more-paths)))
+     (apply dissoc-in (dissoc-in m path) more-paths)))
 
 ;; Alex - TODO - 6/23/12 (M/D/Y) - copied from contrib.
 ;; Add some unit tests
@@ -139,17 +139,17 @@
   "dissoc keys from every map at every level of a nested data structure"
   [data & ks]
   (cond (map? data)
-    (let [map-minus-ks (apply dissoc data ks)]
-      (map-values #(apply nested-dissoc % ks) map-minus-ks))
+        (let [map-minus-ks (apply dissoc data ks)]
+          (map-values #(apply nested-dissoc % ks) map-minus-ks))
 
-    (set? data)
-    (into (empty data) (map #(apply nested-dissoc % ks) data))
+        (set? data)
+        (into (empty data) (map #(apply nested-dissoc % ks) data))
 
-    (sequential? data)
-    (map #(apply nested-dissoc % ks) data)
+        (sequential? data)
+        (map #(apply nested-dissoc % ks) data)
 
-    :else
-    data))
+        :else
+        data))
 
 (defn paths
   "Return the paths of the leaves in the map"
@@ -170,25 +170,25 @@
 
 (defn select-paths [m & paths]
   (reduce
-    (fn [result path]
-      (assoc-in result path (get-in m path)))
-    {}
-    paths))
+   (fn [result path]
+     (assoc-in result path (get-in m path)))
+   {}
+   paths))
 
 (defn subpath?
   "true if 'path' is a child of 'root-path'"
   [root-path path]
   (= root-path
-    (take (count root-path) path)))
+     (take (count root-path) path)))
 
 (defn subpaths [path]
   (rest (reductions conj [] path)))
 
 (defn transform-keywords [f m]
   (w/postwalk #(if (keyword? %)
-               (f %)
-               %)
-    m))
+                 (f %)
+                 %)
+              m))
 
 (defn keywords->hyphenated-keywords [m]
   (transform-keywords kstr/keyword->hyphenated-keyword m))
