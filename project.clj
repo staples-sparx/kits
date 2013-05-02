@@ -1,4 +1,4 @@
-(defproject com.runa/kits "1.5.0"
+(defproject com.runa/kits "1.5.1"
   :description "Runa base libraries"
   :plugins [[jonase/eastwood "0.0.2"]
             [lein-cloverage "1.0.2"]
