@@ -58,3 +58,37 @@
                                  rdr
                                  {:skip-header true :delimiter \space})
                                 sample-field-reader-opts))))))
+
+
+(deftest parsing-csv-into-nested-maps-with-columns-excluded
+  (testing "Given a csv file, generate map of maps {k-fn, the row} excludes columns specified"
+    (is (= {1
+            {:status "1",
+             :split_point "1990",
+             :split_var "most_expensive_product_in_cart",
+             :right 3,
+             :id 1},
+            2
+            {:status "1",
+             :split_point "0.5",
+             :split_var "os.Windows",
+             :right 5,
+             :id 2},
+            3
+            {:status "1",
+             :split_point "1.5",
+             :split_var "cart_actions",
+             :right 7,
+             :id 3},
+            4
+            {:status "1",
+             :split_point "8983.5",
+             :split_var "price",
+             :right 9,
+             :id 4}}
+           (with-open [rdr (io/reader sample-csv)]
+             (csv/csv-rows->map (csv/read-csv
+                                 rdr
+                                 {:skip-header true :delimiter \space})
+                                (assoc sample-field-reader-opts
+                                  :exclude-columns #{1 6})))))))

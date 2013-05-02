@@ -28,9 +28,12 @@
          rows))))
 
 (defn- csv-row->map [csv-row field-reader-opts]
-  (reduce merge (for [i (range (count csv-row))]
-                  (let [ifield (get field-reader-opts i)
-                        irow (get csv-row i)]
+  (let [exclude-columns (:exclude-columns field-reader-opts)]
+    (reduce merge (for [i (range (count csv-row))
+                        :when (or (nil? exclude-columns )
+                                  (not (contains? exclude-columns i)))
+                        :let [ifield (get field-reader-opts i)
+                              irow (get csv-row i)]]
                     (assoc {} (:label ifield) ((:reader ifield) irow))))))
 
 (defn csv-rows->map [csv-rows field-reader-opts]
