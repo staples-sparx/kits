@@ -2,8 +2,7 @@
   "wrapper around clojure-csv library that turn csv in to column-name, column-value key value
    pair that can be configured via :key-fn, :val-fn and :reader for each field "
   (:require
-   [clojure-csv.core :as csv]
-   [clojure.java.io :as jio]))
+   [clojure-csv.core :as csv]))
 
 
 (def ^:dynamic *parse-opts*
@@ -14,12 +13,12 @@
    :strict false})
 
 (defn read-csv
-  ([csv-file]
-     (read-csv csv-file *parse-opts*))
-  ([csv-file opts]
+  ([csv-rdr]
+     (read-csv csv-rdr *parse-opts*))
+  ([csv-rdr opts]
      (let [merged-opts (merge *parse-opts* opts)
            {:keys [skip-header delimiter end-of-line quote-char strict]} merged-opts
-           rows (csv/parse-csv (jio/reader csv-file)
+           rows (csv/parse-csv csv-rdr
                                :delimiter delimiter
                                :end-of-line end-of-line
                                :quote-char quote-char

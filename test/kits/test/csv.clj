@@ -2,6 +2,7 @@
   (:use clojure.test)
   (:require
    [kits.csv :as csv]
+   [clojure.java.io :as io]
    [kits.foundation :as f]))
 
 
@@ -52,5 +53,8 @@
              :right 9,
              :left 8,
              :id 4}}
-           (csv/csv-rows->map (csv/read-csv sample-csv {:skip-header true :delimiter \space})
-                            sample-field-reader-opts)))))
+           (with-open [rdr (io/reader sample-csv)]
+             (csv/csv-rows->map (csv/read-csv
+                                 rdr
+                                 {:skip-header true :delimiter \space})
+                                sample-field-reader-opts))))))
