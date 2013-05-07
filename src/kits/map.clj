@@ -213,7 +213,7 @@
   ([m ks]
      (select-keys-always m ks nil))
   ([m ks default]
-     (into {}
+     (into (empty m)
            (for [k ks]
              [k (get m k default)]))))
 
