@@ -1,7 +1,28 @@
-# kits
+# Runa's Kits
 
-Runa base library. The initial release has been refactored from the
-pythia.kits namespace.
+Runa's core utilities.  Please use and enjoy. 
 
-# tests
-Run them with ./run-tests.sh. This will run all unit tests in Clojure 1.2 - 1.5, ensuring this library is usable by the widest number of projects.
+Usage
+-----
+
+```clj
+[org.clojars.runa/kits "1.5.1"]
+```
+
+```clj
+(require '[kits.map :refer [map-keys]])
+```
+
+Room For Contribution
+---------------------
+
+* Doc strings
+
+Tests
+-----
+
+Run tests vs all supported Clojure versions:
+
+```
+lein run-tests # using Leningen 2
+```
