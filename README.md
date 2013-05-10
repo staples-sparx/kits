@@ -26,3 +26,11 @@ Run tests vs all supported Clojure versions:
 ```
 lein run-tests # using Leningen 2
 ```
+
+License
+-------
+
+```clj
+:license {:name "MIT License"
+          :url "http://mit-license.org/"}
+```
