@@ -42,7 +42,7 @@
        1M))
 
 (deftest test->timestamp---with-specified-format
-  (is (= "2012-01-30 00:00:00" (->str (->timestamp "January 30, 2012" "MMMM dd, yyyy")))))
+  (is (= "2012-01-30 00:00:00" (->str (->timestamp "01 30, 2012" "MM dd, yyyy")))))
 
 (deftest test->timestamp---integral-types-get-coerced-to-Long
   (is (= true (instance? Long (->timestamp (int 5)))))
