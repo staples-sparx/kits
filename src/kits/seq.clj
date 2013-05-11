@@ -3,7 +3,9 @@
   (:require [clojure.walk :as walk]))
 
 
-(defn any? [pred coll]
+(defn any? 
+  "Returns true if some element in coll matches the pred"
+  [pred coll]
   (boolean (some pred coll)))
 
 (defn butlastv
@@ -14,7 +16,9 @@
       []
       (subvec v 0 (dec cnt)))))
 
-(defn ensure-sequential [x]
+(defn ensure-sequential 
+  "Returns x as [x] if x is not sequential, otherwise return x untouched."
+  [x]
   (if (or (nil? x) (sequential? x))
     x
     [x]))
@@ -27,10 +31,14 @@
   [s]
   (map vector (iterate inc 0) s))
 
-(defn max-by [sort-by-fn xs]
+(defn max-by 
+  "Like max, but the comparator is customizable through sort-by-fn"
+  [sort-by-fn xs]
   (last (sort-by sort-by-fn xs)))
 
-(defn min-by [sort-by-fn xs]
+(defn min-by
+  "Like min, but the comparator is customizable through sort-by-fn"
+  [sort-by-fn xs]
   (first (sort-by sort-by-fn xs)))
 
 (defn only
@@ -42,7 +50,9 @@
       (first coll)
       (throw (RuntimeException. "should have precisely one item, but had 0")))))
 
-(defn rand-take [coll n]
+(defn rand-take
+  "Randomly takes at most n elements from coll"
+  [coll n]
   (cond (nil? coll)
         []
 
@@ -52,7 +62,9 @@
         :else
         (take n (shuffle coll))))
 
-(defn realize [x]
+(defn realize
+  "Fully realize the specified collection(could be nested)"
+  [x]
   (walk/postwalk identity x))
 
 (defn segregate
