@@ -67,11 +67,15 @@
          (recur ret (first kvs) (second kvs) (nnext kvs))
          ret))))
 
-(defn contains-path? [m path]
+(defn contains-path? 
+  "Whether the specified path exists in the map"
+  [m path]
   (and (not (empty? path))
        (not= ::not-found (get-in m path ::not-found))))
 
-(defn assoc-in-if-present [m path f]
+(defn assoc-in-if-present 
+  "Assocs f into m only if the path presents in m"
+  [m path f]
   (if (contains-path? m path)
     (assoc-in m path f)
     m))
@@ -110,11 +114,15 @@
        (apply f maps)))
    maps))
 
-(defn invert-map [m]
+(defn invert-map
+  "Inverts a map: key becomes value, value becomes key"
+  [m]
   (zipmap (vals m) (keys m)))
 
-(defn keys-to-keywords [m & {:keys [underscore-to-hyphens?]
-                             :or {underscore-to-hyphens? true}}]
+(defn keys-to-keywords
+  "Recursively transform the key of the map(could be nested) to be type of keyword"
+  [m & {:keys [underscore-to-hyphens?]
+        :or {underscore-to-hyphens? true}}]
   (if-not (map? m)
     m
     (zipmap
@@ -123,7 +131,9 @@
        (map keyword (keys m)))
      (map #(keys-to-keywords % :underscore-to-hyphens? underscore-to-hyphens?) (vals m)))))
 
-(defn map-difference [m1 m2]
+(defn map-difference
+  "Returns the difference of m1 and m2: the entires in m1 but not in m2 + entries in m2 but not in m1"
+  [m1 m2]
   (let [ks1 (set (keys m1))
         ks2 (set (keys m2))
         ks1-ks2 (set/difference ks1 ks2)
@@ -168,7 +178,9 @@
     (apply merge-with rmerge maps)
     (last maps)))
 
-(defn select-paths [m & paths]
+(defn select-paths
+  "Similar to select-keys, just the 'key' here is a path in the nested map"
+  [m & paths]
   (reduce
    (fn [result path]
      (assoc-in result path (get-in m path)))
@@ -184,32 +196,45 @@
 (defn subpaths [path]
   (rest (reductions conj [] path)))
 
-(defn transform-keywords [f m]
+(defn transform-keywords
+  "Transforms all the keywords in the specified map using the speicified function"
+  [f m]
   (w/postwalk #(if (keyword? %)
                  (f %)
                  %)
               m))
 
-(defn keywords->hyphenated-keywords [m]
+(defn keywords->hyphenated-keywords
+  "Transforms the keywords in map to hyphen seperated style"
+  [m]
   (transform-keywords kstr/keyword->hyphenated-keyword m))
 
-(defn keywords->underscored-keywords [m]
+(defn keywords->underscored-keywords
+  "Transforms the keywords in map to underscore seperated style"
+  [m]
   (transform-keywords kstr/keyword->underscored-keyword m))
 
-(defn keywords->underscored-strings [m]
+(defn keywords->underscored-strings
+  "Transforms the keywords in map to be underscored strings"
+  [m]
   (transform-keywords kstr/keyword->underscored-string m))
 
-(defn update-in-if-present [m path f]
+(defn update-in-if-present
+  "Updates the specified path in the map only if it presents"
+  [m path f]
   (if (contains-path? m path)
     (update-in m path f)
     m))
 
-(defn submap? [sub-map m]
+(defn submap? 
+  "Determine whether sub-map is a submap of m."
+  [sub-map m]
   (every? (fn [[k v]]
             (= v (get m k)))
           sub-map))
 
 (defn select-keys-always
+  "Selects the entires whose key presents in ks from m "
   ([m ks]
      (select-keys-always m ks nil))
   ([m ks default]
@@ -217,7 +242,9 @@
            (for [k ks]
              [k (get m k default)]))))
 
-(defn move-key [m old-key new-key]
+(defn move-key 
+  "Changes the entry's key which is old-key to new-key (the corresponding value untouched)"
+  [m old-key new-key]
   (let [v (get m old-key ::missing)]
     (if (= v ::missing)
       m
