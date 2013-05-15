@@ -1,5 +1,6 @@
 (ns kits.queues
   "Wrappers for constructing various java.util.concurrent queues."
+  (:require [kits.thread :as thread])
   (:import (java.util.concurrent ArrayBlockingQueue BlockingQueue
                                  PriorityBlockingQueue TimeUnit))
   (:refer-clojure :exclude [get peek]))
@@ -53,16 +54,3 @@
     {:total (+ s r)
      :used s
      :free r}))
-
-(defn start-thread-pool
-  "Starts a thread pool with 'thread-count' threads. 'f' is a function
-   that constitute the tread loop. Its first argument is the thread
-   name, the second argument will be set to match the 'args' given
-   when invoking 'start-thread-pool'"
-  [thread-count name-prefix f & args]
-  (doall
-   (map #(let [^String name (str name-prefix %)
-               t (Thread. ^Runnable (partial f name args) name)]
-           (.start t)
-           t)
-        (range 0 (int thread-count)))))
