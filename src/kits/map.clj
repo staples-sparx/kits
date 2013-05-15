@@ -251,3 +251,15 @@
       (-> m
           (assoc new-key v)
           (dissoc old-key)))))
+
+(defn sorted-zipmap
+  "Returns a sorted map with the keys mapped to the corresponding vals."  
+  [keys vals]
+    (loop [map (sorted-map)
+           ks (seq keys)
+           vs (seq vals)]
+      (if (and ks vs)
+        (recur (assoc map (first ks) (first vs))
+               (next ks)
+               (next vs))
+        map)))

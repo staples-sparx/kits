@@ -249,3 +249,10 @@
          (move-key {:c 1} :a :b)))
   (is (= {}
          (move-key {} :a :b))))
+
+(deftest test-sorted-zipmap
+  (is (= {:1 1
+          :2 2
+          :3 3
+          :4 4}
+         (sorted-zipmap [:4 :2 :1 :3] [4 2 1 3]))))
