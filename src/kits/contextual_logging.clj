@@ -80,14 +80,14 @@
   (thread/start-thread-pool thread-count "async-logging-queue" log-message-consumer))
 
 (defn async-log-message
-  "Like `log-message`, but executes logging with an agent"
+  "Like `log-message`, but executes logging on a dedicated background thread."
   [& message-tokens]
   (let [log-context *log-context*]
     (q/add @async-logging-queue (fn []
                                   (apply log-message-with-context log-context message-tokens)))))
 
 (defn async-log-exception
-  "Like `log-exception`, but executes logging in with an agent"
+  "Like `log-exception`, but executes logging on a dedicated background thread."
   ([e additional-message]
      (let [log-context *log-context*]
        (q/add @async-logging-queue (fn []
