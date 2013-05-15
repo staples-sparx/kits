@@ -150,6 +150,9 @@
       :standard-interval
       (keyword interval))))
 
+(defmethod timestamp-ranges :none [start-date end-date interval]
+  [[(->timestamp start-date) (->timestamp end-date)]])
+
 (defmethod timestamp-ranges :standard-interval [start-date end-date interval]
   (let [interval (keyword interval)
         start (->timestamp start-date)
@@ -161,7 +164,7 @@
                     (iterate #(increment % interval))
                     (take-while #(<= % end))
                     (partition 2 1))]
-    (map stdrd-decrementor ranges)) )
+    (map stdrd-decrementor ranges)))
 
 (defmethod timestamp-ranges :month [start-date end-date interval]
   (let [interval (keyword interval)
