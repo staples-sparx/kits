@@ -75,8 +75,9 @@
 
 (defn init-thread-pool
   "Inits the asynchronous logging thread pool."
-  []
-  (thread/start-thread-pool 1 "async-logging-queue" log-message-consumer))
+  [& {:keys [thread-count]
+      :or {thread-count 1}}]
+  (thread/start-thread-pool thread-count "async-logging-queue" log-message-consumer))
 
 (defn async-log-message
   "Like `log-message`, but executes logging with an agent"

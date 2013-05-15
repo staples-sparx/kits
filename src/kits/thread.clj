@@ -1,4 +1,5 @@
-(ns kits.thread)
+(ns kits.thread
+  "Thread utility functions")
 
 
 (defn start-thread-pool
