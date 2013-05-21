@@ -1,5 +1,6 @@
 (ns kits.timestamp
   "Functions for creating and formatting timestamps (Longs)"
+  (:require [clojure.string :as str])
   (:import (java.text SimpleDateFormat)
            (java.util Calendar Date GregorianCalendar TimeZone)))
 
@@ -144,16 +145,31 @@
 (defn ->timestamp-at-day-end [t]
   (-> t ->timestamp timestamp-at-day-end))
 
-(defmulti timestamp-ranges
+
+;;; Ranges
+
+(def ^:private legal-interval-set #{"none" "minute" "hour" "day" "week" "month" "year"})
+
+(defmulti ^:private timestamp-ranges-internal
   (fn [_ _ interval]
-    (if (#{:minute :hour :day :week :year} (keyword interval))
+    (if (contains? #{:minute :hour :day :week :year} (keyword interval))
       :standard-interval
       (keyword interval))))
 
-(defmethod timestamp-ranges :none [start-date end-date interval]
+(defn timestamp-ranges [start-date end-date interval]
+  (if (contains? legal-interval-set (name interval))
+    (timestamp-ranges-internal start-date end-date interval)
+    (if-let [matching-interval-prefix (first (filter #(.startsWith (name interval) %) legal-interval-set))]
+      (let [[interval' n] (str/split (name interval) #"-")]
+        (->> (timestamp-ranges-internal start-date end-date interval')
+             (partition (Long/parseLong n))
+             (map #(list (ffirst %) (last (last %))))))
+      (throw (IllegalArgumentException. (format "Can't use supplied interval '%s'" interval))))))
+
+(defmethod timestamp-ranges-internal :none [start-date end-date interval]
   [[(->timestamp start-date) (->timestamp end-date)]])
 
-(defmethod timestamp-ranges :standard-interval [start-date end-date interval]
+(defmethod timestamp-ranges-internal :standard-interval [start-date end-date interval]
   (let [interval (keyword interval)
         start (->timestamp start-date)
         end-ts (->timestamp end-date)
@@ -166,7 +182,7 @@
                     (partition 2 1))]
     (map stdrd-decrementor ranges)))
 
-(defmethod timestamp-ranges :month [start-date end-date interval]
+(defmethod timestamp-ranges-internal :month [start-date end-date interval]
   (let [interval (keyword interval)
         start-ts (->timestamp start-date)
         end-ts (->timestamp end-date)
