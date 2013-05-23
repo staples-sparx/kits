@@ -251,8 +251,5 @@
          (move-key {} :a :b))))
 
 (deftest test-sorted-zipmap
-  (is (= {:1 1
-          :2 2
-          :3 3
-          :4 4}
+  (is (= (sorted-map :1 1 :2 2 :3 3 :4 4)
          (sorted-zipmap [:4 :2 :1 :3] [4 2 1 3]))))

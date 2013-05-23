@@ -30,29 +30,20 @@
          (str/join ", ")
          (#(str % " - ")))))
 
-(defn- log-message-with-context [log-context & message-tokens]
-  (apply amit/log-message (str (stringify log-context) (first message-tokens)) (rest message-tokens)))
-
 (defn log-message
   "Delegates to amit/log-message, appending the context to the messages"
   [& message-tokens]
-  (apply log-message-with-context *log-context* message-tokens))
-
-(defn- log-exception-with-context
-  ([log-context e additional-message]
-    (amit/log-exception e (str (stringify log-context) additional-message)))
-  ([log-context e]
-    (let [context (stringify log-context)]
-      (if (= "" context)
-        (amit/log-exception e)
-        (amit/log-exception e context)))))
+  (apply amit/log-message (str (stringify *log-context*) (first message-tokens)) (rest message-tokens)))
 
 (defn log-exception
   "Delegates to amit/log-message, appending the context to the messages"
   ([e additional-message]
-     (log-exception-with-context *log-context* e additional-message))
+    (amit/log-exception e (str (stringify *log-context*) additional-message)))
   ([e]
-     (log-exception-with-context *log-context* e)))
+    (let [context (stringify *log-context*)]
+      (if (= "" context)
+        (amit/log-exception e)
+        (amit/log-exception e context)))))
 
 
 ;;; Async Logging
@@ -77,23 +68,26 @@
   "Inits the asynchronous logging thread pool."
   [& {:keys [thread-count]
       :or {thread-count 1}}]
-  (thread/start-thread-pool thread-count "async-logging-queue" log-message-consumer))
+  (thread/start-thread-pool thread-count "async-logging-queue-consumer" log-message-consumer))
 
 (defn async-log-message
-  "Like `log-message`, but executes logging with an agent"
+  "Like `log-message`, but executes logging on a dedicated thread pool."
   [& message-tokens]
-  (let [log-context *log-context*]
+  (let [bindings (get-thread-bindings)]
     (q/add @async-logging-queue (fn []
-                                  (apply log-message-with-context log-context message-tokens)))))
+                                  (with-bindings bindings
+                                    (apply log-message message-tokens))))))
 
 (defn async-log-exception
-  "Like `log-exception`, but executes logging in with an agent"
+  "Like `log-exception`, but executes logging on a dedicated thread pool."
   ([e additional-message]
-     (let [log-context *log-context*]
+     (let [bindings (get-thread-bindings)]
        (q/add @async-logging-queue (fn []
-                                     (log-exception-with-context log-context e additional-message)))))
+                                     (with-bindings bindings
+                                       (log-exception e additional-message))))))
   ([e]
-     (let [log-context *log-context*]
+     (let [bindings (get-thread-bindings)]
        (q/add @async-logging-queue (fn []
-                                     (log-exception-with-context log-context e))))))
+                                     (with-bindings bindings
+                                       (log-exception e)))))))
 
