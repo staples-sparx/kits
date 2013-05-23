@@ -3,6 +3,7 @@
   (:require [clojure.string :as str]
             [kits.queues :as q]
             [kits.thread :as thread]
+            [kits.milliseconds-constants :as msc]
             [org.rathore.amit.utils.logger :as amit]))
 
 
@@ -52,9 +53,13 @@
   "Holds the Java ArrayBlockingQueue for high throughput, async logging."
   (atom nil))
 
+(def queue-timeout-in-ms
+  "ArrayBlockingQueue polling timeout in ms before returning nil"
+  (* 2 msc/minute))
+
 (defn- log-message-consumer [_thread-name_ _args_]
   (while true
-    (when-let [f (q/fetch @async-logging-queue)]
+    (when-let [f (q/fetch @async-logging-queue queue-timeout-in-ms)]
       (f))))
 
 (defn init-async-logging-queue

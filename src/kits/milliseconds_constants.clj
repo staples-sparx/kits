@@ -1,4 +1,5 @@
 (ns kits.milliseconds-constants
+  "Time unit constants"
   (:refer-clojure :exclude [second]))
 
 (def ^:const second 1000)
