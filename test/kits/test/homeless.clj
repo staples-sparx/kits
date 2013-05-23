@@ -55,12 +55,6 @@
   (is (false? (str->boolean "")))
   (is (false? (str->boolean "false"))))
 
-(deftest test-base-array?
-  (is (base-array? (to-array '(1 2 2 :c :d :e))))
-  (is (base-array? (into-array {:a 3})))
-  (is (base-array? (to-array [:a 3])))
-  (is (false? (base-array? '(1 2 2 :c :d :e)))))
-
 (deftest test-ipv4-dotted-to-integer
   (is (= (ipv4-dotted-to-integer "127.0.0.1") 2130706433)))
 

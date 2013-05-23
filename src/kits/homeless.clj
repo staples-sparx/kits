@@ -281,11 +281,6 @@ to return."
   [^String s]
   (if (not-empty s) (not= "false" (.toLowerCase s)) false))
 
-(defn base-array?
-  "Test if specified array is of a base-type (long/double etc.)"
-  [a]
-  (and (or a false) (.isArray ^Class (class a))))
-
 (defn fprint
   "Same as print but explicitly flushes *out*."
   [& more]
