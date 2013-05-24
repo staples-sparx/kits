@@ -767,3 +767,19 @@ to return."
   [f & args]
   (apply f (apply concat
                   (butlast args) (last args))))
+
+(defn ->binary [result]
+  (if result
+    1
+    0))
+
+(defn count-occurences [coll search-terms]
+  (apply +
+    (mapv (fn [string-to-match]
+            (count (filterv #(try
+                               (re-find (re-pattern (str "(?i)" %))
+                                 string-to-match)
+                               (catch Exception e
+                                 nil))
+                     search-terms)))
+      coll)))
