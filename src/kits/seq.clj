@@ -1,6 +1,7 @@
 (ns kits.seq
   "Functions that operate on Clojure sequences."
-  (:require [clojure.walk :as walk]))
+  (:require [clojure.walk :as walk]
+            [kits.string :as kstr]))
 
 
 (defn any? 
@@ -15,6 +16,15 @@
     (if (< cnt 2)
       []
       (subvec v 0 (dec cnt)))))
+
+(defn count-occurences [matching-fn strings-to-match search-terms]
+  (->> strings-to-match
+       (map (fn [string-to-match]
+              (count (filter #(matching-fn % string-to-match) search-terms))))
+       (apply +)))
+
+(def count-matching-occurences (partial count-occurences kstr/safe-string-pattern-re-find))
+(def count-exact-occurences    (partial count-occurences =))
 
 (defn ensure-sequential 
   "Returns x as [x] if x is not sequential, otherwise return x untouched."
@@ -92,4 +102,3 @@
   (if (empty? seqs)
     []
     (apply map list seqs)))
-

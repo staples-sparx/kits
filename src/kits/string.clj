@@ -126,6 +126,13 @@
     (boolean (re-matches re s))
     false))
 
+(defn safe-string-pattern-re-find [pattern string-to-match]
+  (try
+    (re-find (re-pattern (str "(?i)" pattern))
+             string-to-match)
+    (catch java.util.regex.PatternSyntaxException e
+      nil)))
+
 (defn split [s delim]
   (cond
     (nil? s)        nil

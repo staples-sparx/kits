@@ -173,3 +173,10 @@
   (is (equals-ignore-case? "S" "s"))
   (is (equals-ignore-case? "s" "s"))
   (is (not (equals-ignore-case? "SSS" "s"))))
+
+(deftest ^:unit test-safe-string-pattern-re-find
+  (is (= "alex" (safe-string-pattern-re-find "alex" "alexalexalex")))
+
+  (testing "WHEN given string that can't be made a legal regex
+            THEN nil"
+    (is (= nil (safe-string-pattern-re-find "*alex*" "alexalexalex")))))

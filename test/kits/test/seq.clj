@@ -52,3 +52,10 @@
     [[:a] [1] [\x]]         [[:a 1 \x]] ;; reversible!
     [[:a 1 \x] [:b 2 \y]]   [[:a :b] [1 2] [\x \y]]
     [[:a :b] [1 2] [\x \y]] [[:a 1 \x] [:b 2 \y]])) ;; reversible!
+
+(deftest test-count-exact-occurences
+  (is (= 1 (count-exact-occurences ["bob" "Bob" "bob bob bob"] ["bob"])))
+  (is (= 2 (count-exact-occurences ["bob" "Bob" "bob bob bob"] ["bob" "Bob"]))))
+
+(deftest test-count-matching-occurences
+  (is (= 3 (count-matching-occurences ["bob" "Bob" "bob bob bob"] ["bob"]))))
