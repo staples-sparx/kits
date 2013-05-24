@@ -6,7 +6,7 @@
   [a]
   (and (or a false) (.isArray ^Class (class a))))
 
-(defn is-a-class?
+(defn safe-cast
   "Determines if given 'object' can be cast to an instance of the given 'class'.
    Returns the casted instance if successfull, nil otherwise"
   [class object]

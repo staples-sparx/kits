@@ -12,8 +12,8 @@
     (is (false? (cl/base-array? (doto (java.util.ArrayList.)
                                   (.add "test")))))))
 
-(deftest is-a-class
+(deftest safe-cast
   (testing "Given a class and object, determines if object is an instance of the class"
-    (is (nil? (cl/is-a-class? clojure.lang.PersistentTreeMap (hash-map :test 1))))
+    (is (nil? (cl/safe-cast clojure.lang.PersistentTreeMap (hash-map :test 1))))
     (is (= {:test 1}
-           (cl/is-a-class? clojure.lang.PersistentTreeMap (sorted-map :test 1))))))
+           (cl/safe-cast clojure.lang.PersistentTreeMap (sorted-map :test 1))))))
