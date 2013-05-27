@@ -9,7 +9,10 @@
 
 (deftest test-distinct-by
   (is (= [{:a 1 :b 3} {:a 2 :b 2}]
-         (distinct-by :a [{:a 1 :b 3} {:a 2 :b 2} {:a 1 :b 2}]))))
+         (distinct-by :a [{:a 1 :b 3} {:a 2 :b 2} {:a 1 :b 2}])))
+
+  (is (= [{:a 1 :b 3} {:a 2 :b 2} {:a 1 :b 2}]
+         (distinct-by :a 2 [{:a 1 :b 3} {:a 2 :b 2} {:a 1 :b 2} {:a 1 :b 7}]))))
 
 (deftest test-ensure-sequential
   (are [result x] (= result (ensure-sequential x))

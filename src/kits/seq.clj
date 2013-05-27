@@ -27,17 +27,20 @@
 (def count-exact-occurences    (partial count-occurences =))
 
 (defn distinct-by
-  "Like distinct, but calls keyfn to determine distinctness, much like sort-by."
-  [keyfn coll]
-  (let [step (fn step [xs seen]
-    (lazy-seq
-      ((fn [[f :as xs] seen]
-         (when-let [s (seq xs)]
-           (if (contains? seen (keyfn f))
-             (recur (rest s) seen)
-             (cons f (step (rest s) (conj seen (keyfn f)))))))
-        xs seen)))]
-    (step coll #{})))
+  "Like distinct, but calls keyfn to determine distinctness, much like sort-by.
+   Takes an optional max-n, indicating how many duplicates are acceptible."
+  ([keyfn coll]
+    (distinct-by keyfn 1 coll))
+  ([keyfn max-n coll]
+    (let [step (fn step [xs seen]
+      (lazy-seq
+        ((fn [[f :as xs] seen]
+           (when-let [s (seq xs)]
+             (if (>= (get seen (keyfn f) 0) max-n)
+               (recur (rest s) seen)
+               (cons f (step (rest s) (update-in seen [(keyfn f)] (fnil inc 0)))))))
+          xs seen)))]
+      (step coll {}))))
 
 (defn ensure-sequential 
   "Returns x as [x] if x is not sequential, otherwise return x untouched."
