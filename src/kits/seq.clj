@@ -26,6 +26,19 @@
 (def count-matching-occurences (partial count-occurences kstr/safe-string-pattern-re-find))
 (def count-exact-occurences    (partial count-occurences =))
 
+(defn distinct-by
+  "Like distinct, but calls keyfn to determine distinctness, much like sort-by."
+  [keyfn coll]
+  (let [step (fn step [xs seen]
+    (lazy-seq
+      ((fn [[f :as xs] seen]
+         (when-let [s (seq xs)]
+           (if (contains? seen (keyfn f))
+             (recur (rest s) seen)
+             (cons f (step (rest s) (conj seen (keyfn f)))))))
+        xs seen)))]
+    (step coll #{})))
+
 (defn ensure-sequential 
   "Returns x as [x] if x is not sequential, otherwise return x untouched."
   [x]

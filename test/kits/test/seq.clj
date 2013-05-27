@@ -7,6 +7,10 @@
   (is (= true (any? #{'a 'b} ['a])))
   (is (= false (any? #{'a 'b} ['c]))))
 
+(deftest test-distinct-by
+  (is (= [{:a 1 :b 3} {:a 2 :b 2}]
+         (distinct-by :a [{:a 1 :b 3} {:a 2 :b 2} {:a 1 :b 2}]))))
+
 (deftest test-ensure-sequential
   (are [result x] (= result (ensure-sequential x))
        nil     nil
