@@ -5,8 +5,7 @@
   (:require [clojure.pprint :as pprint]
             [clojure.set :as set]
             [clojure.string :as str])
-  (:import (java.io File)
-           (java.net MalformedURLException)
+  (:import (java.net MalformedURLException)
            (java.util.concurrent Future TimeoutException)))
 
 (defmacro ignore-exceptions
@@ -377,17 +376,6 @@ to return."
      ~@exprs
      v#))
 
-(defmacro with-temp-file
-  "Bind var to a temp File instance and invoke body, and delete the
-  file on return."
-  [var & body]
-  `(let [~var (io/file (str "/tmp/" (uuid)))]
-     (try
-       (do ~@body)
-       (finally
-         (when (.exists ~var)
-           (.delete ~var))))))
-
 (defn parse-url
   "Parse the url spec into a map with keys {:scheme, :host, etc.}"
   [^String spec]
@@ -435,12 +423,6 @@ to return."
 
 (defn stacktrace->str [e]
   (map #(str % "\n") (.getStackTrace ^Exception e)))
-
-(defn mkdir-p
-  "Create directory and parent directories if any"
-  [^String path]
-  (let [f ^File (File. path)]
-    (.mkdirs f)))
 
 (defn incremental-name-with-prefix [prefix]
   (let [cnt (atom -1)]

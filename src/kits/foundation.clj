@@ -174,17 +174,6 @@
      ~@exprs
      v#))
 
-(defmacro with-temp-file
-  "Bind var to a temp File instance and invoke body, and delete the
-  file on return."
-  [var & body]
-  `(let [~var (io/file (str "/tmp/" (uuid)))]
-     (try
-       (do ~@body)
-       (finally
-         (when (.exists ~var)
-           (.delete ~var))))))
-
 (defn parse-url
   "Parse the url spec into a map with keys {:scheme, :host, etc.}"
   [^String spec]
