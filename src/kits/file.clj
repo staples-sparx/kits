@@ -4,8 +4,15 @@
   (:import (java.io File)))
 
 
-(defn path [& file-path-pieces]
-  (str/replace (str/join "/" file-path-pieces) #"/+" "/"))
+(def file-separator File/separator)
+
+(defn path
+  "Concatenate pieces of a path into a full path.  Adds file separators when
+   missing and squashing multiple file separators into one."
+  [& file-path-pieces]
+  (str/replace (str/join file-separator file-path-pieces)
+               (re-pattern (str file-separator "+"))
+               file-separator))
 
 (defmacro with-temp-file
   "Bind var to a temp File instance and invoke body, and delete the
