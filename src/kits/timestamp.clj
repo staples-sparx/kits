@@ -68,10 +68,12 @@
 
 (defn ->str
   ([x]
-     (->str x yyyy-mm-dd-hh-mm-ss))
+    (->str x yyyy-mm-dd-hh-mm-ss))
   ([x date-format]
-     (.format
-      (simple-date-format date-format)
+    (->str x date-format "UTC"))
+  ([x date-format timezone-str]
+    (.format
+      (simple-date-format date-format timezone-str)
       (Date. (long (->timestamp x))))))
 
 (defn ->date-str [x]
