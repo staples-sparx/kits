@@ -93,18 +93,15 @@
     (testing "Given a csv, generate map of maps {k-fn, the row}"
       (is (= expected-map-result
              map-result))
-      (is (= clojure.lang.PersistentArrayMap
-             (type map-result)))
-      (is (= clojure.lang.PersistentArrayMap
-             (type (get map-result 1)))))
+      (is (map? map-result))
+      (is (map? (get map-result 1))))
 
     (testing "Given a csv, generate a coll of maps {k-fn, the row}"
       (is (= expected-coll-result
              coll-result))
       (is (= clojure.lang.PersistentVector
              (type (vec coll-result))))
-      (is (= clojure.lang.PersistentArrayMap
-             (type (first coll-result)))))
+      (is (map? (first coll-result))))
 
     (testing
         "Given a csv, generate mutable map of mutable maps {k-fn, the row}"
