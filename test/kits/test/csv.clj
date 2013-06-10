@@ -11,7 +11,6 @@
                      "/samples/sample.csv"))
 (def sample-field-reader-opts
   {:key-fn :id
-   :val-fn identity
    0 {:label :id :reader f/parse-int}
    1 {:label :left :reader f/parse-int}
    2 {:label :right :reader f/parse-int}

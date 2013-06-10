@@ -43,6 +43,8 @@
         (.put % k v)))))
 
 (defn- apply-field-opts [csv-rows {:keys [key-fn val-fn mutable?]
+                                   :or {val-fn identity
+                                        key-fn identity}
                                    :as field-reader-opts}]
   (map (fn [row]
          (let [row' (apply-field-opts-on-row row field-reader-opts)]
