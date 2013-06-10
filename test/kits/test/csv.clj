@@ -103,8 +103,7 @@
     (testing "Given a csv, generate a coll of maps {k-fn, the row}"
       (is (= expected-coll-result
              coll-result))
-      (is (= clojure.lang.PersistentVector
-             (type (vec coll-result))))
+      (is (seq? coll-result))
       (is (map? (first coll-result))))
 
     (testing
