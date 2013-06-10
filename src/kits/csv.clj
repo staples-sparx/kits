@@ -3,7 +3,8 @@
    column-value key value pair that can be configured via :key-fn, :val-fn
    and :reader for each field"
   (:require [clojure-csv.core :as csv])
-  (:import java.util.HashMap))
+  (:import java.util.HashMap
+           java.util.HashMap$Entry))
 
 (def ^:dynamic *parse-opts*
   {:skip-header false
@@ -53,10 +54,13 @@
                                         key-fn identity}
                                    :as field-reader-opts}]
   (map (fn [row]
-         (let [row' ((if mutable? apply-field-opts-on-row-mutable
-                         apply-field-opts-on-row)
+         (let [row' ((if mutable?
+                       apply-field-opts-on-row-mutable
+                       apply-field-opts-on-row)
                      row field-reader-opts)]
-           {(key-fn row') (val-fn row')}))
+           (if mutable?
+             (HashMap. {(key-fn row') (val-fn row')})
+             {(key-fn row') (val-fn row')})))
        csv-rows))
 
 (defn csv-rows->map [csv-rows {:keys [mutable?] :as field-reader-opts}]
@@ -65,9 +69,16 @@
     (reduce merge (apply-field-opts csv-rows field-reader-opts))))
 
 (defn csv-rows->coll [csv-rows {:keys [mutable?] :as field-reader-opts}]
-  (let [rows (->> (apply-field-opts csv-rows field-reader-opts)
-                  (sort-by ffirst) ; key :foo in [{:foo {...}} ...]
-                  (map (comp second first)))] ; val {...} in [{:foo {...}} ...]
+  (let [rows (apply-field-opts csv-rows field-reader-opts)]
     (if mutable?
-      (into-array rows)
-      rows)))
+      (let [mutable-array ^"[Ljava.util.HashMap;" (make-array
+                                                   HashMap (count rows))]
+        (doseq [^HashMap row rows]
+          (let [^HashMap$Entry row-entry (first (.entrySet row))
+                i (.getKey row-entry)
+                row' (.getValue row-entry)]
+            (aset mutable-array (dec i) row'))) ; TODO fix off-by-1
+        mutable-array)
+      (->> rows
+           (sort-by (comp key first))
+           (map (comp val first))))))

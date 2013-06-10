@@ -11,7 +11,7 @@
                      "/samples/sample.csv"))
 
 (def sample-field-reader-opts
-  {:key-fn :id
+  {:key-fn :id #_(comp dec :id) ; TODO fix off-by-1
    :val-fn (fn [row] (assoc row :extra "added this"))
    0 {:label :id :reader f/parse-int}
    1 {:label :left :reader f/parse-int}
