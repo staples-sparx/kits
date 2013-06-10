@@ -11,6 +11,7 @@
                      "/samples/sample.csv"))
 (def sample-field-reader-opts
   {:key-fn :id
+   :val-fn (fn [row] (assoc row :extra "added this"))
    0 {:label :id :reader f/parse-int}
    1 {:label :left :reader f/parse-int}
    2 {:label :right :reader f/parse-int}
@@ -27,6 +28,7 @@
     :split_var "most_expensive_product_in_cart",
     :right 3,
     :left 2,
+    :extra "added this",
     :id 1},
    2
    {:status "1",
@@ -35,6 +37,7 @@
     :split_var "os.Windows",
     :right 5,
     :left 4,
+    :extra "added this",
     :id 2},
    3
    {:status "1",
@@ -43,6 +46,7 @@
     :split_var "cart_actions",
     :right 7,
     :left 6,
+    :extra "added this",
     :id 3},
    4
    {:status "1",
@@ -51,6 +55,7 @@
     :split_var "price",
     :right 9,
     :left 8,
+    :extra "added this",
     :id 4}})
 
 (def expected-coll-result
@@ -128,24 +133,28 @@
              :split_point "1990",
              :split_var "most_expensive_product_in_cart",
              :right 3,
+             :extra "added this",
              :id 1},
             2
             {:status "1",
              :split_point "0.5",
              :split_var "os.Windows",
              :right 5,
+             :extra "added this",
              :id 2},
             3
             {:status "1",
              :split_point "1.5",
              :split_var "cart_actions",
              :right 7,
+             :extra "added this",
              :id 3},
             4
             {:status "1",
              :split_point "8983.5",
              :split_var "price",
              :right 9,
+             :extra "added this",
              :id 4}}
            (with-open [rdr (io/reader sample-csv)]
              (csv/csv-rows->map (csv/read-csv
