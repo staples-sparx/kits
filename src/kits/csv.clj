@@ -31,37 +31,43 @@
 (defn- apply-field-opts-on-row [csv-row field-reader-opts]
   (let [exclude-columns (:exclude-columns field-reader-opts)]
     (reduce merge (for [i (range (count csv-row))
-                        :when (or (nil? exclude-columns )
+                        :when (or (nil? exclude-columns)
                                   (not (contains? exclude-columns i)))
                         :let [ifield (get field-reader-opts i)
                               irow (get csv-row i)]]
                     (assoc {} (:label ifield) ((:reader ifield) irow))))))
 
-(defn- hash-map->mutable [m]
-  (doto (HashMap.)
-    (#(doseq [[k v] m]
-        (.put % k v)))))
+(defn- apply-field-opts-on-row-mutable [csv-row field-reader-opts]
+  (let [exclude-columns (:exclude-columns field-reader-opts)
+        mutable-map ^HashMap (HashMap.)]
+    (doseq [i (range (count csv-row))
+            :when (or (nil? exclude-columns)
+                      (not (contains? exclude-columns i)))
+            :let [ifield (get field-reader-opts i)
+                  irow (get csv-row i)]]
+      (.put mutable-map (:label ifield) ((:reader ifield) irow)))
+    mutable-map))
 
 (defn- apply-field-opts [csv-rows {:keys [key-fn val-fn mutable?]
                                    :or {val-fn identity
                                         key-fn identity}
                                    :as field-reader-opts}]
   (map (fn [row]
-         (let [row' (apply-field-opts-on-row row field-reader-opts)]
-           {(key-fn row') ((if mutable? hash-map->mutable identity)
-                           (val-fn row'))}))
+         (let [row' ((if mutable? apply-field-opts-on-row-mutable
+                         apply-field-opts-on-row)
+                     row field-reader-opts)]
+           {(key-fn row') (val-fn row')}))
        csv-rows))
 
 (defn csv-rows->map [csv-rows {:keys [mutable?] :as field-reader-opts}]
-  (let [rows (reduce merge (apply-field-opts csv-rows field-reader-opts))]
-    (if mutable?
-      (hash-map->mutable rows)
-      rows)))
+  (if mutable?
+    (throw (Exception. "TODO: implement mutable map of map support"))
+    (reduce merge (apply-field-opts csv-rows field-reader-opts))))
 
 (defn csv-rows->coll [csv-rows {:keys [mutable?] :as field-reader-opts}]
   (let [rows (->> (apply-field-opts csv-rows field-reader-opts)
-                  (sort-by (comp key first)) ; key :foo in [{:foo {...}} ...]
-                  (map (comp val first)))] ; val {...} in [{:foo {...}} ...]
+                  (sort-by ffirst) ; key :foo in [{:foo {...}} ...]
+                  (map (comp second first)))] ; val {...} in [{:foo {...}} ...]
     (if mutable?
       (into-array rows)
       rows)))
