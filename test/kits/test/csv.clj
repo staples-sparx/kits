@@ -125,8 +125,8 @@
 
     (testing
         "Given a csv, generate mutable array of mutable maps {k-fn, the row}"
-      (is (= (first expected-coll-result)
-             (first mutable-coll-result)))
+      (is (= expected-coll-result
+             (seq mutable-coll-result)))
       (is (= java.util.HashMap
              (type (first mutable-coll-result))))
       (is (= "class [Ljava.util.HashMap;"
