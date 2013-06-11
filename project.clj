@@ -13,6 +13,7 @@
                  [org.clojure/java.jdbc "0.2.3"]
                  [org.clojure/tools.logging "0.2.4"]
                  [clojure-csv/clojure-csv "2.0.0-alpha1"]]
+  :warn-on-reflection true
   :profiles {:dev {:dependencies [[org.clojars.runa/conjure "2.0.0"]
                                   [slamhound "1.3.3"]]}
              :1.4.0 {:dependencies [[org.clojure/clojure "1.4.0"]

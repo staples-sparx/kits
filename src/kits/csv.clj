@@ -59,7 +59,9 @@
                        apply-field-opts-on-row)
                      row field-reader-opts)]
            (if mutable?
-             (HashMap. {(key-fn row') (val-fn row')})
+             (let [^HashMap m (HashMap.)]
+               (.put m (key-fn row') (val-fn row'))
+               m)
              {(key-fn row') (val-fn row')})))
        csv-rows))
 
