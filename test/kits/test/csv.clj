@@ -11,7 +11,7 @@
                      "/samples/sample.csv"))
 
 (def sample-field-reader-opts
-  {:key-fn :id #_(comp dec :id) ; TODO fix off-by-1
+  {:key-fn :id
    :val-fn (fn [row] (assoc row :extra "added this"))
    0 {:label :id :reader f/parse-int}
    1 {:label :left :reader f/parse-int}
@@ -93,7 +93,7 @@
                    :delimiter \space
                    :mutable? true})))
 
-        #_mutable-map-result ; TODO
+        #_mutable-map-result ; TODO maybe?
         #_(csv/csv-rows->map mutable-result
                              sample-field-reader-opts-mutable)
 
@@ -113,7 +113,7 @@
       (is (seq? coll-result))
       (is (map? (first coll-result))))
 
-    (comment ; future fact
+    (comment ; TODO maybe?
       (testing
           "Given a csv, generate mutable map of mutable maps {k-fn, the row}"
         (is (= (get expected-map-result 1)
