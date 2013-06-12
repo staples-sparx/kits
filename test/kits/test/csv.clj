@@ -4,8 +4,8 @@
    [kits.csv :as csv]
    [clojure.java.io :as io]
    [kits.foundation :as f])
-  (:import java.util.HashMap))
-
+  (:import java.util.HashMap
+           java.util.ArrayList))
 
 (def sample-csv (str (System/getProperty "user.dir")
                      "/samples/sample.csv"))
@@ -26,7 +26,7 @@
   (assoc sample-field-reader-opts
     :mutable? true
     :val-fn (fn [row]
-              (.put row :extra "added this")
+              (.put ^HashMap row :extra "added this")
               row)))
 
 (def expected-map-result
@@ -129,8 +129,8 @@
              (seq mutable-coll-result)))
       (is (= java.util.HashMap
              (type (first mutable-coll-result))))
-      (is (= "class [Ljava.util.HashMap;"
-             (str (type mutable-coll-result)))))))
+      (is (= java.util.ArrayList
+             (type mutable-coll-result))))))
 
 (deftest parsing-csv-into-nested-maps-with-columns-excluded
   (testing

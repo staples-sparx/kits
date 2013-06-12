@@ -4,7 +4,7 @@
    and :reader for each field"
   (:require [clojure-csv.core :as csv])
   (:import java.util.HashMap
-           java.util.HashMap$Entry))
+           java.util.ArrayList))
 
 (def ^:dynamic *parse-opts*
   {:skip-header false
@@ -29,6 +29,22 @@
          (rest rows)
          rows))))
 
+(defn- apply-mutable [csv-rows {:keys [val-fn]
+                                :or {val-fn identity}
+                                :as field-reader-opts}]
+  (let [exclude-columns (:exclude-columns field-reader-opts)
+        ^ArrayList mutable-list (ArrayList.)]
+    (doseq [row csv-rows]
+      (let [^HashMap mutable-map (HashMap.)]
+        (doseq [i (range (count row))
+                :when (or (nil? exclude-columns)
+                          (not (contains? exclude-columns i)))
+                :let [ifield (get field-reader-opts i)
+                      irow (get row i)]]
+          (.put mutable-map (:label ifield) ((:reader ifield) irow)))
+        (.add mutable-list (val-fn mutable-map))))
+    mutable-list))
+
 (defn- apply-field-opts-on-row [csv-row field-reader-opts]
   (let [exclude-columns (:exclude-columns field-reader-opts)]
     (reduce merge (for [i (range (count csv-row))
@@ -37,25 +53,6 @@
                         :let [ifield (get field-reader-opts i)
                               irow (get csv-row i)]]
                     (assoc {} (:label ifield) ((:reader ifield) irow))))))
-
-(defn- apply-field-opts-on-row-mutable [csv-row field-reader-opts]
-  (let [exclude-columns (:exclude-columns field-reader-opts)
-        mutable-map ^HashMap (HashMap.)]
-    (doseq [i (range (count csv-row))
-            :when (or (nil? exclude-columns)
-                      (not (contains? exclude-columns i)))
-            :let [ifield (get field-reader-opts i)
-                  irow (get csv-row i)]]
-      (.put mutable-map (:label ifield) ((:reader ifield) irow)))
-    mutable-map))
-
-(defn- apply-field-opts-mutable [csv-rows {:keys [key-fn val-fn mutable?]
-                                           :or {val-fn identity
-                                                key-fn identity}
-                                           :as field-reader-opts}]
-  (map (fn [row]
-         (val-fn (apply-field-opts-on-row-mutable row field-reader-opts)))
-       csv-rows))
 
 (defn- apply-field-opts [csv-rows {:keys [key-fn val-fn mutable?]
                                    :or {val-fn identity
@@ -70,5 +67,5 @@
 
 (defn csv-rows->coll [csv-rows {:keys [mutable?] :as field-reader-opts}]
   (if mutable?
-    (into-array (apply-field-opts-mutable csv-rows field-reader-opts))
+    (apply-mutable csv-rows field-reader-opts)
     (map (comp val first) (apply-field-opts csv-rows field-reader-opts))))
