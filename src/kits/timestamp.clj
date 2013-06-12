@@ -165,7 +165,7 @@
       (let [[interval' n] (str/split (name interval) #"-")]
         (->> (timestamp-ranges-internal start-date end-date interval')
              (partition (Long/parseLong n))
-             (map #(list (ffirst %) (last (last %))))))
+             (map #(vector (ffirst %) (last (last %))))))
       (throw (IllegalArgumentException. (format "Can't use supplied interval '%s'" interval))))))
 
 (defmethod timestamp-ranges-internal :none [start-date end-date interval]
