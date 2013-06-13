@@ -3,9 +3,7 @@
   (:require
    [kits.csv :as csv]
    [clojure.java.io :as io]
-   [kits.foundation :as f])
-  (:import java.util.HashMap
-           java.util.ArrayList))
+   [kits.foundation :as f]))
 
 (def sample-csv (str (System/getProperty "user.dir")
                      "/samples/sample.csv"))
@@ -21,13 +19,6 @@
    5 {:label :status :reader identity}
    6 {:label :prediction :reader identity}})
 
-
-(def sample-field-reader-opts-mutable
-  (assoc sample-field-reader-opts
-    :mutable? true
-    :val-fn (fn [row]
-              (.put ^HashMap row :extra "added this")
-              row)))
 
 (def expected-map-result
   {1
@@ -83,23 +74,7 @@
         (csv/csv-rows->map result sample-field-reader-opts)
 
         coll-result
-        (csv/csv-rows->coll result sample-field-reader-opts)
-
-        mutable-result
-        (with-open [rdr (io/reader sample-csv)]
-          (doall (csv/read-csv
-                  rdr
-                  {:skip-header true
-                   :delimiter \space
-                   :mutable? true})))
-
-        #_mutable-map-result ; TODO maybe?
-        #_(csv/csv-rows->map mutable-result
-                             sample-field-reader-opts-mutable)
-
-        mutable-coll-result
-        (csv/csv-rows->coll mutable-result
-                            sample-field-reader-opts-mutable)]
+        (csv/csv-rows->coll result sample-field-reader-opts)]
 
     (testing "Given a csv, generate map of maps {k-fn, the row}"
       (is (= expected-map-result
@@ -111,26 +86,7 @@
       (is (= expected-coll-result
              coll-result))
       (is (seq? coll-result))
-      (is (map? (first coll-result))))
-
-    (comment ; TODO maybe?
-      (testing
-          "Given a csv, generate mutable map of mutable maps {k-fn, the row}"
-        (is (= (get expected-map-result 1)
-               (first (.values mutable-map-result))))
-        (is (= java.util.HashMap
-               (type (first (.values mutable-map-result)))))
-        (is (= java.util.HashMap
-               (type mutable-map-result)))))
-
-    (testing
-        "Given a csv, generate mutable array of mutable maps {k-fn, the row}"
-      (is (= expected-coll-result
-             (seq mutable-coll-result)))
-      (is (= java.util.HashMap
-             (type (first mutable-coll-result))))
-      (is (= java.util.ArrayList
-             (type mutable-coll-result))))))
+      (is (map? (first coll-result))))))
 
 (deftest parsing-csv-into-nested-maps-with-columns-excluded
   (testing
