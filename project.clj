@@ -1,4 +1,4 @@
-(defproject org.clojars.runa/kits "1.11.4"
+(defproject org.clojars.runa/kits "1.11.5"
   :description "Runa's core utilities."
   :min-lein-version "2.0.0"
   :license {:name "MIT License"
@@ -9,7 +9,7 @@
             [lein-swank "1.4.4"]]
   :dependencies [[org.clojure/clojure "1.5.1"]
                  [cheshire "5.0.1"]
-                 [org.clojars.runa/clj-utils "1.2.8"]
+                 [org.clojars.runa/clj-utils "1.3.1"]
                  [org.clojure/java.jdbc "0.2.3"]
                  [org.clojure/tools.logging "0.2.4"]
                  [clojure-csv/clojure-csv "2.0.0-alpha1"]]
