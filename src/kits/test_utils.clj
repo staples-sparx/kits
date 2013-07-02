@@ -1,5 +1,7 @@
 (ns kits.test-utils
   "Functions and macros for making writing tests more effectively."
+  (:require [clojure.data :as data]
+            [clojure.pprint :as pprint])
   (:use clojure.test))
 
 
@@ -37,3 +39,22 @@
             (do-report {:type :fail, :message ~msg,
                         :expected '~form, :actual e#})
             e#))))
+
+
+(defn diff
+  [expected actual]
+  (if-not (= expected actual)
+    (let [[only-in-expected only-in-actual, in-both] (data/diff expected actual)]
+      {:only-in-expected only-in-expected
+       :only-in-actual only-in-actual})
+    nil))
+
+(defn ===
+  "Compare 2 values with = and print diff on stdout when they do not
+  match. Useful for friendly test failures."
+  [expected actual]
+  (if-let [delta (diff expected actual)]
+    (do
+      (pprint/pprint delta)
+      false)
+    true))
