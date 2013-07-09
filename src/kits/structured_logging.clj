@@ -76,6 +76,25 @@
   `(let [log-map# ~log-map]
      (structured-log* :error (:tags log-map#) ~*ns* (current-function-name) (dissoc log-map# :tags))))
 
+(defn- stacktrace [e]
+  (str/join "\n" (list* (-> e .getClass .getName)
+                        (.getMessage e)
+                        (.getStackTrace e))))
+
+(defn exception
+  "Log an exception at log level of error."
+  [exception]
+  (let [root-cause (->> exception
+                        (iterate #(.getCause %))
+                        (take-while (complement nil?))
+                        last)]
+    (if-not (= exception root-cause)
+      (error {:tags [:exception]
+              :stacktrace (stacktrace root-cause)
+              :cause (class exception)})
+      (error {:tags [:exception]
+              :stacktrace (stacktrace root-cause)}))))
+
 (defmacro in-log-context
   "Any calls to structured-logging info, warn or error macros
    will have the surrounding context added. Context map values can be no-arg
