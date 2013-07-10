@@ -21,32 +21,16 @@
   (merge (:data *log-context*)
          {:tags (:tags *log-context*)}))
 
-(defn- unmangle-class-name
-  "Given the name of a class that implements a Clojure function, returns the function's name in Clojure."
-  [class-name]
-  (.replace
-    (clojure.string/replace class-name #"^(.+)\$(.+)$" "$1/$2") \_ \-))
-
-(defmacro current-function-name
-  "Returns the name of the current Clojure function."
-  []
-  `(let [^StackTraceElement element# (-> (Throwable.)
-                                        .getStackTrace
-                                        first)]
-     (#'unmangle-class-name (.getClassName element#))))
-
 ;; logs assorted Objects sanely: good for logging functions or
 ;; assorted objects
 (cc/add-encoder Object cc/encode-str)
 
 (defn structured-log*
   "Used internally by kits.structured-logging"
-  [log-level tags the-ns calling-fn-name log-map]
+  [log-level tags log-map]
   (let [all-tags (vec (distinct (into (:tags *log-context*) tags)))]
     (log/logp log-level (cc/encode (merge {:level (str/upper-case (name log-level))
                                            :timestamp (ts/->str (ts/now))
-                                           :function calling-fn-name
-                                           :namespace (str the-ns)
                                            :data log-map}
                                           (when-not (empty? all-tags)
                                             {:tags all-tags})
@@ -60,21 +44,21 @@
    context from `in-log-context` and adds any supplied :tags."
   [log-map]
   `(let [log-map# ~log-map]
-     (structured-log* :info (:tags log-map#) ~*ns* (current-function-name) (dissoc log-map# :tags))))
+     (structured-log* :info (:tags log-map#) (dissoc log-map# :tags))))
 
 (defmacro warn
   "Log level warn. Logs `log-map` param as JSON, appending any surrounding
    context from `in-log-context` and adds any supplied :tags."
   [log-map]
   `(let [log-map# ~log-map]
-     (structured-log* :warn (:tags log-map#) ~*ns* (current-function-name) (dissoc log-map# :tags))))
+     (structured-log* :warn (:tags log-map#) (dissoc log-map# :tags))))
 
 (defmacro error
   "Log level error. Logs `log-map` param as JSON, appending any surrounding
    context from `in-log-context` and adds any supplied :tags."
   [log-map]
   `(let [log-map# ~log-map]
-     (structured-log* :error (:tags log-map#) ~*ns* (current-function-name) (dissoc log-map# :tags))))
+     (structured-log* :error (:tags log-map#) (dissoc log-map# :tags))))
 
 (defn- stacktrace [e]
   (str/join "\n" (list* (-> e .getClass .getName)
