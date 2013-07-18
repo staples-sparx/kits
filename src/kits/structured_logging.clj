@@ -1,7 +1,7 @@
 (ns kits.structured-logging
   "Logging Clojure data as JSON"
   (:require [clojure.string :as str]
-            [clojure.tools.logging :as log]
+            [runa.tools.logging :as log]
             [cheshire.custom :as cc]
             [kits.homeless :as hl]
             [kits.map :as m]
