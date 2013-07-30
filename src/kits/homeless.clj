@@ -784,3 +784,11 @@ to return."
         (if (.isBound v)
           (intern *ns* sym (var-get v))
           (intern *ns* sym))))))
+
+(defmacro timebomb-comment
+  "Used to comment things out that we want to force ourselves to come
+   back to by a certain point in time in order to resolve later."
+  [timestamp-long & body]
+  `(if (<= ~timestamp-long (System/currentTimeMillis))
+     (throw (Exception. "BOOM! Timebomb has gone off!"))
+     (comment ~@body)))
