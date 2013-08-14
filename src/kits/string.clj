@@ -139,8 +139,8 @@
     (string? delim) (str/split s (re-pattern delim))
     :else           (str/split s delim)))
 
-(defn starts-with? [^String s ^String sub-string]
-  (.startsWith s sub-string))
+(definline starts-with? [^String s ^String sub-string]
+  `(.startsWith ~s ~sub-string))
 
 (defn stringify-map-values [the-map]
   (let [stringify-entry (fn [[k v]] {k (str v)})]
