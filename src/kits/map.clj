@@ -8,47 +8,74 @@
 
 ;;; Mapping and Filtering Over Maps
 
-(defn filter-map
-  "given a predicate like (fn [k v] ...) returns a map with only entries that match it."
-  [pred m]
-  (into (empty m)
-        (filter (fn [[k v]] (pred k v))
-                m)))
-
-(defn filter-by-key
-  "given a predicate like (fn [k] ...) returns a map with only entries with keys that match it."
-  [pred m]
-  (into (empty m)
-        (filter (fn [[k v]] (pred k))
-                m)))
-
-(defn filter-by-val
-  "given a predicate like (fn [v] ...) returns a map with only entries with vals that match it."
-  [pred m]
-  (into (empty m)
-        (filter (fn [[k v]] (pred v))
-                m)))
-
-(defn map-over-map
-  "given a function like (fn [k v] ...) returns a new map with each entry mapped by it."
+(defn map-values
+  "Apply a function on all values of a map and return the corresponding map (all keys untouched)"
   [f m]
-  (into (empty m)
-        (map (fn [[k v]] (f k v))
-             m)))
+  (when m
+    (persistent! (reduce-kv (fn [out-m k v]
+                              (assoc! out-m k (f v)))
+                            (transient (empty m))
+                            m))))
 
 (defn map-keys
   "Apply a function on all keys of a map and return the corresponding map (all values untouched)"
   [f m]
-  (into (empty m)
-        (for [[k v] m]
-          [(f k) v])))
+  (when m
+    (persistent! (reduce-kv (fn [out-m k v]
+                              (assoc! out-m (f k) v))
+                            (transient (empty m))
+                            m))))
 
 (defn map-values
   "Apply a function on all values of a map and return the corresponding map (all keys untouched)"
   [f m]
-  (into (empty m)
-        (for [[k v] m]
-          [k (f v)])))
+  (when m
+    (persistent! (reduce-kv (fn [out-m k v]
+                              (assoc! out-m k (f v)))
+                            (transient (empty m))
+                            m))))
+
+(defn filter-map
+  "given a predicate like (fn [k v] ...) returns a map with only entries that match it."
+  [pred m]
+  (when m
+    (persistent! (reduce-kv (fn [out-m k v]
+                              (if (pred k v)
+                                (assoc! out-m k v)
+                                out-m))
+                            (transient (empty m))
+                            m))))
+
+(defn filter-by-key
+  "given a predicate like (fn [k] ...) returns a map with only entries with keys that match it."
+  [pred m]
+  (when m
+    (persistent! (reduce-kv (fn [out-m k v]
+                              (if (pred k)
+                                (assoc! out-m k v)
+                                out-m))
+                            (transient (empty m))
+                            m))))
+
+(defn filter-by-val
+  "given a predicate like (fn [v] ...) returns a map with only entries with vals that match it."
+  [pred m]
+  (when m
+    (persistent! (reduce-kv (fn [out-m k v]
+                              (if (pred v)
+                                (assoc! out-m k v)
+                                out-m))
+                            (transient (empty m))
+                            m))))
+
+(defn map-over-map
+  "given a function like (fn [k v] ...) returns a new map with each entry mapped by it."
+  [f m]
+  (when m
+    (persistent! (reduce-kv (fn [out-m k v]
+                              (apply assoc! out-m (f k v)))
+                            (transient (empty m))
+                            m))))
 
 
 ;;; Everything Else
