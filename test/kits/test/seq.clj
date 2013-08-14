@@ -66,3 +66,6 @@
 
 (deftest test-count-matching-occurences
   (is (= 3 (count-matching-occurences ["bob" "Bob" "bob bob bob"] ["bob"]))))
+
+(deftest test-map-nth
+  (is (= [1 2 1 2] (map-nth inc 2 [1 1 1 1]))))

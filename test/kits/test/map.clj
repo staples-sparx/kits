@@ -1,6 +1,7 @@
 (ns kits.test.map
   (:use clojure.test
-        kits.map))
+        kits.map
+        conjure.core))
 
 
 (deftest test-keywords->underscored-strings
@@ -253,3 +254,17 @@
 (deftest test-sorted-zipmap
   (is (= (sorted-map :1 1 :2 2 :3 3 :4 4)
          (sorted-zipmap [:4 :2 :1 :3] [4 2 1 3]))))
+
+
+(deftest test-assoc-thunk-result-if-not-present
+  (instrumenting
+   [println]
+   (is (= {:a 6} (assoc-thunk-result-if-not-present {} :a (fn [] (do (println 5) 6)))))
+   (verify-call-times-for println 1))
+
+  (instrumenting
+   [println]
+   (is (= {:a 1} (assoc-thunk-result-if-not-present {:a 1} :a (fn [] (do (println 5) 6)))))
+   (verify-call-times-for println 0))
+  
+  (is (= {:a 1 :b 2} (assoc-thunk-result-if-not-present {} :a (fn [] 1) :b (fn [] 2)))))

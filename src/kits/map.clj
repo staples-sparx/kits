@@ -53,6 +53,20 @@
 
 ;;; Everything Else
 
+(defn assoc-thunk-result-if-not-present
+  "Like assoc, except only adds the key-value pair if the key doesn't exist in the map"
+  ([m k thunk]
+     (if (contains? m k)
+       m
+       (assoc m k (thunk))))
+  ([m k thunk & kvs]
+     (let [ret (if (contains? m k)
+                 m
+                 (assoc m k (thunk)))]
+       (if kvs
+         (recur ret (first kvs) (second kvs) (nnext kvs))
+         ret))))
+
 (defn assoc-if-not-present
   "Like assoc, except only adds the key-value pair if the key doesn't exist in the map"
   ([m k v]

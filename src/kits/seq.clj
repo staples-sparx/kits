@@ -57,6 +57,13 @@
   [s]
   (map vector (iterate inc 0) s))
 
+(defn map-nth [f n coll]
+  (map-indexed (fn [idx x]
+                 (if (zero? (rem (inc idx) n))
+                   (f x)
+                   x))
+               coll))
+
 (defn max-by 
   "Like max, but the comparator is customizable through sort-by-fn"
   [sort-by-fn xs]
