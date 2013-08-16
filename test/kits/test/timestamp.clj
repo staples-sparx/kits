@@ -48,6 +48,9 @@
   (testing "with specified timezone"
     (is (= "2012-01-30 05:00:00" (->str (->timestamp "01 30, 2012" "MM dd, yyyy" "America/New_York"))))))
 
+(deftest test->date-str
+  (is (= "2012-02-02" (->date-str (->timestamp "2012-02-02")))))
+
 (deftest test->timestamp---integral-types-get-coerced-to-Long
   (is (= true (instance? Long (->timestamp (int 5)))))
   (is (= true (instance? Long (->timestamp (short 5))))))
