@@ -86,7 +86,7 @@
   [log-context-map & body]
   `(let [log-context-map# ~log-context-map]
      (binding [*log-context* {:data (merge (dissoc log-context-map# :tags) (:data *log-context*))
-                              :tags (into (:tags *log-context*) (sort (:tags log-context-map#)))}]
+                              :tags (into (:tags *log-context*) (:tags log-context-map#))}]
      ~@body)))
 
 (defn log-time*
