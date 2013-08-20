@@ -19,11 +19,11 @@
   (let [capacity (or capacity 10)]
     (PriorityBlockingQueue. capacity comparator)))
 
-(definline add
+(defn add
   "Add a new msg to the queue. Returns false if the msg could not be
    added because the queue is full, true otherwise."
   [^BlockingQueue q msg]
-  `(.offer ~q ~msg))
+  (.offer q msg))
 
 (def offer! add)                        ; compatibility alias
 
@@ -37,22 +37,22 @@
 
 (def poll! fetch)                       ; compatibility alias
 
-(definline fetch-with-timeout
+(defn fetch-with-timeout
   "Retrieves a message from the queue, waiting if necessary until an
    element becomes available."
   [^BlockingQueue q timeout-in-ms]
-  `(.poll ~q ~timeout-in-ms TimeUnit/MILLISECONDS))
+  (.poll q timeout-in-ms TimeUnit/MILLISECONDS))
 
-(definline peek
+(defn peek
   "Retrieves, but does not remove, a message from the queue"
   [^BlockingQueue q]
-  `(.peek ~q))
+  (.peek q))
 
-(definline used [^BlockingQueue q]
-  `(.size ~q))
+(defn used [^BlockingQueue q]
+  (.size q))
 
-(definline free [^BlockingQueue q]
-  `(.remainingCapacity ~q))
+(defn free [^BlockingQueue q]
+  (.remainingCapacity q))
 
 (defn stats
   "Return current stats for the queue"
