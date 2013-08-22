@@ -770,20 +770,35 @@ to return."
   "Destructively merge metadata from a source object into a target."
   [source target]
   (.setMeta target
-    (merge (meta source)
-      (select-keys (meta target) [:name :ns]))))
+            (merge (meta source)
+                   (select-keys (meta target) [:name :ns]))))
 
 (defn immigrate
   "Add all the public vars in a list of namespaces to the current
-   namespace."
+   namespace.
+
+   Ex.
+   (immigrate ['criterium.core :except ['report 'warn]]
+              'print.foo
+              'gui.diff)"
   [& namespaces]
   (doseq [ns namespaces]
     (require ns)
-    (doseq [[sym v] (ns-publics (find-ns ns))]
-      (merge-meta! v
-        (if (.isBound v)
-          (intern *ns* sym (var-get v))
-          (intern *ns* sym))))))
+    (if (sequential? ns)
+      (let [[ns _except_ var-exclusions] ns
+            var-exclusion-set (set var-exclusions)]
+        (doseq [[sym v] (ns-publics (find-ns ns))
+                :when (not (contains? var-exclusion-set sym))]
+          (merge-meta! v
+                       (if (.isBound v)
+                         (intern *ns* sym (var-get v))
+                         (intern *ns* sym)))))
+      (doseq [[sym v] (ns-publics (find-ns ns))]
+        (merge-meta! v
+                     (if (.isBound v)
+                       (intern *ns* sym (var-get v))
+                       (intern *ns* sym)))))))
+
 
 (defmacro timebomb-comment
   "Used to comment things out that we want to force ourselves to come
