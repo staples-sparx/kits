@@ -805,5 +805,5 @@ to return."
    back to by a certain point in time in order to resolve later."
   [timestamp-long & body]
   `(if (<= ~timestamp-long (System/currentTimeMillis))
-     (throw (Exception. "BOOM! Timebomb has gone off!"))
+     (throw (Exception. "Timebomb comment has passed its due date."))
      (comment ~@body)))
