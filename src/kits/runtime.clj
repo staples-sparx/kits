@@ -6,8 +6,10 @@
                                  OperatingSystemMXBean RuntimeMXBean)))
 
 (def ^:private ^Runtime runtime (Runtime/getRuntime))
+
 (def ^:private ^java.lang.management.RuntimeMXBean runtime-mx
   (ManagementFactory/getRuntimeMXBean))
+
 (def ^:private ^OperatingSystemMXBean os-mx
   (ManagementFactory/getOperatingSystemMXBean))
 
@@ -144,3 +146,7 @@
   (let [mount (File. mount-point)]
     {:total (.getTotalSpace mount)
      :free (.getUsableSpace mount)}))
+
+(defn add-jvm-shutdown-hooks [& fns]
+  (doseq [f fns]
+    (.addShutdownHook runtime (Thread. f))))
