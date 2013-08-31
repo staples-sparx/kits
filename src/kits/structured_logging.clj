@@ -30,7 +30,7 @@
   [log-level tags log-map]
   (let [all-tags (vec (distinct (into (:tags *log-context*) tags)))]
     (log/logp log-level (cc/encode (merge {:level (str/upper-case (name log-level))
-                                           :timestamp (ts/->str (ts/now))
+                                           :timestamp (ts/now)
                                            :data log-map}
                                           (when-not (empty? all-tags)
                                             {:tags all-tags})
