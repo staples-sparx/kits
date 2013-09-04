@@ -6,7 +6,8 @@
             [kits.homeless :as hl]
             [kits.map :as m]
             [kits.timestamp :as ts]
-            [kits.syslog :as syslog]))
+            [kits.syslog :as syslog])
+  (:import kits.syslog.udp.Channel))
 
 (def ^ThreadLocal syslog-channel (ThreadLocal.))
 
@@ -31,7 +32,7 @@
   "Used internally by kits.structured-logging"
   [syslog-config local-name log-level tags log-map]
   (let [all-tags (vec (distinct (into (:tags *log-context*) tags)))
-        facilities (syslog/facilites "local0")
+        facility (syslog/facilities "local0")
         level (syslog/levels log-level)
         channel (or (.get syslog-channel)
                     (syslog/create-channel syslog-config))
@@ -68,16 +69,16 @@
   `(let [log-map# ~log-map]
      (structured-log* ~syslog-config ~local-name :error (:tags log-map#) (dissoc log-map# :tags))))
 
-(defn- stacktrace [e]
+(defn- stacktrace [^Throwable e]
   (str/join "\n" (list* (-> e .getClass .getName)
                         (.getMessage e)
                         (.getStackTrace e))))
 
 (defn exception
   "Log an exception at log level of error."
-  [syslog-config local-name exception]
+  [syslog-config local-name ^Throwable exception]
   (let [root-cause (->> exception
-                        (iterate #(.getCause %))
+                        (iterate #(.getCause ^Throwable %))
                         (take-while (complement nil?))
                         last)]
     (if-not (= exception root-cause)
@@ -99,38 +100,38 @@
 
 (defn log-time*
   "Higher order function version of `log-time` macro"
-  [tag extra-info-map body-fn]
+  [syslog-config local-name tag extra-info-map body-fn]
   (let [start-ms (ts/now)]
-    (info {:start start-ms
-           :start-pretty (ts/->str start-ms)
-           :tags [(keyword (str (name tag) "-timing-start"))]})
+    (info syslog-config local-name {:start start-ms
+                                    :start-pretty (ts/->str start-ms)
+                                    :tags [(keyword (str (name tag) "-timing-start"))]})
 
     (let [result (body-fn)
           millis-elapsed (- (ts/now) start-ms)]
-      (info {:start start-ms
-             :start-pretty (ts/->str start-ms)
-             :millis-elapsed millis-elapsed
-             :extra-info extra-info-map
-             :tags [(keyword (str (name tag) "-timing-summary"))]})
+      (info syslog-config local-name {:start start-ms
+                                      :start-pretty (ts/->str start-ms)
+                                      :millis-elapsed millis-elapsed
+                                      :extra-info extra-info-map
+                                      :tags [(keyword (str (name tag) "-timing-summary"))]})
       result)))
 
 (defmacro log-time
   "Process the body, and log info about how long it took."
-  [tag extra-info-map & body]
-  `(log-time* ~tag ~extra-info-map (fn [] ~@body)))
+  [syslog-config local-name tag extra-info-map & body]
+  `(log-time* ~syslog-config ~local-name ~tag ~extra-info-map (fn [] ~@body)))
 
 (defn logging-exceptions*
   "Higher order function version of `logging-exceptions` macro"
-  [body-fn]
+  [syslog-config local-name body-fn]
   (try
     (body-fn)
     (catch Throwable e
-      (error {:exception-message (str e)
-              :stacktrace (hl/stacktrace->str e)})
+      (error syslog-config local-name {:exception-message (str e)
+                                       :stacktrace (hl/stacktrace->str e)})
       (throw e))))
 
 (defmacro logging-exceptions
   "Executes the body. Any Throwables are logged then re-thrown."
-  [& body]
-  `(logging-exceptions* (fn [] ~@body)))
+  [syslog-config local-name & body]
+  `(logging-exceptions* ~syslog-config ~local-name (fn [] ~@body)))
 
