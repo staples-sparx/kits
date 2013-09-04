@@ -29,14 +29,14 @@
   "Used internally by kits.structured-logging"
   [log-level tags log-map]
   (let [all-tags (vec (distinct (into (:tags *log-context*) tags)))]
-    (log/logp log-level (cc/encode (merge {:level (str/upper-case (name log-level))
-                                           :timestamp (ts/now)
-                                           :data log-map}
-                                          (when-not (empty? all-tags)
-                                            {:tags all-tags})
-                                          (when-not (empty? (:data *log-context*))
-                                            {:context (m/map-values #(if (fn? %) (%) %)
-                                                                    (:data *log-context*))}))))))
+    (println (cc/encode (merge {:level (str/upper-case (name log-level))
+                                :timestamp (ts/now)
+                                :data log-map}
+                               (when-not (empty? all-tags)
+                                 {:tags all-tags})
+                               (when-not (empty? (:data *log-context*))
+                                 {:context (m/map-values #(if (fn? %) (%) %)
+                                                         (:data *log-context*))}))))))
 
 
 (defmacro info
