@@ -108,8 +108,7 @@
                 :max-msg-length (* 50 1024)
                 :split-break-suffix " ..."
                 :split-continue-prefix "... "
-                :so-timeout-ms 500
-                :max-msg-length (* 50 1024)}
+                :so-timeout-ms 500}
         channel (create-channel config)
         local-name "aegis[7643]"]
 
