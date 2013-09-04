@@ -5,8 +5,10 @@
             [cheshire.custom :as cc]
             [kits.homeless :as hl]
             [kits.map :as m]
-            [kits.timestamp :as ts]))
+            [kits.timestamp :as ts]
+            [kits.syslog :as syslog]))
 
+(def ^ThreadLocal syslog-channel (ThreadLocal.))
 
 (def ^{:dynamic true
        :doc "Used internally by kits.structured-logging, to maintain the current logging context."}
@@ -27,38 +29,44 @@
 
 (defn structured-log*
   "Used internally by kits.structured-logging"
-  [log-level tags log-map]
-  (let [all-tags (vec (distinct (into (:tags *log-context*) tags)))]
-    (println (cc/encode (merge {:level (str/upper-case (name log-level))
+  [syslog-config local-name log-level tags log-map]
+  (let [all-tags (vec (distinct (into (:tags *log-context*) tags)))
+        facilities (syslog/facilites "local0")
+        level (syslog/levels log-level)
+        channel (or (.get syslog-channel)
+                    (syslog/create-channel syslog-config))
+        msg (cc/encode (merge {:level (str/upper-case (name log-level))
                                 :timestamp (ts/now)
                                 :data log-map}
                                (when-not (empty? all-tags)
                                  {:tags all-tags})
                                (when-not (empty? (:data *log-context*))
                                  {:context (m/map-values #(if (fn? %) (%) %)
-                                                         (:data *log-context*))}))))))
+                                                         (:data *log-context*))})))
+        fresh-channel (syslog/log syslog-config facility local-name level channel msg)]
+    (.set syslog-channel fresh-channel)))
 
 
 (defmacro info
   "Log level info. Logs `log-map` param as JSON, appending any surrounding
    context from `in-log-context` and adds any supplied :tags."
-  [log-map]
+  [syslog-config local-name log-map]
   `(let [log-map# ~log-map]
-     (structured-log* :info (:tags log-map#) (dissoc log-map# :tags))))
+     (structured-log* ~syslog-config ~local-name :info (:tags log-map#) (dissoc log-map# :tags))))
 
 (defmacro warn
   "Log level warn. Logs `log-map` param as JSON, appending any surrounding
    context from `in-log-context` and adds any supplied :tags."
-  [log-map]
+  [syslog-config local-name log-map]
   `(let [log-map# ~log-map]
-     (structured-log* :warn (:tags log-map#) (dissoc log-map# :tags))))
+     (structured-log* ~syslog-config ~local-name :warn (:tags log-map#) (dissoc log-map# :tags))))
 
 (defmacro error
   "Log level error. Logs `log-map` param as JSON, appending any surrounding
    context from `in-log-context` and adds any supplied :tags."
-  [log-map]
+  [syslog-config local-name log-map]
   `(let [log-map# ~log-map]
-     (structured-log* :error (:tags log-map#) (dissoc log-map# :tags))))
+     (structured-log* ~syslog-config ~local-name :error (:tags log-map#) (dissoc log-map# :tags))))
 
 (defn- stacktrace [e]
   (str/join "\n" (list* (-> e .getClass .getName)
@@ -67,17 +75,17 @@
 
 (defn exception
   "Log an exception at log level of error."
-  [exception]
+  [syslog-config local-name exception]
   (let [root-cause (->> exception
                         (iterate #(.getCause %))
                         (take-while (complement nil?))
                         last)]
     (if-not (= exception root-cause)
-      (error {:tags [:exception]
-              :stacktrace (stacktrace root-cause)
-              :cause (class exception)})
-      (error {:tags [:exception]
-              :stacktrace (stacktrace root-cause)}))))
+      (error syslog-config local-name {:tags [:exception]
+                                       :stacktrace (stacktrace root-cause)
+                                       :cause (class exception)})
+      (error syslog-config local-name {:tags [:exception]
+                                       :stacktrace (stacktrace root-cause)}))))
 
 (defmacro in-log-context
   "Any calls to structured-logging info, warn or error macros
