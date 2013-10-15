@@ -47,46 +47,66 @@
         fresh-channel (syslog/log syslog-config facility local-name level channel msg)]
     (.set syslog-channel fresh-channel)))
 
+(defn stacktrace
+  "Get stacktrace string from an exception"
+  [^Throwable e]
+  (str/join "\n" (list* (-> e .getClass .getName)
+                        (.getMessage e)
+                        (.getStackTrace e))))
+
+(defn root-cause
+  "Root cause of an exception, if one exists"
+  [^Throwable exception]
+  (->> exception
+       (iterate #(.getCause ^Throwable %))
+       (take-while (complement nil?))
+       last))
+
+(defmacro safe-eval-log-map
+  "Implementation detail."
+  [syslog-config local-name log-map]
+  `(try
+     ~log-map
+     (catch Exception e#
+       (structured-log* ~syslog-config
+                        ~local-name
+                        :error
+                        [:alert :logging :exception]
+                        {:log-map (str '~log-map)
+                         :stacktrace (stacktrace (stacktrace (root-cause e#)))})
+       nil)))
 
 (defmacro info
   "Log level info. Logs `log-map` param as JSON, appending any surrounding
    context from `in-log-context` and adds any supplied :tags."
   [syslog-config local-name log-map]
-  `(let [log-map# ~log-map]
+  `(when-let [log-map# (safe-eval-log-map ~syslog-config ~local-name ~log-map)]
      (structured-log* ~syslog-config ~local-name :info (:tags log-map#) (dissoc log-map# :tags))))
 
 (defmacro warn
   "Log level warn. Logs `log-map` param as JSON, appending any surrounding
    context from `in-log-context` and adds any supplied :tags."
   [syslog-config local-name log-map]
-  `(let [log-map# ~log-map]
+  `(when-let [log-map# (safe-eval-log-map ~syslog-config ~local-name ~log-map)]
      (structured-log* ~syslog-config ~local-name :warn (:tags log-map#) (dissoc log-map# :tags))))
 
 (defmacro error
   "Log level error. Logs `log-map` param as JSON, appending any surrounding
    context from `in-log-context` and adds any supplied :tags."
   [syslog-config local-name log-map]
-  `(let [log-map# ~log-map]
+  `(when-let [log-map# (safe-eval-log-map ~syslog-config ~local-name ~log-map)]
      (structured-log* ~syslog-config ~local-name :error (:tags log-map#) (dissoc log-map# :tags))))
-
-(defn- stacktrace [^Throwable e]
-  (str/join "\n" (list* (-> e .getClass .getName)
-                        (.getMessage e)
-                        (.getStackTrace e))))
 
 (defn exception
   "Log an exception at log level of error."
   [syslog-config local-name ^Throwable exception]
-  (let [root-cause (->> exception
-                        (iterate #(.getCause ^Throwable %))
-                        (take-while (complement nil?))
-                        last)]
-    (if-not (= exception root-cause)
+  (let [root (root-cause exception)]
+    (if-not (= exception root)
       (error syslog-config local-name {:tags [:exception]
-                                       :stacktrace (stacktrace root-cause)
+                                       :stacktrace (stacktrace root)
                                        :cause (class exception)})
       (error syslog-config local-name {:tags [:exception]
-                                       :stacktrace (stacktrace root-cause)}))))
+                                       :stacktrace (stacktrace root)}))))
 
 (defmacro in-log-context
   "Any calls to structured-logging info, warn or error macros
