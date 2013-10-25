@@ -73,7 +73,7 @@
                         :error
                         [:alert :logging :exception]
                         {:log-map (str '~log-map)
-                         :stacktrace (stacktrace (stacktrace (root-cause e#)))})
+                         :stacktrace (stacktrace (root-cause e#))})
        nil)))
 
 (defmacro info
@@ -101,12 +101,12 @@
   "Log an exception at log level of error."
   [syslog-config local-name ^Throwable exception]
   (let [root (root-cause exception)]
-    (if-not (= exception root)
+    (if (= exception root)
+      (error syslog-config local-name {:tags [:exception]
+                                       :stacktrace (stacktrace root)})
       (error syslog-config local-name {:tags [:exception]
                                        :stacktrace (stacktrace root)
-                                       :cause (class exception)})
-      (error syslog-config local-name {:tags [:exception]
-                                       :stacktrace (stacktrace root)}))))
+                                       :cause (class exception)}))))
 
 (defmacro in-log-context
   "Any calls to structured-logging info, warn or error macros
