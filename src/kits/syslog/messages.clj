@@ -29,7 +29,7 @@
 (defn append-header [^StringBuffer sb facility level local-name ts]
   (doto sb
     (.append "<")
-    (.append (bit-or facility level))
+    (.append (bit-or (* 8 facility) level))
     (.append ">")
     (append-date-prefix ts)
     (.append " ")
