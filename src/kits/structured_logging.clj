@@ -37,7 +37,7 @@
         channel (or (.get syslog-channel)
                     (syslog/create-channel syslog-config))
         msg (cc/encode (merge {:level (str/upper-case (name log-level))
-                                :timestamp (ts/now)
+                                :ts-ms (ts/now)
                                 :data log-map}
                                (when-not (empty? all-tags)
                                  {:tags all-tags})
