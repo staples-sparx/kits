@@ -51,6 +51,9 @@
     (or (exact-matches? src exacts)
         (regex-matches? src wildcards))))
 
+(defn not-fmatches? [src matches]
+  (not (fmatches? src matches)))
+
 (defn is-in? [^String item elements]
   (if item
     (not (nil? (some #{(.toUpperCase item)} (map #(.toUpperCase ^String %) elements))))
