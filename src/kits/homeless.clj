@@ -751,20 +751,18 @@ to return."
                   (butlast args) (last args))))
 
 (defn ->binary [result]
-  (if result
-    1
-    0))
+  (if result 1 0))
 
 (defn count-occurences [coll search-terms]
-  (apply +
-    (mapv (fn [string-to-match]
-            (count (filterv #(try
-                               (re-find (re-pattern (str "(?i)" %))
-                                 string-to-match)
-                               (catch Exception e
-                                 nil))
-                     search-terms)))
-          coll)))
+  (->> coll
+       (map (fn [string-to-match]
+              (->> search-terms
+                   (filter #(try
+                               (re-find (re-pattern (str "(?i)" %)) string-to-match)
+                               (catch Exception _
+                                 nil)))
+                   count)))
+       (apply +)))
 
 (defn- merge-meta!
   "Destructively merge metadata from a source object into a target."
