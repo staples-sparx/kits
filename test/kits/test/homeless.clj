@@ -231,7 +231,7 @@
         (eval `(defn-kw f [a b c] nil))))
 
   (is (thrown-with-msg? AssertionError
-        #"defn-kw expects the map destructuring to have a :keys key."
+        #"defn-kw expects the map destructuring to have a :keys or :strs key."
         (eval `(defn-kw f [a b c & {:doorknobs [d e]}] nil))))
 
   (is (thrown-with-msg? AssertionError
@@ -243,6 +243,40 @@
 
   (is (= "def-kw w/ doc string" (:doc (meta #'doc-string-fn))))
   (is (= true (:private (meta #'doc-string-fn)))))
+
+
+(defn-kw my-fn2 [one two & {:strs [k1 k2] :as opts}]
+  (+ one
+     two 
+     (if k1 k1 0)
+     (if k2 k2 0)))
+
+(defn-kw ^:private doc-string-fn2
+  "def-kw w/ doc string 2"
+  [& {:strs [k1 k2]}]
+  (+ k1 k2))
+
+(deftest test-defn-kw-with-strs-destructuring
+  (is (= 22 (my-fn2 1 3 "k1" 7 "k2" 11)))
+  (is (= 4 (my-fn2 1 3))) ;; testing it works w/ no keyword args passed in
+
+  (is (thrown-with-msg? AssertionError
+        #"defn-kw expects the final element of the arg list to be a map destructuring."
+        (eval `(defn-kw f [a b c] nil))))
+
+  (is (thrown-with-msg? AssertionError
+        #"defn-kw expects the map destructuring to have a :keys or :strs key."
+        (eval `(defn-kw f [a b c & {"doorknobs" [d e]}] nil))))
+
+  (is (thrown-with-msg? AssertionError
+        #"defn-kw expects the second to last element of the arg list to be an '&"
+        (eval `(defn-kw f [a b c not-ampersand {:strs [d e]}] nil))))
+  
+  (is (thrown-with-msg? AssertionError #"Was passed these keyword args #\{\"k9999\"\} which were not listed in the arg list \[one two & \{:strs \[k1 k2\], :as opts\}\]"
+        (my-fn2 1 2 "k9999" 4)))
+
+  (is (= "def-kw w/ doc string 2" (:doc (meta #'doc-string-fn2))))
+  (is (= true (:private (meta #'doc-string-fn2)))))
 
 (defn kw-fn [a b & {:keys [c d]}]
   (str a b c d))

@@ -723,24 +723,26 @@ to return."
   (let [[name doc-string arg-vec & body] (if (string? (second args))
                                            args
                                            (concat [(first args) nil] (rest args)))
-        valid-key-set (set (map keyword (:keys (last arg-vec))))
+        _ (assert (map? (last arg-vec))
+                  "defn-kw expects the final element of the arg list to be a map destructuring.")
+        _ (assert (= '& (last (butlast arg-vec)))
+                  "defn-kw expects the second to last element of the arg list to be an '&")
+        keys-or-strs (cond (contains? (last arg-vec) :keys) :keys
+                           (contains? (last arg-vec) :strs) :strs
+                           :else (throw (AssertionError. "defn-kw expects the map destructuring to have a :keys or :strs key.")))
+        f (case keys-or-strs :keys keyword :strs str)
+        valid-key-set (set (map f (get (last arg-vec) keys-or-strs)))
         [kw-args-binding-with-as kw-args-map-sym] (single-destructuring-arg->form+name (last arg-vec))
         new-arg-vec (vec (concat (drop-last 2 arg-vec) ['& kw-args-binding-with-as]))]
-    (assert (map? (last arg-vec))
-            "defn-kw expects the final element of the arg list to be a map destructuring.")
-    (assert (contains? (last arg-vec) :keys)
-            "defn-kw expects the map destructuring to have a :keys key.")
-    (assert (= '& (last (butlast arg-vec)))
-            "defn-kw expects the second to last element of the arg list to be an '&")
-    `(-> (defn ~name ~new-arg-vec
-           (when-not (empty? ~kw-args-map-sym)
-             (let [actual-key-set# (set (keys ~kw-args-map-sym))
-                   extra-keys# (set/difference actual-key-set# ~valid-key-set)]
-               (assert (empty? extra-keys#)
-                       (str "Was passed these keyword args " extra-keys#
-                            " which were not listed in the arg list " '~arg-vec))))
-           ~@body)
-         (alter-meta! assoc :doc ~doc-string))))
+    `(defn ~(vary-meta name assoc :doc doc-string)
+       ~new-arg-vec
+       (when-not (empty? ~kw-args-map-sym)
+         (let [actual-key-set# (set (keys ~kw-args-map-sym))
+               extra-keys# (set/difference actual-key-set# ~valid-key-set)]
+           (assert (empty? extra-keys#)
+                   (str "Was passed these keyword args " extra-keys#
+                        " which were not listed in the arg list " '~arg-vec))))
+       ~@body)))
 
 (defn apply-kw
   "Like apply, but f take kw-args.  The last arg to apply-kw is
