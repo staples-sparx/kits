@@ -723,16 +723,16 @@ to return."
   (let [[name doc-string arg-vec & body] (if (string? (second args))
                                            args
                                            (concat [(first args) nil] (rest args)))
-        _ (assert (map? (last arg-vec))
+        _ (assert (map? (peek arg-vec))
                   "defn-kw expects the final element of the arg list to be a map destructuring.")
         _ (assert (= '& (last (butlast arg-vec)))
                   "defn-kw expects the second to last element of the arg list to be an '&")
-        keys-or-strs (cond (contains? (last arg-vec) :keys) :keys
-                           (contains? (last arg-vec) :strs) :strs
+        keys-or-strs (cond (contains? (peek arg-vec) :keys) :keys
+                           (contains? (peek arg-vec) :strs) :strs
                            :else (throw (AssertionError. "defn-kw expects the map destructuring to have a :keys or :strs key.")))
         f (case keys-or-strs :keys keyword :strs str)
-        valid-key-set (set (map f (get (last arg-vec) keys-or-strs)))
-        [kw-args-binding-with-as kw-args-map-sym] (single-destructuring-arg->form+name (last arg-vec))
+        valid-key-set (set (map f (get (peek arg-vec) keys-or-strs)))
+        [kw-args-binding-with-as kw-args-map-sym] (single-destructuring-arg->form+name (peek arg-vec))
         new-arg-vec (vec (concat (drop-last 2 arg-vec) ['& kw-args-binding-with-as]))]
     `(defn ~(vary-meta name assoc :doc doc-string)
        ~new-arg-vec
