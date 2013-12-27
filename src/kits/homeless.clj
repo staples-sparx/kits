@@ -5,7 +5,8 @@
   (:require [clojure.pprint :as pprint]
             [clojure.set :as set]
             [clojure.string :as str])
-  (:import (java.net MalformedURLException)
+  (:import (clojure.lang Var)
+           (java.net MalformedURLException)
            (java.util.concurrent Future TimeoutException)))
 
 (defmacro ignore-exceptions
@@ -768,10 +769,15 @@ to return."
 
 (defn- merge-meta!
   "Destructively merge metadata from a source object into a target."
-  [source target]
+  [source ^Var target]
   (.setMeta target
             (merge (meta source)
                    (select-keys (meta target) [:name :ns]))))
+
+(defn- immigrate-one [sym ^Var v]
+  (merge-meta! v (if (.isBound v)
+                   (intern *ns* sym (var-get v))
+                   (intern *ns* sym))))
 
 (defn immigrate
   "Add all the public vars in a list of namespaces to the current
@@ -789,15 +795,9 @@ to return."
             var-exclusion-set (set var-exclusions)]
         (doseq [[sym v] (ns-publics (find-ns ns))
                 :when (not (contains? var-exclusion-set sym))]
-          (merge-meta! v
-                       (if (.isBound v)
-                         (intern *ns* sym (var-get v))
-                         (intern *ns* sym)))))
+          (immigrate-one sym v)))
       (doseq [[sym v] (ns-publics (find-ns ns))]
-        (merge-meta! v
-                     (if (.isBound v)
-                       (intern *ns* sym (var-get v))
-                       (intern *ns* sym)))))))
+        (immigrate-one sym v)))))
 
 
 (defmacro timebomb-comment
