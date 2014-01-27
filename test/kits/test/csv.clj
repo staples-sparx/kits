@@ -1,9 +1,8 @@
 (ns kits.test.csv
   (:use clojure.test)
-  (:require
-   [kits.csv :as csv]
-   [clojure.java.io :as io]
-   [kits.foundation :as f]))
+  (:require [clojure.java.io :as io]
+            [kits.csv :as csv]
+            [kits.foundation :as f]))
 
 (def sample-csv (str (System/getProperty "user.dir")
                      "/samples/sample.csv"))

@@ -53,12 +53,12 @@
 
 (deftest test-zip
   (are [lists result] (= (zip lists) result)
-    nil []
-    []  []
-    [[:a 1 \x]]             [[:a] [1] [\x]]
-    [[:a] [1] [\x]]         [[:a 1 \x]] ;; reversible!
-    [[:a 1 \x] [:b 2 \y]]   [[:a :b] [1 2] [\x \y]]
-    [[:a :b] [1 2] [\x \y]] [[:a 1 \x] [:b 2 \y]])) ;; reversible!
+       nil []
+       []  []
+       [[:a 1 \x]]             [[:a] [1] [\x]]
+       [[:a] [1] [\x]]         [[:a 1 \x]] ;; reversible!
+       [[:a 1 \x] [:b 2 \y]]   [[:a :b] [1 2] [\x \y]]
+       [[:a :b] [1 2] [\x \y]] [[:a 1 \x] [:b 2 \y]])) ;; reversible!
 
 (deftest test-count-exact-occurences
   (is (= 1 (count-exact-occurences ["bob" "Bob" "bob bob bob"] ["bob"])))

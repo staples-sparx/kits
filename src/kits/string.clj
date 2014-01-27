@@ -57,8 +57,8 @@
       (read-string (last (re-seq #"[\-]?[0-9]+[.,]?[0-9]*" s))))))
 
 (def escape-regex-except-*
-  (memoize (fn 
-         ;"Escapes special Regex symbols except *."
+  (memoize (fn
+                                        ;"Escapes special Regex symbols except *."
              [^String s]
              (.. s
                  (replace "\\" "\\\\")
@@ -102,7 +102,7 @@
   (when-not (empty? url-str)
     (try
       (let [url (java.net.URL. url-str)]
-	{:host (.getHost url)
+        {:host (.getHost url)
          :query (.getQuery url)})
       (catch java.net.MalformedURLException e
         nil))))
@@ -135,9 +135,9 @@
 
 (defn split [s delim]
   (cond
-    (nil? s)        nil
-    (string? delim) (str/split s (re-pattern delim))
-    :else           (str/split s delim)))
+   (nil? s)        nil
+   (string? delim) (str/split s (re-pattern delim))
+   :else           (str/split s delim)))
 
 (definline starts-with? [^String s ^String sub-string]
   `(.startsWith ~s ~sub-string))

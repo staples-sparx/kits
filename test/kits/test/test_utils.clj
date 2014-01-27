@@ -1,6 +1,6 @@
 (ns kits.test.test-utils
-  (:use kits.test-utils
-        clojure.test))
+  (:use clojure.test
+        kits.test-utils))
 
 (deftest test-not-thrown?
   (is (not-thrown? Exception (+ 1 2))))

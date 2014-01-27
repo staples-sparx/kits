@@ -9,8 +9,8 @@
   (migration-fn)
   (jdbc/do-commands "COMMIT")
   (jdbc/insert-values "migrations"
-                     [:name :created_at]
-                     [migration-name (Timestamp. (System/currentTimeMillis))]))
+                      [:name :created_at]
+                      [migration-name (Timestamp. (System/currentTimeMillis))]))
 
 (defn- validate-migrations [migrations]
   (let [names (map first migrations)]
@@ -36,7 +36,7 @@
                         `name` varchar(250) NOT NULL,
                         `created_at` datetime NOT NULL,
                         PRIMARY KEY (`id`))")
-    
+
     (jdbc/transaction
      (let [has-run? (jdbc/with-query-results run ["SELECT name FROM migrations"]
                       (set (map :name run)))]
@@ -45,4 +45,3 @@
                :when (not (has-run? migration-name))]
          (run-and-record migration))))
     (println "Migrations complete.")))
-

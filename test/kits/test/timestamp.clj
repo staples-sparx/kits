@@ -13,7 +13,7 @@
 (deftest test->timestamp-at-day-start
   (are [t expected] (= (->timestamp-at-day-start t) (->timestamp expected))
        "2012-05-01" "2012-05-01 00:00:00"
-       "2012-05-01 11:11" "2012-05-01 00:00:00"     
+       "2012-05-01 11:11" "2012-05-01 00:00:00"
        "2012-05-01 05:55:55" "2012-05-01 00:00:00"
        1335873634000 "2012-05-01 00:00:00"))
 
@@ -56,28 +56,28 @@
   (is (= true (instance? Long (->timestamp (short 5))))))
 
 (deftest test-timestamp-ranges
-  
+
   (testing "Calendar units are (milli second minute hour day month week year)"
-    
+
     (testing "There is no support for millisecond/second ranges."
       (is (thrown? IllegalArgumentException
                    (timestamp-ranges "2000-01-01 12:00:01" "2000-01-01 12:00:10" :milli)))
       (is (thrown? IllegalArgumentException
                    (timestamp-ranges "2000-01-01 12:00:01" "2000-01-01 12:00:10" :second))))
-    
+
     (testing "Function timestamp-ranges works only for: "
       (testing "minute ranges"
         (is (= [[(->timestamp "2000-01-01 12:01:00") (->timestamp "2000-01-01 12:01:59")]
                 [(->timestamp "2000-01-01 12:02:00") (->timestamp "2000-01-01 12:02:59")]
                 [(->timestamp "2000-01-01 12:03:00") (->timestamp "2000-01-01 12:03:59")]]
                (timestamp-ranges "2000-01-01 12:01" "2000-01-01 12:03" :minute))))
-      
+
       (testing "hour ranges"
         (is (= [[(->timestamp "2000-01-01 12:00:00") (->timestamp "2000-01-01 12:59:59")]
                 [(->timestamp "2000-01-01 13:00:00") (->timestamp "2000-01-01 13:59:59")]
                 [(->timestamp "2000-01-01 14:00:00") (->timestamp "2000-01-01 14:59:59")]]
                (timestamp-ranges "2000-01-01 12:00" "2000-01-01 14:00" :hour))))
-    
+
       (testing "day ranges"
         (is (= [[(->timestamp "2000-01-01 00:00:00") (->timestamp "2000-01-01 23:59:59")]
                 [(->timestamp "2000-01-02 00:00:00") (->timestamp "2000-01-02 23:59:59")]
@@ -86,7 +86,7 @@
 
         (is (= [[(->timestamp "2000-01-01 00:00:00") (->timestamp "2000-01-02 23:59:59")]]
                (timestamp-ranges "2000-01-01" "2000-01-03" :day-2))))
-    
+
       (testing "week ranges"
         (is (= [[(->timestamp "2000-01-01 00:00:00") (->timestamp "2000-01-07 23:59:59")]
                 [(->timestamp "2000-01-08 00:00:00") (->timestamp "2000-01-14 23:59:59")]
@@ -135,4 +135,3 @@
   (is (= 28800000 ;; 8 hours
          (- (->timestamp "03/01/2012" "MM/dd/yyyy" "PST")
             (->timestamp "03/01/2012" "MM/dd/yyyy" "UTC")))))
-

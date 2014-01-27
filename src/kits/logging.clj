@@ -1,12 +1,10 @@
 (ns kits.logging
   "Simple wrapper library for java.util.logging"
-  (:require
-   [kits.timestamp :as timestamp])
-  (:import
-   java.io.IOException
-   java.util.Date
-   java.text.SimpleDateFormat
-   [java.util.logging Level Logger Formatter LogRecord Handler]))
+  (:require [kits.timestamp :as timestamp])
+  (:import java.io.IOException
+           java.text.SimpleDateFormat
+           java.util.Date
+           [java.util.logging Level Logger Formatter LogRecord Handler]))
 
 (def ^:private ^SimpleDateFormat date-formatter
   (timestamp/simple-date-format "yyyy-MM-dd HH:mm:ss"))

@@ -68,11 +68,11 @@
 
 (defn ->str
   ([x]
-    (->str x yyyy-mm-dd-hh-mm-ss))
+     (->str x yyyy-mm-dd-hh-mm-ss))
   ([x date-format]
-    (->str x date-format "UTC"))
+     (->str x date-format "UTC"))
   ([x date-format timezone-str]
-    (.format
+     (.format
       (simple-date-format date-format timezone-str)
       (Date. (long (->timestamp x))))))
 
@@ -109,7 +109,7 @@
 (defn truncate [timestamp unit]
   (assert-valid-unit unit)
   (let [cal (doto ^Calendar (GregorianCalendar. ^TimeZone (TimeZone/getTimeZone "UTC"))
-              (.setTime (Date. (long timestamp))))
+                  (.setTime (Date. (long timestamp))))
         units-to-drop (take-while #(not= unit %) ordered-units)]
     (doseq [{:keys [type starts-at]} (map unit->calendar-unit units-to-drop)]
       (.set cal type starts-at))
@@ -118,8 +118,8 @@
 (defn add [timestamp unit val]
   (assert-valid-unit unit)
   (let [cal (doto ^Calendar (GregorianCalendar. ^TimeZone (TimeZone/getTimeZone "UTC"))
-              (.setTime (Date. (long timestamp)))
-              (.add (:type (unit->calendar-unit unit)) val))]
+                  (.setTime (Date. (long timestamp)))
+                  (.add (:type (unit->calendar-unit unit)) val))]
     (-> cal .getTime .getTime)))
 
 (defn subtract [timestamp unit val]
@@ -135,8 +135,8 @@
 
 (defn overlap? [[a0 a1] [b0 b1]]
   (and
-    (< a0 b1)
-    (> a1 b0)))
+   (< a0 b1)
+   (> a1 b0)))
 
 (defn ->timestamp-at-day-start [t]
   (-> t ->timestamp (truncate :day)))

@@ -7,7 +7,7 @@
          (content-of-node-with-tag [{:tag :name
                                      :content [{:tag :last
                                                 :content ["Gomez"]}]}]
-           :name :last))))
+                                   :name :last))))
 
 (deftest test-parse
   (is (= {:tag :foo

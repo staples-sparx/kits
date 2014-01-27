@@ -1,10 +1,10 @@
 (ns kits.test.structured-logging
-  (:require [runa.tools.logging :as log]
-            [kits.timestamp :as ts]
-            [clojure.test :refer :all]
+  (:require [clojure.test :refer :all]
             [conjure.core :refer :all]
+            [kits.structured-logging :refer :all]
             [kits.syslog :as syslog]
-            [kits.structured-logging :refer :all]))
+            [kits.timestamp :as ts]
+            [runa.tools.logging :as log]))
 
 ;; TODO: several of these tests no longer work now that
 ;; we are using syslog. (# 58455260)
@@ -38,45 +38,45 @@
   (stubbing [syslog/log nil
              ts/now 123456789]
             (info syslog-config syslog-local-name {:a 1 :b 2 :c (HasNoDefaultSerializer.) :tags [:my-special-error]})
-           (verify-first-call-args-for-indices
-            syslog/log
-            [0 2 3 5]
-            syslog-config
-            syslog-local-name
-            6
-            "{\"tags\":[\"my-special-error\"],\"level\":\"INFO\",\"ts-ms\":123456789,\"data\":{\"a\":1,\"b\":2,\"c\":\"<HasNoDefaultSerializer>\"}}")))
+            (verify-first-call-args-for-indices
+             syslog/log
+             [0 2 3 5]
+             syslog-config
+             syslog-local-name
+             6
+             "{\"tags\":[\"my-special-error\"],\"level\":\"INFO\",\"ts-ms\":123456789,\"data\":{\"a\":1,\"b\":2,\"c\":\"<HasNoDefaultSerializer>\"}}")))
 
 (deftest test-warn-log-level
   (stubbing [syslog/log nil
              ts/now 123456789]
-             (warn syslog-config syslog-local-name {:c 3 :d 4})
-           (verify-first-call-args-for-indices
-            syslog/log
-            [0 2 3 5]
-            syslog-config
-            syslog-local-name
-            4
-            "{\"level\":\"WARN\",\"ts-ms\":123456789,\"data\":{\"c\":3,\"d\":4}}")))
+            (warn syslog-config syslog-local-name {:c 3 :d 4})
+            (verify-first-call-args-for-indices
+             syslog/log
+             [0 2 3 5]
+             syslog-config
+             syslog-local-name
+             4
+             "{\"level\":\"WARN\",\"ts-ms\":123456789,\"data\":{\"c\":3,\"d\":4}}")))
 
 (deftest test-error-log-level---and-contexts
   (let [state-checker (fn [] @state)]
     (stubbing [syslog/log nil
                ts/now 123456789]
-             (in-log-context (do {:request/id "req123" :state state-checker :tags [:import]})
-                             (in-log-context {:transaction/id "txn123"}
-                                             (is (= {:request/id "req123"
-                                                     :transaction/id "txn123"
-                                                     :state state-checker
-                                                     :tags [:import]}
-                                                    (log-context)))
-                                     (error-calling-fn)))
-             (verify-first-call-args-for-indices
-              syslog/log
-              [0 2 3 5]
-              syslog-config
-              syslog-local-name
-              3
-              "{\"context\":{\"state\":88,\"request/id\":\"req123\",\"transaction/id\":\"txn123\"},\"tags\":[\"import\",\"bad-csv-row\"],\"level\":\"ERROR\",\"ts-ms\":123456789,\"data\":{\"c\":3,\"d\":4}}"))))
+              (in-log-context (do {:request/id "req123" :state state-checker :tags [:import]})
+                              (in-log-context {:transaction/id "txn123"}
+                                              (is (= {:request/id "req123"
+                                                      :transaction/id "txn123"
+                                                      :state state-checker
+                                                      :tags [:import]}
+                                                     (log-context)))
+                                              (error-calling-fn)))
+              (verify-first-call-args-for-indices
+               syslog/log
+               [0 2 3 5]
+               syslog-config
+               syslog-local-name
+               3
+               "{\"context\":{\"state\":88,\"request/id\":\"req123\",\"transaction/id\":\"txn123\"},\"tags\":[\"import\",\"bad-csv-row\"],\"level\":\"ERROR\",\"ts-ms\":123456789,\"data\":{\"c\":3,\"d\":4}}"))))
 
 ;; (deftest test-exception
 ;;   (stubbing [syslog/log nil
@@ -94,18 +94,18 @@
 (deftest test-logging-exceptions
   (stubbing [syslog/log nil
              ts/now 123456789]
-           (try
-             (logging-exceptions syslog-config syslog-local-name (throw (Exception. "BOOM")))
-             (is (= false "If you see this, there is a test failure. An Exception should have been thrown."))
-             (catch Exception _))
-           (verify-first-call-args-for-indices
-            syslog/log
-            [0 2 3]
-            syslog-config
-            syslog-local-name
-            3
-            ))) ;; wanted to test the string logged here, but with
-                   ;; the stacktrace in it, it is very hard to use equality on it
+            (try
+              (logging-exceptions syslog-config syslog-local-name (throw (Exception. "BOOM")))
+              (is (= false "If you see this, there is a test failure. An Exception should have been thrown."))
+              (catch Exception _))
+            (verify-first-call-args-for-indices
+             syslog/log
+             [0 2 3]
+             syslog-config
+             syslog-local-name
+             3
+             ))) ;; wanted to test the string logged here, but with
+;; the stacktrace in it, it is very hard to use equality on it
 
 
 (deftest test-log-time

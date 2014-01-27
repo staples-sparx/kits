@@ -1,9 +1,7 @@
 (ns kits.syslog.messages
-  (:require
-    [kits.timestamp :as ts])
-  (:import
-    java.text.SimpleDateFormat
-    java.util.Date))
+  (:require [kits.timestamp :as ts])
+  (:import java.text.SimpleDateFormat
+           java.util.Date))
 
 (def date-format-pattern "MMM dd HH:mm:ss");
 
@@ -11,18 +9,18 @@
 
 (defn ^SimpleDateFormat thread-local-date-format []
   (or (.get date-format-holder)
-    (let [df (ts/simple-date-format date-format-pattern)]
-      (.set date-format-holder df)
-      df)))
+      (let [df (ts/simple-date-format date-format-pattern)]
+        (.set date-format-holder df)
+        df)))
 
 (defn append-date-prefix [^StringBuffer sb ts]
   (let [from (.length sb)
         pos (+ from 4)
         df (thread-local-date-format)]
     (.format df
-      (Date. ^long ts)
-      sb
-      (java.text.FieldPosition. 0))
+             (Date. ^long ts)
+             sb
+             (java.text.FieldPosition. 0))
     (when (= \0 (.charAt sb pos))
       (.setCharAt sb pos \ )))) ;; RFC 3164 requires leading space for days 1-9
 
@@ -63,19 +61,19 @@
                pos pos]
           (.setLength sb header-length)
           (cond
-            (>= pos msg-length)                  ;; Done
-            c
+           (>= pos msg-length)                  ;; Done
+           c
 
-            (<= (- msg-length pos) msg-capacity) ;; Last
-            (do (.append sb (subs msg pos))
-              (recur
+           (<= (- msg-length pos) msg-capacity) ;; Last
+           (do (.append sb (subs msg pos))
+               (recur
                 (conj c (str sb))
                 msg-length))
 
-            :otherwise
-            (let [capacity (- msg-capacity suffix-length)]
-              (.append sb (subs msg pos (+ pos capacity)))
-              (.append sb (String. suffix))
-              (recur
-                (conj c (str sb))
-                (+ pos capacity)))))))))
+           :otherwise
+           (let [capacity (- msg-capacity suffix-length)]
+             (.append sb (subs msg pos (+ pos capacity)))
+             (.append sb (String. suffix))
+             (recur
+              (conj c (str sb))
+              (+ pos capacity)))))))))

@@ -154,12 +154,12 @@
 (deftest value-and-elapsed-time
 
   (f/bind-value-and-elapsed-time [val elapsed]
-      (+ 1 1)
+                                 (+ 1 1)
 
-    (is (= 2 val))
+                                 (is (= 2 val))
 
-    (is (number? elapsed))
+                                 (is (number? elapsed))
 
-    )
+                                 )
 
   )

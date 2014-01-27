@@ -20,7 +20,7 @@
              column-idx# (range column-cnt#)]
        (is (= (get-in actual-table# [row-idx# column-idx#])
               (get-in expected-table# [row-idx# column-idx#]))
-         (str "Row index: " row-idx# ", Column index: " column-idx#)))))
+           (str "Row index: " row-idx# ", Column index: " column-idx#)))))
 
 
 ;; TODO - Alex - Nov 26, 2012 - taken from furtive.test.unit.spec-utils.spec-utils

@@ -4,7 +4,7 @@
             [kits.string :as kstr]))
 
 
-(defn any? 
+(defn any?
   "Returns true if some element in coll matches the pred"
   [pred coll]
   (boolean (some pred coll)))
@@ -30,19 +30,19 @@
   "Like distinct, but calls keyfn to determine distinctness, much like sort-by.
    Takes an optional max-n, indicating how many duplicates are acceptible."
   ([keyfn coll]
-    (distinct-by keyfn 1 coll))
+     (distinct-by keyfn 1 coll))
   ([keyfn max-n coll]
-    (let [step (fn step [xs seen]
-      (lazy-seq
-        ((fn [[f :as xs] seen]
-           (when-let [s (seq xs)]
-             (if (>= (get seen (keyfn f) 0) max-n)
-               (recur (rest s) seen)
-               (cons f (step (rest s) (update-in seen [(keyfn f)] (fnil inc 0)))))))
-          xs seen)))]
-      (step coll {}))))
+     (let [step (fn step [xs seen]
+                  (lazy-seq
+                   ((fn [[f :as xs] seen]
+                      (when-let [s (seq xs)]
+                        (if (>= (get seen (keyfn f) 0) max-n)
+                          (recur (rest s) seen)
+                          (cons f (step (rest s) (update-in seen [(keyfn f)] (fnil inc 0)))))))
+                    xs seen)))]
+       (step coll {}))))
 
-(defn ensure-sequential 
+(defn ensure-sequential
   "Returns x as [x] if x is not sequential, otherwise return x untouched."
   [x]
   (if (or (nil? x) (sequential? x))
@@ -64,7 +64,7 @@
                    x))
                coll))
 
-(defn max-by 
+(defn max-by
   "Like max, but the comparator is customizable through sort-by-fn"
   [sort-by-fn xs]
   (last (sort-by sort-by-fn xs)))
@@ -109,8 +109,8 @@
             (if (pred elem)
               [(conj passes elem) fails]
               [passes (conj fails elem)]))
-    [(empty coll) (empty coll)]
-    coll))
+          [(empty coll) (empty coll)]
+          coll))
 
 (defn seq-to-map
   "Transforms a seq of ([key1 value1] [key2 value2]) pairs to a map

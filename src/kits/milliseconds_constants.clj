@@ -8,4 +8,3 @@
 (def ^:const day (* 24 hour))
 (def ^:const week (* 7 day))
 (def ^:const year (* 365 day))
-

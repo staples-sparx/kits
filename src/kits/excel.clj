@@ -3,8 +3,8 @@
   (:import (java.io FileInputStream FileOutputStream)
            (java.text DecimalFormat)
            (org.apache.poi.hssf.usermodel HSSFClientAnchor
-             HSSFRichTextString
-             HSSFWorkbook)
+                                          HSSFRichTextString
+                                          HSSFWorkbook)
            (org.apache.poi.ss.usermodel Cell CellStyle CreationHelper
                                         Sheet Workbook WorkbookFactory)
            (org.apache.poi.ss.util CellRangeAddress)))
@@ -15,7 +15,7 @@
 
 (defn open-file [file-name]
   (WorkbookFactory/create
-    (FileInputStream. file-name)))
+   (FileInputStream. file-name)))
 
 (defn new-excel-workbook []
   (HSSFWorkbook.))
@@ -43,8 +43,8 @@
   [x]
   (try
     (double (bigdec
-              (.format (DecimalFormat. "#.00")
-                (bigdec x))))
+             (.format (DecimalFormat. "#.00")
+                      (bigdec x))))
     (catch Exception _
       x)))
 
@@ -57,8 +57,8 @@
         ^CellStyle      cs (.getCellStyle cell)]
     (doto cs
       (.setDataFormat (-> ch
-                        .createDataFormat
-                        (.getFormat "0.00")))
+                          .createDataFormat
+                          (.getFormat "0.00")))
       (.setAlignment CellStyle/ALIGN_RIGHT))
     (.setCellStyle cell cs)))
 
@@ -69,13 +69,13 @@
         amt  (convert-if-number amount)]
     (.setCellValue cell amt)
     (when (and (number? amt)
-            decimal-places?)
+               decimal-places?)
       (set-cell-style-2-decimal-places cell))))
 
 (defn set-data-from-positions
   ([positions sheet data]
-    (doseq [[key [row column] format-type] positions]
-      (set-cell-value sheet row column (format-type (data key))))))
+     (doseq [[key [row column] format-type] positions]
+       (set-cell-value sheet row column (format-type (data key))))))
 
 (defn merge-cells [sheet start-row end-row start-col end-col]
   (.addMergedRegion sheet (CellRangeAddress. start-row end-row start-col end-col)))

@@ -13,4 +13,3 @@
                 t (Thread. ^Runnable (partial f name args) name)]]
     (.start t)
     t))
-

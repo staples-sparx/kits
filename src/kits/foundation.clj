@@ -96,15 +96,15 @@
         row-fmt (or row-fmt "%,8d rows%s")]
     (fn [i final?]
       (cond
-        final?
-        (when-not no-summary
-          (fprintln (format row-fmt i (row-handler i))))
+       final?
+       (when-not no-summary
+         (fprintln (format row-fmt i (row-handler i))))
 
-        (zero? (mod i iters-per-row))
-        (fprintln (format row-fmt i (row-handler i)))
+       (zero? (mod i iters-per-row))
+       (fprintln (format row-fmt i (row-handler i)))
 
-        (zero? (mod i iters-per-dot))
-        (fprint ".")))))
+       (zero? (mod i iters-per-dot))
+       (fprint ".")))))
 
 (defmacro with-progress-reporting
   "Bind a `reportfn` function, and evaluate `body` wherein

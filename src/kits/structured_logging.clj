@@ -1,12 +1,12 @@
 (ns kits.structured-logging
   "Logging Clojure data as JSON"
-  (:require [clojure.string :as str]
-            [runa.tools.logging :as log]
-            [cheshire.custom :as cc]
+  (:require [cheshire.custom :as cc]
+            [clojure.string :as str]
             [kits.homeless :as hl]
             [kits.map :as m]
+            [kits.syslog :as syslog]
             [kits.timestamp :as ts]
-            [kits.syslog :as syslog])
+            [runa.tools.logging :as log])
   (:import kits.syslog.udp.Channel))
 
 (def ^ThreadLocal syslog-channel (ThreadLocal.))
@@ -37,13 +37,13 @@
         channel (or (.get syslog-channel)
                     (syslog/create-channel syslog-config))
         msg (cc/encode (merge {:level (str/upper-case (name log-level))
-                                :ts-ms (ts/now)
-                                :data log-map}
-                               (when-not (empty? all-tags)
-                                 {:tags all-tags})
-                               (when-not (empty? (:data *log-context*))
-                                 {:context (m/map-values #(if (fn? %) (%) %)
-                                                         (:data *log-context*))})))
+                               :ts-ms (ts/now)
+                               :data log-map}
+                              (when-not (empty? all-tags)
+                                {:tags all-tags})
+                              (when-not (empty? (:data *log-context*))
+                                {:context (m/map-values #(if (fn? %) (%) %)
+                                                        (:data *log-context*))})))
         fresh-channel (syslog/log syslog-config facility local-name level channel msg)]
     (.set syslog-channel fresh-channel)))
 
@@ -117,7 +117,7 @@
   `(let [log-context-map# ~log-context-map]
      (binding [*log-context* {:data (merge (dissoc log-context-map# :tags) (:data *log-context*))
                               :tags (into (:tags *log-context*) (:tags log-context-map#))}]
-     ~@body)))
+       ~@body)))
 
 (defn log-time*
   "Higher order function version of `log-time` macro"
@@ -155,4 +155,3 @@
   "Executes the body. Any Throwables are logged then re-thrown."
   [syslog-config local-name & body]
   `(logging-exceptions* ~syslog-config ~local-name (fn [] ~@body)))
-

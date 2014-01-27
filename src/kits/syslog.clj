@@ -1,10 +1,8 @@
 (ns kits.syslog
-  (:require
-    [kits.syslog.messages :as messages]
-    [kits.syslog.udp :as udp]
-    [kits.timestamp :as ts])
-  (:import
-    kits.syslog.udp.Channel))
+  (:require [kits.syslog.messages :as messages]
+            [kits.syslog.udp :as udp]
+            [kits.timestamp :as ts])
+  (:import kits.syslog.udp.Channel))
 
 ;; http://www.springsurprise.com/2010/01/30/enable-remote-logging-on-mac-os-x/
 ;; http://labs.animoto.com/2008/08/20/ruby-syslog-considered-harmful-or-at-least-undocumented/

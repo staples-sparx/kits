@@ -108,13 +108,13 @@
          (recur ret (first kvs) (second kvs) (nnext kvs))
          ret))))
 
-(defn contains-path? 
+(defn contains-path?
   "Whether the specified path exists in the map"
   [m path]
   (and (not (empty? path))
        (not= ::not-found (get-in m path ::not-found))))
 
-(defn assoc-in-if-present 
+(defn assoc-in-if-present
   "Assocs f into m only if the path presents in m"
   [m path f]
   (if (contains-path? m path)
@@ -267,7 +267,7 @@
     (update-in m path f)
     m))
 
-(defn submap? 
+(defn submap?
   "Determine whether sub-map is a submap of m."
   [sub-map m]
   (every? (fn [[k v]]
@@ -283,7 +283,7 @@
            (for [k ks]
              [k (get m k default)]))))
 
-(defn move-key 
+(defn move-key
   "Changes the entry's key which is old-key to new-key (the corresponding value untouched)"
   [m old-key new-key]
   (let [v (get m old-key ::missing)]
@@ -294,13 +294,13 @@
           (dissoc old-key)))))
 
 (defn sorted-zipmap
-  "Returns a sorted map with the keys mapped to the corresponding vals."  
+  "Returns a sorted map with the keys mapped to the corresponding vals."
   [keys vals]
-    (loop [map (sorted-map)
-           ks (seq keys)
-           vs (seq vals)]
-      (if (and ks vs)
-        (recur (assoc map (first ks) (first vs))
-               (next ks)
-               (next vs))
-        map)))
+  (loop [map (sorted-map)
+         ks (seq keys)
+         vs (seq vals)]
+    (if (and ks vs)
+      (recur (assoc map (first ks) (first vs))
+             (next ks)
+             (next vs))
+      map)))

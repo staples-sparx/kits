@@ -1,10 +1,9 @@
 (ns kits.syslog.udp
-  (:import
-    java.io.IOException
-    java.net.DatagramPacket
-    java.net.DatagramSocket
-    java.net.InetAddress
-    java.nio.charset.Charset))
+  (:import java.io.IOException
+           java.net.DatagramPacket
+           java.net.DatagramSocket
+           java.net.InetAddress
+           java.nio.charset.Charset))
 
 (def ^Charset utf-8-charset (Charset/forName "UTF-8"))
 
@@ -16,11 +15,11 @@
 
 (defn create-channel ^Channel [config]
   (Channel.
-    config
-    (create-socket
-      (:so-timeout-ms config))
-    (InetAddress/getByName (:host config))
-    (long (:port config))))
+   config
+   (create-socket
+    (:so-timeout-ms config))
+   (InetAddress/getByName (:host config))
+   (long (:port config))))
 
 (defn recreate-channel ^Channel [channel]
   (create-channel (:config channel)))
@@ -44,15 +43,15 @@
     (loop [channel channel
            remaining retries]
       (let [packet (DatagramPacket.
-                     payload
-                     l
-                     ^InetAddress (:addr channel)
-                     ^long (:port channel))
+                    payload
+                    l
+                    ^InetAddress (:addr channel)
+                    ^long (:port channel))
             error (send-packet (:socket channel) packet)]
         (if error
           (if (pos? remaining)
             (recur
-              (recreate-channel)
-              (dec remaining))
+             (recreate-channel)
+             (dec remaining))
             (throw (RuntimeException. ^Throwable error)))
           channel)))))

@@ -6,7 +6,7 @@
 
 (defn- create-wildcard-regex [^String regex]
   (re-pattern
-    (str "^" (str/escape-regex-except-* (.toLowerCase regex)) "$")))
+   (str "^" (str/escape-regex-except-* (.toLowerCase regex)) "$")))
 
 (defn- wildcard-match? [^String m]
   (<= 0 (.indexOf m "*")))
@@ -17,16 +17,16 @@
 
 (defn regex-matches? [^String src matches]
   (cond
-    (string? src) (let [src (.toLowerCase src)]
-                    (sq/any? #(re-find % src) matches))
-    (coll? src) (sq/any? #(regex-matches? % matches) src)
-    :else false))
+   (string? src) (let [src (.toLowerCase src)]
+                   (sq/any? #(re-find % src) matches))
+   (coll? src) (sq/any? #(regex-matches? % matches) src)
+   :else false))
 
 (defn exact-matches? [src match-set]
   (cond
-    (string? src) (contains? match-set src)
-    (coll? src) (sq/any? #(exact-matches? % match-set) src)
-    :else false))
+   (string? src) (contains? match-set src)
+   (coll? src) (sq/any? #(exact-matches? % match-set) src)
+   :else false))
 
 ;;; matches? has been redefined as a macro in order to improve the
 ;;; performance at run-time, by splitting the match clauses into exact

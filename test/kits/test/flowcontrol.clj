@@ -21,7 +21,7 @@
                    b false]
                   (+ 1 2)
                   (+ 3 4))))
-  
+
   (is (= 7
          (if-lets [a false
                    b false]
@@ -42,7 +42,7 @@
          (if-lets [a true
                    b false]
                   (+ 1 2))))
-  
+
   (is (= nil
          (if-lets [a false
                    b false]
@@ -65,7 +65,7 @@
          (when-lets [a true
                      b false]
                     (+ 1 2))))
-  
+
   (is (= nil
          (when-lets [a false
                      b false]

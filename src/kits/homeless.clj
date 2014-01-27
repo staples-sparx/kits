@@ -110,9 +110,9 @@ to return."
      (parse-number s nil))
   ([s default]
      (cond
-       (number? s) s
-       (empty? s)  default
-       :else       (read-string-safely s))))
+      (number? s) s
+      (empty? s)  default
+      :else       (read-string-safely s))))
 
 (defn rand-int*
   "Return a random integer between min (inclusive) and max (exclusive)."
@@ -210,8 +210,8 @@ to return."
   "Sleep for `millis` milliseconds."
   [millis]
   (try (Thread/sleep millis)
-    (catch InterruptedException e
-      (.interrupt ^Thread (Thread/currentThread)))))
+       (catch InterruptedException e
+         (.interrupt ^Thread (Thread/currentThread)))))
 
 (defn random-sleep
   "Sleep between 'min-millis' and 'max-millis' milliseconds"
@@ -311,15 +311,15 @@ to return."
         row-fmt (or row-fmt "%,8d rows%s")]
     (fn [i final?]
       (cond
-        final?
-        (when-not no-summary
-          (fprintln (format row-fmt i (row-handler i))))
+       final?
+       (when-not no-summary
+         (fprintln (format row-fmt i (row-handler i))))
 
-        (zero? (mod i iters-per-row))
-        (fprintln (format row-fmt i (row-handler i)))
+       (zero? (mod i iters-per-row))
+       (fprintln (format row-fmt i (row-handler i)))
 
-        (zero? (mod i iters-per-dot))
-        (fprint ".")))))
+       (zero? (mod i iters-per-dot))
+       (fprint ".")))))
 
 (defmacro with-progress-reporting
   "Bind a `reportfn` function, and evaluate `body` wherein
@@ -414,13 +414,13 @@ to return."
   "Sleep for `millis` milliseconds."
   [millis]
   (try (Thread/sleep millis)
-    (catch InterruptedException e
-      (.interrupt ^Thread (Thread/currentThread)))))
+       (catch InterruptedException e
+         (.interrupt ^Thread (Thread/currentThread)))))
 
 (defn timestamp? [n]
   (and (integer? n)
-    (>= n 0)
-    (<= n Long/MAX_VALUE)))
+       (>= n 0)
+       (<= n Long/MAX_VALUE)))
 
 (defn stacktrace->str [e]
   (map #(str % "\n") (.getStackTrace ^Exception e)))
@@ -437,18 +437,18 @@ to return."
   [f max-times]
   (fn this
     ([]
-      (this max-times))
+       (this max-times))
     ([retry-count]
-      (try
-        (f)
-        (catch Throwable t
-          (if (zero? retry-count)
-            (throw t)
-            (this (dec retry-count))))))))
+       (try
+         (f)
+         (catch Throwable t
+           (if (zero? retry-count)
+             (throw t)
+             (this (dec retry-count))))))))
 
 (defmacro with-retries [retry-count & body]
   `((retrying-fn
-      (fn [] ~@body) ~retry-count)))
+     (fn [] ~@body) ~retry-count)))
 
 (defn make-comparator
   "Similar to clojure.core/comparator but optionally accepts a
@@ -509,37 +509,37 @@ to return."
 ;;;; Copied out of Clojure 1.3+
 
 (when-before-clojure-1-3
-  (defn some-fn
-    "Takes a set of predicates and returns a function f that returns the first logical true value
+ (defn some-fn
+   "Takes a set of predicates and returns a function f that returns the first logical true value
     returned by one of its composing predicates against any of its arguments, else it returns
     logical false. Note that f is short-circuiting in that it will stop execution on the first
     argument that triggers a logical true result against the original predicates."
-    {:added "1.3"}
-    ([p]
+   {:added "1.3"}
+   ([p]
       (fn sp1
         ([] nil)
         ([x] (p x))
         ([x y] (or (p x) (p y)))
         ([x y z] (or (p x) (p y) (p z)))
         ([x y z & args] (or (sp1 x y z)
-                          (some p args)))))
-    ([p1 p2]
+                            (some p args)))))
+   ([p1 p2]
       (fn sp2
         ([] nil)
         ([x] (or (p1 x) (p2 x)))
         ([x y] (or (p1 x) (p1 y) (p2 x) (p2 y)))
         ([x y z] (or (p1 x) (p1 y) (p1 z) (p2 x) (p2 y) (p2 z)))
         ([x y z & args] (or (sp2 x y z)
-                          (some #(or (p1 %) (p2 %)) args)))))
-    ([p1 p2 p3]
+                            (some #(or (p1 %) (p2 %)) args)))))
+   ([p1 p2 p3]
       (fn sp3
         ([] nil)
         ([x] (or (p1 x) (p2 x) (p3 x)))
         ([x y] (or (p1 x) (p2 x) (p3 x) (p1 y) (p2 y) (p3 y)))
         ([x y z] (or (p1 x) (p2 x) (p3 x) (p1 y) (p2 y) (p3 y) (p1 z) (p2 z) (p3 z)))
         ([x y z & args] (or (sp3 x y z)
-                          (some #(or (p1 %) (p2 %) (p3 %)) args)))))
-    ([p1 p2 p3 & ps]
+                            (some #(or (p1 %) (p2 %) (p3 %)) args)))))
+   ([p1 p2 p3 & ps]
       (let [ps (list* p1 p2 p3 ps)]
         (fn spn
           ([] nil)
@@ -547,39 +547,39 @@ to return."
           ([x y] (some #(or (% x) (% y)) ps))
           ([x y z] (some #(or (% x) (% y) (% z)) ps))
           ([x y z & args] (or (spn x y z)
-                            (some #(some % args) ps))))))))
+                              (some #(some % args) ps))))))))
 
 (when-before-clojure-1-3
-  (defn every-pred
-    "Takes a set of predicates and returns a function f that returns true if all of its
+ (defn every-pred
+   "Takes a set of predicates and returns a function f that returns true if all of its
     composing predicates return a logical true value against all of its arguments, else it returns
     false. Note that f is short-circuiting in that it will stop execution on the first
     argument that triggers a logical false result against the original predicates."
-    ([p]
+   ([p]
       (fn ep1
         ([] true)
         ([x] (boolean (p x)))
         ([x y] (boolean (and (p x) (p y))))
         ([x y z] (boolean (and (p x) (p y) (p z))))
         ([x y z & args] (boolean (and (ep1 x y z)
-                                   (every? p args))))))
-    ([p1 p2]
+                                      (every? p args))))))
+   ([p1 p2]
       (fn ep2
         ([] true)
         ([x] (boolean (and (p1 x) (p2 x))))
         ([x y] (boolean (and (p1 x) (p1 y) (p2 x) (p2 y))))
         ([x y z] (boolean (and (p1 x) (p1 y) (p1 z) (p2 x) (p2 y) (p2 z))))
         ([x y z & args] (boolean (and (ep2 x y z)
-                                   (every? #(and (p1 %) (p2 %)) args))))))
-    ([p1 p2 p3]
+                                      (every? #(and (p1 %) (p2 %)) args))))))
+   ([p1 p2 p3]
       (fn ep3
         ([] true)
         ([x] (boolean (and (p1 x) (p2 x) (p3 x))))
         ([x y] (boolean (and (p1 x) (p2 x) (p3 x) (p1 y) (p2 y) (p3 y))))
         ([x y z] (boolean (and (p1 x) (p2 x) (p3 x) (p1 y) (p2 y) (p3 y) (p1 z) (p2 z) (p3 z))))
         ([x y z & args] (boolean (and (ep3 x y z)
-                                   (every? #(and (p1 %) (p2 %) (p3 %)) args))))))
-    ([p1 p2 p3 & ps]
+                                      (every? #(and (p1 %) (p2 %) (p3 %)) args))))))
+   ([p1 p2 p3 & ps]
       (let [ps (list* p1 p2 p3 ps)]
         (fn epn
           ([] true)
@@ -587,71 +587,71 @@ to return."
           ([x y] (every? #(and (% x) (% y)) ps))
           ([x y z] (every? #(and (% x) (% y) (% z)) ps))
           ([x y z & args] (boolean (and (epn x y z)
-                                     (every? #(every? % args) ps)))))))))
+                                        (every? #(every? % args) ps)))))))))
 
 
 ;;;; Copied out of Clojure 1.5+
 
 (when-before-clojure-1-5
  (defmacro cond->
-  "Takes an expression and a set of test/form pairs. Threads expr (via ->)
+   "Takes an expression and a set of test/form pairs. Threads expr (via ->)
   through each form for which the corresponding test
   expression is true. Note that, unlike cond branching, cond-> threading does
   not short circuit after the first true test expression."
-  {:added "1.5"}
-  [expr & clauses]
-  (assert (even? (count clauses)))
-  (let [g (gensym)
-        pstep (fn [[test step]] `(if ~test (-> ~g ~step) ~g))]
-    `(let [~g ~expr
-           ~@(interleave (repeat g) (map pstep (partition 2 clauses)))]
-       ~g)))
+   {:added "1.5"}
+   [expr & clauses]
+   (assert (even? (count clauses)))
+   (let [g (gensym)
+         pstep (fn [[test step]] `(if ~test (-> ~g ~step) ~g))]
+     `(let [~g ~expr
+            ~@(interleave (repeat g) (map pstep (partition 2 clauses)))]
+        ~g)))
 
-(defmacro cond->>
-  "Takes an expression and a set of test/form pairs. Threads expr (via ->>)
+ (defmacro cond->>
+   "Takes an expression and a set of test/form pairs. Threads expr (via ->>)
   through each form for which the corresponding test expression
   is true.  Note that, unlike cond branching, cond->> threading does not short circuit
   after the first true test expression."
-  {:added "1.5"}
-  [expr & clauses]
-  (assert (even? (count clauses)))
-  (let [g (gensym)
-        pstep (fn [[test step]] `(if ~test (->> ~g ~step) ~g))]
-    `(let [~g ~expr
-           ~@(interleave (repeat g) (map pstep (partition 2 clauses)))]
-       ~g)))
+   {:added "1.5"}
+   [expr & clauses]
+   (assert (even? (count clauses)))
+   (let [g (gensym)
+         pstep (fn [[test step]] `(if ~test (->> ~g ~step) ~g))]
+     `(let [~g ~expr
+            ~@(interleave (repeat g) (map pstep (partition 2 clauses)))]
+        ~g)))
 
-(defmacro as->
-  "Binds name to expr, evaluates the first form in the lexical context
+ (defmacro as->
+   "Binds name to expr, evaluates the first form in the lexical context
   of that binding, then binds name to that result, repeating for each
   successive form, returning the result of the last form."
-  {:added "1.5"}
-  [expr name & forms]
-  `(let [~name ~expr
-         ~@(interleave (repeat name) forms)]
-     ~name))
+   {:added "1.5"}
+   [expr name & forms]
+   `(let [~name ~expr
+          ~@(interleave (repeat name) forms)]
+      ~name))
 
-(defmacro some->
-  "When expr is not nil, threads it into the first form (via ->),
+ (defmacro some->
+   "When expr is not nil, threads it into the first form (via ->),
   and when that result is not nil, through the next etc"
-  {:added "1.5"}
-  [expr & forms]
-  (let [g (gensym)
-        pstep (fn [step] `(if (nil? ~g) nil (-> ~g ~step)))]
-    `(let [~g ~expr
-           ~@(interleave (repeat g) (map pstep forms))]
-       ~g)))
+   {:added "1.5"}
+   [expr & forms]
+   (let [g (gensym)
+         pstep (fn [step] `(if (nil? ~g) nil (-> ~g ~step)))]
+     `(let [~g ~expr
+            ~@(interleave (repeat g) (map pstep forms))]
+        ~g)))
 
-(defmacro some->>
-  "When expr is not nil, threads it into the first form (via ->>),
+ (defmacro some->>
+   "When expr is not nil, threads it into the first form (via ->>),
   and when that result is not nil, through the next etc"
-  {:added "1.5"}
-  [expr & forms]
-  (let [g (gensym)
-        pstep (fn [step] `(if (nil? ~g) nil (->> ~g ~step)))]
-    `(let [~g ~expr
-           ~@(interleave (repeat g) (map pstep forms))]
-       ~g))))
+   {:added "1.5"}
+   [expr & forms]
+   (let [g (gensym)
+         pstep (fn [step] `(if (nil? ~g) nil (->> ~g ~step)))]
+     `(let [~g ~expr
+            ~@(interleave (repeat g) (map pstep forms))]
+        ~g))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -676,19 +676,19 @@ to return."
   (let [as-symbol (gensym 'symbol-for-destructured-arg)
         snd-to-last-is-as? #(= :as (second (reverse %)))]
     (cond (and (vector? arg-form) (snd-to-last-is-as? arg-form))
-      [arg-form (last arg-form)]
+          [arg-form (last arg-form)]
 
-      (vector? arg-form)
-      [(-> arg-form (conj :as) (conj as-symbol)) as-symbol]
+          (vector? arg-form)
+          [(-> arg-form (conj :as) (conj as-symbol)) as-symbol]
 
-      (and (map? arg-form) (contains? arg-form :as))
-      [arg-form (:as arg-form)]
+          (and (map? arg-form) (contains? arg-form :as))
+          [arg-form (:as arg-form)]
 
-      (map? arg-form)
-      [(assoc arg-form :as as-symbol) as-symbol]
+          (map? arg-form)
+          [(assoc arg-form :as as-symbol) as-symbol]
 
-      :else
-      [arg-form arg-form])))
+          :else
+          [arg-form arg-form])))
 
 (defn rand-int* [min max]
   (+ min (rand-int (- max min))))
@@ -720,7 +720,7 @@ to return."
    were not listed in the key destructuring."
   [& args]
   {:arglists '([name arg-vec & body]
-               [name doc-string arg-vec & body])}
+                 [name doc-string arg-vec & body])}
   (let [[name doc-string arg-vec & body] (if (string? (second args))
                                            args
                                            (concat [(first args) nil] (rest args)))
@@ -761,9 +761,9 @@ to return."
        (map (fn [string-to-match]
               (->> search-terms
                    (filter #(try
-                               (re-find (re-pattern (str "(?i)" %)) string-to-match)
-                               (catch Exception _
-                                 nil)))
+                              (re-find (re-pattern (str "(?i)" %)) string-to-match)
+                              (catch Exception _
+                                nil)))
                    count)))
        (apply +)))
 

@@ -1,9 +1,9 @@
 (ns kits.contextual-logging
   "A Context layer built on top of 'org.rathore.amit.utils.logger'"
   (:require [clojure.string :as str]
+            [kits.milliseconds-constants :as msc]
             [kits.queues :as q]
             [kits.thread :as thread]
-            [kits.milliseconds-constants :as msc]
             [org.rathore.amit.utils.logger :as amit]))
 
 
@@ -39,12 +39,12 @@
 (defn log-exception
   "Delegates to amit/log-message, appending the context to the messages"
   ([e additional-message]
-    (amit/log-exception e (str (stringify *log-context*) additional-message)))
+     (amit/log-exception e (str (stringify *log-context*) additional-message)))
   ([e]
-    (let [context (stringify *log-context*)]
-      (if (= "" context)
-        (amit/log-exception e)
-        (amit/log-exception e context)))))
+     (let [context (stringify *log-context*)]
+       (if (= "" context)
+         (amit/log-exception e)
+         (amit/log-exception e context)))))
 
 
 ;;; Async Logging
@@ -95,4 +95,3 @@
        (q/add @async-logging-queue (fn []
                                      (with-bindings bindings
                                        (log-exception e)))))))
-

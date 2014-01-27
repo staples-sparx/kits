@@ -51,4 +51,3 @@
                              (log-fn (Exception. "The thing failed") "extra message"))
              (Thread/sleep 50)
              (verify-first-call-args-for-indices amit/log-exception [1] "merchant-id: m1 - extra message"))))
-
