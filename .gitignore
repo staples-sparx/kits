@@ -10,3 +10,4 @@
 /pom.xml
 *.iml
 /.idea
+/target/stale/extract-native.dependencies
