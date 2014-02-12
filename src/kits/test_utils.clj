@@ -58,3 +58,12 @@
       (pprint/pprint delta)
       false)
     true))
+
+(defn open-port []
+  (let [port (rand-nth (range 60000 65535))
+        ss (try
+             (java.net.ServerSocket. port)
+             (catch Exception e nil))]
+    (if ss
+      (do (.close ss)  port)
+      (open-port))))
