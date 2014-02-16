@@ -725,9 +725,13 @@ to return."
                                            args
                                            (concat [(first args) nil] (rest args)))
         _ (assert (map? (peek arg-vec))
-                  "defn-kw expects the final element of the arg list to be a map destructuring.")
+                  (str "defn-kw expects the final element of the arg list, "
+                       arg-vec
+                       ", to be a map destructuring."))
         _ (assert (= '& (last (butlast arg-vec)))
-                  "defn-kw expects the second to last element of the arg list to be an '&")
+                  (str "defn-kw expects the second to last element of the arg list, "
+                       arg-vec
+                       ", to be an '&"))
         keys-or-strs (cond (contains? (peek arg-vec) :keys) :keys
                            (contains? (peek arg-vec) :strs) :strs
                            :else (throw (AssertionError. "defn-kw expects the map destructuring to have a :keys or :strs key.")))
