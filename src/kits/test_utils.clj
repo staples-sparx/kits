@@ -67,3 +67,19 @@
     (if ss
       (do (.close ss)  port)
       (open-port))))
+
+(defn run-tests-with-spec [spec-meta spec f]
+  (assert (even? (count spec)) "Spec needs to have even expected/args pair")
+  (assert (:line spec-meta)
+          "Need to pass in meta data of spec for test reporting\n.
+           For example: pass the value of (meta #'spec) as spec-meta")
+  (let [pairs (mapv #(vec %) (partition 2 spec))]
+    (for [i (range (count pairs))
+          :let [pair (nth pairs i)
+                expected (first pair)
+                actual (f (second pair))]
+          :when (not= expected actual)]
+      {:error (diff expected actual)
+       :for (str expected " " (second pair))
+       :at-line (+ (:line spec-meta) (inc i))
+       :msg "If you see line number mismatch, make sure you do not have blank lines, extra comments lines and make sure first pair starts right after def spec line"})))
