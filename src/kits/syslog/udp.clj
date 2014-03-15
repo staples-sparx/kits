@@ -1,4 +1,5 @@
 (ns kits.syslog.udp
+  "Provides a writer interface to UDP by wrapping java.net classes."
   (:import java.io.IOException
            java.net.DatagramPacket
            java.net.DatagramSocket

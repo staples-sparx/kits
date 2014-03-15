@@ -1,4 +1,5 @@
 (ns kits.syslog
+  "Write wrapper for syslog."
   (:require [kits.syslog.messages :as messages]
             [kits.syslog.udp :as udp]
             [kits.timestamp :as ts])
