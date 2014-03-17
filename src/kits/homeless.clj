@@ -811,3 +811,10 @@ to return."
   `(if (<= ~timestamp-long (System/currentTimeMillis))
      (throw (Exception. "Timebomb comment has passed its due date."))
      (comment ~@body)))
+
+(defn exception->map [^Throwable e]
+  (merge
+   {:message (.getMessage e)
+    :stacktrace (mapv str (.getStackTrace e))}
+   (when (.getCause e)
+     {:cause (exception->map (.getCause e))})))
