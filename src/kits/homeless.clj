@@ -818,3 +818,12 @@ to return."
     :stacktrace (mapv str (.getStackTrace e))}
    (when (.getCause e)
      {:cause (exception->map (.getCause e))})))
+
+(defn name-generator [prefix]
+  (let [cnt (atom -1)]
+    (fn [& args]
+      (swap! cnt inc)
+      (str prefix "-" @cnt))))
+
+(defn trap-nil [x default]
+  (if-not (nil? x) x default))

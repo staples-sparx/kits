@@ -9,7 +9,8 @@
 ;;; Mapping and Filtering Over Maps
 
 (defn map-values
-  "Apply a function on all values of a map and return the corresponding map (all keys untouched)"
+  "Apply a function on all values of a map and return the corresponding map (all
+   keys untouched)"
   [f m]
   (when m
     (persistent! (reduce-kv (fn [out-m k v]
@@ -18,7 +19,8 @@
                             m))))
 
 (defn map-keys
-  "Apply a function on all keys of a map and return the corresponding map (all values untouched)"
+  "Apply a function on all keys of a map and return the corresponding map (all
+   values untouched)"
   [f m]
   (when m
     (persistent! (reduce-kv (fn [out-m k v]
@@ -27,7 +29,8 @@
                             m))))
 
 (defn map-values
-  "Apply a function on all values of a map and return the corresponding map (all keys untouched)"
+  "Apply a function on all values of a map and return the corresponding map (all
+   keys untouched)"
   [f m]
   (when m
     (persistent! (reduce-kv (fn [out-m k v]
@@ -36,7 +39,8 @@
                             m))))
 
 (defn filter-map
-  "given a predicate like (fn [k v] ...) returns a map with only entries that match it."
+  "Given a predicate like (fn [k v] ...) returns a map with only entries that
+   match it."
   [pred m]
   (when m
     (persistent! (reduce-kv (fn [out-m k v]
@@ -47,7 +51,8 @@
                             m))))
 
 (defn filter-by-key
-  "given a predicate like (fn [k] ...) returns a map with only entries with keys that match it."
+  "Given a predicate like (fn [k] ...) returns a map with only entries with keys
+   that match it."
   [pred m]
   (when m
     (persistent! (reduce-kv (fn [out-m k v]
@@ -58,7 +63,8 @@
                             m))))
 
 (defn filter-by-val
-  "given a predicate like (fn [v] ...) returns a map with only entries with vals that match it."
+  "Given a predicate like (fn [v] ...) returns a map with only entries with vals
+   that match it."
   [pred m]
   (when m
     (persistent! (reduce-kv (fn [out-m k v]
@@ -69,7 +75,8 @@
                             m))))
 
 (defn map-over-map
-  "given a function like (fn [k v] ...) returns a new map with each entry mapped by it."
+  "Given a function like (fn [k v] ...) returns a new map with each entry mapped
+   by it."
   [f m]
   (when m
     (persistent! (reduce-kv (fn [out-m k v]
@@ -81,7 +88,8 @@
 ;;; Everything Else
 
 (defn assoc-thunk-result-if-not-present
-  "Like assoc, except only adds the key-value pair if the key doesn't exist in the map"
+  "Like assoc, except only adds the key-value pair if the key doesn't exist in
+   the map"
   ([m k thunk]
      (if (contains? m k)
        m
@@ -95,7 +103,8 @@
          ret))))
 
 (defn assoc-if-not-present
-  "Like assoc, except only adds the key-value pair if the key doesn't exist in the map"
+  "Like assoc, except only adds the key-value pair if the key doesn't exist in
+   the map"
   ([m k v]
      (if (contains? m k)
        m
@@ -267,12 +276,28 @@
     (update-in m path f)
     m))
 
-(defn submap?
-  "Determine whether sub-map is a submap of m."
-  [sub-map m]
-  (every? (fn [[k v]]
-            (= v (get m k)))
-          sub-map))
+(defn move-key
+  "Changes the entry's key which is old-key to new-key (the corresponding value
+   untouched)"
+  [m old-key new-key]
+  (let [v (get m old-key ::missing)]
+    (if (= v ::missing)
+      m
+      (-> m
+          (assoc new-key v)
+          (dissoc old-key)))))
+
+(defn rand-select-keys
+  "Selects a subset of 'n' k/v pairs from 'm'"
+  [m n]
+  (select-keys m (sq/rand-take (keys m) n)))
+
+(defn sget
+  "Safe get. Get the value of key `k` from map `m` only if the key really
+  exists, throw exception otherwise."
+  [m k] {:pre [(map? m)]}
+  (assert (contains? m k))
+  (get m k))
 
 (defn select-keys-always
   "Selects the entires whose key presents in ks from m "
@@ -282,16 +307,6 @@
      (into (empty m)
            (for [k ks]
              [k (get m k default)]))))
-
-(defn move-key
-  "Changes the entry's key which is old-key to new-key (the corresponding value untouched)"
-  [m old-key new-key]
-  (let [v (get m old-key ::missing)]
-    (if (= v ::missing)
-      m
-      (-> m
-          (assoc new-key v)
-          (dissoc old-key)))))
 
 (defn sorted-zipmap
   "Returns a sorted map with the keys mapped to the corresponding vals."
@@ -304,3 +319,10 @@
              (next ks)
              (next vs))
       map)))
+
+(defn submap?
+  "Determine whether sub-map is a submap of m."
+  [sub-map m]
+  (every? (fn [[k v]]
+            (= v (get m k)))
+          sub-map))
