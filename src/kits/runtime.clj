@@ -89,16 +89,16 @@
 
 (defn os-total-memory []
   (.getTotalPhysicalMemorySize
-   ^com.sun.management.UnixOperatingSystem os-mx))
+   ^com.sun.management.OperatingSystemMXBean os-mx))
 
 (defn os-free-memory []
   (.getFreePhysicalMemorySize
-   ^com.sun.management.UnixOperatingSystem os-mx))
+   ^com.sun.management.OperatingSystemMXBean os-mx))
 
 (defn os-memory
   "Returns info about the physical memory and swap"
   []
-  (let [os-mx ^com.sun.management.UnixOperatingSystem os-mx]
+  (let [os-mx ^com.sun.management.OperatingSystemMXBean os-mx]
     {:physical {:total (os-total-memory)
                 :free (os-free-memory)
                 :committed (.getCommittedVirtualMemorySize os-mx)}
