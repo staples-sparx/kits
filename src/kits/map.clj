@@ -131,6 +131,12 @@
     (assoc-in m path f)
     m))
 
+(defn copy-key [m from-k to-k]
+  (let [from-v (get m from-k ::missing)]
+    (if (= ::missing from-v)
+      m
+      (assoc m to-k from-v))))
+
 (defn dissoc-in
   "Dissociates an entry from a nested associative structure returning a new
   nested structure. path is a sequence of keys. Any empty maps that result

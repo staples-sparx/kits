@@ -275,3 +275,9 @@
     (is (= {} (rand-select-keys {} 1)))
     (is (= {} (rand-select-keys {} 0)))
     (is (= {} (rand-select-keys {:a 1} 0)))))
+
+(deftest test-copy-key
+  (is (= {:b 1 :c 1}
+         (copy-key {:b 1} :b :c)))
+  (is (= {:a 1}
+         (copy-key {:a 1} :b :c))))
