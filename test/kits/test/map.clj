@@ -268,3 +268,25 @@
    (verify-call-times-for println 0))
 
   (is (= {:a 1 :b 2} (assoc-thunk-result-if-not-present {} :a (fn [] 1) :b (fn [] 2)))))
+
+(deftest test-rand-select-keys
+  (with-redefs [shuffle reverse]
+    (is (= {:b 2 :c 3} (rand-select-keys {:a 1 :b 2 :c 3} 2)))
+    (is (= {} (rand-select-keys {} 1)))
+    (is (= {} (rand-select-keys {} 0)))
+    (is (= {} (rand-select-keys {:a 1} 0)))))
+
+(deftest test-copy-key
+  (is (= {:b 1 :c 1}
+         (copy-key {:b 1} :b :c)))
+  (is (= {:a 1}
+         (copy-key {:a 1} :b :c))))
+
+(deftest test-let-map
+  (is (= {:a 1 :b 1}
+         (let-map :a 1
+                  :b a)))
+
+  (is (= {"a" 1 "b" 1}
+         (let-map "a" 1
+                  "b" a))))

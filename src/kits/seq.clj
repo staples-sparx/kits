@@ -100,6 +100,10 @@
   [x]
   (walk/postwalk identity x))
 
+(defn realized-lazy-seq? [x]
+  (and (instance? clojure.lang.LazySeq x)
+       (realized? x)))
+
 (defn segregate
   "Splits the collection into two collections of the same type. The first
    collection contains all elements that pass the predicate and the second

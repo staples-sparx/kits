@@ -1,4 +1,5 @@
 (ns kits.syslog.messages
+  "Text formatters for writing to syslog."
   (:require [kits.timestamp :as ts])
   (:import java.text.SimpleDateFormat
            java.util.Date))

@@ -1,12 +1,12 @@
 # Runa's Kits
 
-Runa's core utilities.  Please use and enjoy. 
+Runa's core utilities.  Please use and enjoy.
 
 Usage
 -----
 
 ```clj
-[org.clojars.runa/kits "1.12.0"]
+[org.clojars.runa/kits "1.16.0"]
 ```
 
 ```clj

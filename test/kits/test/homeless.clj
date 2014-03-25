@@ -227,7 +227,7 @@
   (is (= 4 (my-fn 1 3))) ;; testing it works w/ no keyword args passed in
 
   (is (thrown-with-msg? AssertionError
-                        #"defn-kw expects the final element of the arg list to be a map destructuring."
+                        #"defn-kw expects the final element of the arg list, .*, to be a map destructuring."
                         (eval `(defn-kw f [a b c] nil))))
 
   (is (thrown-with-msg? AssertionError
@@ -235,7 +235,7 @@
                         (eval `(defn-kw f [a b c & {:doorknobs [d e]}] nil))))
 
   (is (thrown-with-msg? AssertionError
-                        #"defn-kw expects the second to last element of the arg list to be an '&"
+                        #"defn-kw expects the second to last element of the arg list, .*, to be an '&"
                         (eval `(defn-kw f [a b c not-ampersand {:keys [d e]}] nil))))
 
   (is (thrown-with-msg? AssertionError #"Was passed these keyword args #\{:k9999\} which were not listed in the arg list \[one two & \{:keys \[k1 k2\], :as opts\}\]"
@@ -261,7 +261,7 @@
   (is (= 4 (my-fn2 1 3))) ;; testing it works w/ no keyword args passed in
 
   (is (thrown-with-msg? AssertionError
-                        #"defn-kw expects the final element of the arg list to be a map destructuring."
+                        #"defn-kw expects the final element of the arg list, .*, to be a map destructuring."
                         (eval `(defn-kw f [a b c] nil))))
 
   (is (thrown-with-msg? AssertionError
@@ -269,7 +269,7 @@
                         (eval `(defn-kw f [a b c & {"doorknobs" [d e]}] nil))))
 
   (is (thrown-with-msg? AssertionError
-                        #"defn-kw expects the second to last element of the arg list to be an '&"
+                        #"defn-kw expects the second to last element of the arg list, .*, to be an '&"
                         (eval `(defn-kw f [a b c not-ampersand {:strs [d e]}] nil))))
 
   (is (thrown-with-msg? AssertionError #"Was passed these keyword args #\{\"k9999\"\} which were not listed in the arg list \[one two & \{:strs \[k1 k2\], :as opts\}\]"
