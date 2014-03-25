@@ -188,8 +188,20 @@
        (map keyword (keys m)))
      (map #(keys-to-keywords % :underscore-to-hyphens? underscore-to-hyphens?) (vals m)))))
 
+(defmacro let-map
+  "Creates a hash-map which can refer to the symbols of the names of the keys
+   declared above."
+  [& kvs]
+  (assert (even? (count kvs)))
+  (let [ks (take-nth 2 kvs)
+        sym-ks (map (comp symbol name) ks)
+        vs (take-nth 2 (rest kvs))]
+    `(let ~(vec (interleave sym-ks vs)) 
+       ~(apply hash-map (interleave ks sym-ks)))))
+
 (defn map-difference
-  "Returns the difference of m1 and m2: the entires in m1 but not in m2 + entries in m2 but not in m1"
+  "Returns the difference of m1 and m2: the entires in m1 but not in m2 +
+   entries in m2 but not in m1"
   [m1 m2]
   (let [ks1 (set (keys m1))
         ks2 (set (keys m2))

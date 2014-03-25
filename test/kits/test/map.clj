@@ -281,3 +281,12 @@
          (copy-key {:b 1} :b :c)))
   (is (= {:a 1}
          (copy-key {:a 1} :b :c))))
+
+(deftest test-let-map
+  (is (= {:a 1 :b 1}
+         (let-map :a 1
+                  :b a)))
+
+  (is (= {"a" 1 "b" 1}
+         (let-map "a" 1
+                  "b" a))))
