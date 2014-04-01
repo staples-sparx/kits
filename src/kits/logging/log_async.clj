@@ -52,13 +52,14 @@
     :queue-timeout-ms 1000}"
   [log-config & io-error-handler]
   (reset-q! (get log-config :max-msg 10000))
-  (t/start-thread-pool
-   (:thread-count log-config)
-   (:thread-prefix log-config)
-   (log-consumer/make-log-rotate-loop
-    {:queue @log-q
-     :compute-file-name log-generator/log-file-path-for
-     :formatter (partial log-generator/log-formatter
-                         (:default-context log-config))
-     :io-error-handler (or io-error-handler log-generator/error)
-     :conf log-config})))
+  (let [out *out*]
+    (t/start-thread-pool
+     (:thread-count log-config)
+     (:thread-prefix log-config)
+     (log-consumer/make-log-rotate-loop
+      {:queue @log-q
+       :compute-file-name log-generator/log-file-path-for
+       :formatter (partial log-generator/log-formatter
+                           (:default-context log-config))
+       :io-error-handler (or io-error-handler (partial log-generator/fallback-print out))
+       :conf log-config}))))
