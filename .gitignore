@@ -13,3 +13,4 @@
 /target/stale/extract-native.dependencies
 .nrepl-port
 /target
+/.lein-repl-history

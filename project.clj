@@ -5,8 +5,7 @@
             :url "http://mit-license.org/"}
   :url "https://github.com/runa-dev/kits"
   :plugins [[jonase/eastwood "0.0.2"]
-            [lein-kibit "0.0.7"]
-            [lein-swank "1.4.4"]]
+            [lein-kibit "0.0.7"]]
   :dependencies [[org.clojure/clojure "1.5.1"]
                  [cheshire "5.0.1"]
                  [org.clojars.runa/clj-utils "1.3.1"]
@@ -22,6 +21,3 @@
                                     [org.clojars.runa/conjure "2.2.0"]]}}
   :aliases {"run-tests" ["with-profile" "1.4.0:1.5.0" "test"]
             "slamhound" ["run" "-m" "slam.hound"]})
-
-(cemerick.pomegranate.aether/register-wagon-factory!
- "s3p" #(eval '(org.springframework.aws.maven.PrivateS3Wagon.)))
