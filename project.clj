@@ -1,4 +1,4 @@
-(defproject org.clojars.runa/kits "1.17.0"
+(defproject org.clojars.runa/kits "1.17.2"
   :description "Runa's core utilities."
   :min-lein-version "2.0.0"
   :license {:name "MIT License"
@@ -7,11 +7,12 @@
   :plugins [[jonase/eastwood "0.0.2"]
             [lein-kibit "0.0.7"]]
   :dependencies [[org.clojure/clojure "1.5.1"]
-                 [cheshire "5.0.1"]
+                 [cheshire "5.3.1"]
                  [org.clojars.runa/clj-utils "1.3.1"]
                  [org.clojure/java.jdbc "0.3.3"]
                  [org.clojars.runa/runa.tools.logging "0.2.7"]
-                 [clojure-csv/clojure-csv "2.0.0-alpha1"]]
+                 [clojure-csv/clojure-csv "2.0.0-alpha1"]
+                 [org.eclipse.jetty/jetty-server "8.1.14.v20131031"]]
   :warn-on-reflection true
   :profiles {:dev {:dependencies [[org.clojars.runa/conjure "2.2.0"]
                                   [slamhound "1.3.3"]]}
