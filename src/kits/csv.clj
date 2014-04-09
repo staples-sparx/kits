@@ -30,10 +30,11 @@
 (defn- apply-field-opts-on-row [csv-row field-reader-opts]
   (let [exclude-columns (:exclude-columns field-reader-opts)]
     (reduce merge (for [i (range (count csv-row))
-                        :when (or (nil? exclude-columns)
-                                  (not (contains? exclude-columns i)))
                         :let [ifield (get field-reader-opts i)
-                              irow (get csv-row i)]]
+                              irow (get csv-row i)]
+                        :when (and (and ifield irow)
+                                   (or (nil? exclude-columns)
+                                       (not (contains? exclude-columns i))))]
                     (assoc {} (:label ifield) ((:reader ifield) irow))))))
 
 (defn- apply-field-opts [csv-rows {:keys [key-fn val-fn]
