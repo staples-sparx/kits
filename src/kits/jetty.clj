@@ -55,7 +55,7 @@
 (defn reply-with-server-error [base-request servlet-resp error]
   (reply base-request servlet-resp
     {:status 500
-     :body (str "Server Error # " (:id error))}))
+     :body (str "Server Error # " error)}))
 
 (defn sanitize-params [^Map servlet-params]
   (let [params (create (.size servlet-params))]
