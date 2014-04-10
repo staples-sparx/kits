@@ -32,7 +32,7 @@
     (reduce merge (for [i (range (count csv-row))
                         :let [ifield (get field-reader-opts i)
                               irow (get csv-row i)]
-                        :when (and (and ifield irow)
+                        :when (and ifield
                                    (or (nil? exclude-columns)
                                        (not (contains? exclude-columns i))))]
                     (assoc {} (:label ifield) ((:reader ifield) irow))))))
