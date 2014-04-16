@@ -5,34 +5,28 @@
 (defn aborting? [job]
   (:aborting job))
 
-(defn abort-job! [job & error-messages]
+(defn abort-job [job & error-messages]
   (log/error {:job-id (:job-id job) :message "Aborting Job" :error-messages error-messages})
   (assoc job
     :aborting true
     :job-errors (into (:job-errors job) error-messages)))
 
-(defn abort-job-with-exception!
+(defn abort-job-with-exception
   ([job message ^Exception e]
-     (abort-job! job message (.getMessage e) (clojure.string/join "\n" (.getStackTrace e))))
+     (abort-job job message (.getMessage e) (clojure.string/join "\n" (.getStackTrace e))))
   ([job ^Exception e]
-     (abort-job! job (.getMessage e) (clojure.string/join "\n" (.getStackTrace e)))))
+     (abort-job job (.getMessage e) (clojure.string/join "\n" (.getStackTrace e)))))
 
-(defn warn-job! [job & warning-messages]
+(defn warn-job [job & warning-messages]
   (log/warn {:job-id (:job-id job) :message warning-messages})
   (assoc job
     :job-warnings (into (:job-warnings job) warning-messages)))
 
-(defn warn-job-with-exception!
+(defn warn-job-with-exception
   ([job message ^Exception e]
-     (warn-job! job message (.getMessage e) (clojure.string/join "\n" (.getStackTrace e))))
+     (warn-job job message (.getMessage e) (clojure.string/join "\n" (.getStackTrace e))))
   ([job ^Exception e]
-     (warn-job! job (.getMessage e) (clojure.string/join "\n" (.getStackTrace e)))))
-
-(defn error-messages [job]
-  (:job-errors job))
-
-(defn warning-messages [job]
-  (:job-warnings job))
+     (warn-job job (.getMessage e) (clojure.string/join "\n" (.getStackTrace e)))))
 
 (defn run-with-short-circuiting [job initial-argument functions]
   "Each function accepts [argument, job] and returns [result, job],
