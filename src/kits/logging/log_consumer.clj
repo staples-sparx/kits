@@ -1,4 +1,5 @@
 (ns kits.logging.log-consumer
+  "Internal namespace. This spawns agents that writes log messages to file and rotates them"
   (:require [kits.runtime :as runtime]
             [kits.queues :as q]
             [kits.logging.log-generator :as log])
