@@ -37,7 +37,10 @@
     (if (or (not first-fn)
             (aborting? job))
       [argument job]
-      (let [[result job] (first-fn argument job)]
+      (let [[result job] (try
+                           (first-fn argument job)
+                           (catch Exception e
+                             [nil (abort-job-with-exception job e)]))]
         (recur result job rest)))))
 
 (defn create-job

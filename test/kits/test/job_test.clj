@@ -6,10 +6,10 @@
 (defn- successful-inc [val job]
   [(inc val) job])
 
-(defn- failing-inc [val job]
+(defn- failing-fn [val job]
   [val (abort-job job "Cannot succeed!")])
 
-(defn- exception-inc [val job]
+(defn- exception-fn [val job]
   (throw (Exception. "foobar")))
 
 (deftest job-test
@@ -21,13 +21,13 @@
       (is (not (aborting? job)))))
 
   (testing "it short circuits correctly"
-    (let [[result job] (run-with-short-circuiting (create-job) 0 [successful-inc failing-inc successful-inc])]
+    (let [[result job] (run-with-short-circuiting (create-job) 0 [successful-inc failing-fn successful-inc])]
       (is (= 1 result))
       (is (aborting? job))
       (is (= ["Cannot succeed!"] (-> job :job-errors)))))
 
   (testing "it short circuits correctly"
-    (let [[result job] (run-with-short-circuiting (create-job) 0 [successful-inc exception-inc successful-inc])]
-      (is (= 1 result))
+    (let [[result job] (run-with-short-circuiting (create-job) 0 [successful-inc exception-fn successful-inc])]
+      (is (= nil result))
       (is (aborting? job))
       (is (= "foobar" (-> job :job-errors first))))))
