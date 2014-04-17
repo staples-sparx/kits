@@ -9,6 +9,7 @@
    :delimiter \,
    :end-of-line nil
    :quote-char \"
+   :skip-blank-lines false
    :strict false})
 
 (defn read-csv
@@ -17,12 +18,15 @@
   ([csv-rdr opts]
      (let [merged-opts (merge *parse-opts* opts)
            {:keys [skip-header delimiter end-of-line
-                   quote-char strict]} merged-opts
-           rows (csv/parse-csv csv-rdr
-                               :delimiter delimiter
-                               :end-of-line end-of-line
-                               :quote-char quote-char
-                               :strict strict)]
+                   quote-char strict skip-blank-lines]} merged-opts
+           rows' (csv/parse-csv csv-rdr
+                                :delimiter delimiter
+                                :end-of-line end-of-line
+                                :quote-char quote-char
+                                :strict strict)
+           rows (if skip-blank-lines
+                  (remove #(= [""] %) rows)
+                  rows')]
        (if skip-header
          (rest rows)
          rows))))
