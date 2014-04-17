@@ -25,7 +25,7 @@
                                 :quote-char quote-char
                                 :strict strict)
            rows (if skip-blank-lines
-                  (remove #(= [""] %) rows)
+                  (remove #(= [""] %) rows')
                   rows')]
        (if skip-header
          (rest rows)
@@ -41,13 +41,15 @@
                                        (not (contains? exclude-columns i))))]
                     (assoc {} (:label ifield) ((:reader ifield) irow))))))
 
-(defn- apply-field-opts [csv-rows {:keys [key-fn val-fn]
+(defn- apply-field-opts [csv-rows {:keys [key-fn val-fn pred-fn]
                                    :or {val-fn identity
-                                        key-fn identity}
+                                        key-fn identity
+                                        pred-fn (constantly true)}
                                    :as field-reader-opts}]
-  (map (fn [row] (let [row' (apply-field-opts-on-row row field-reader-opts)]
-                   {(key-fn row') (val-fn row')}))
-       csv-rows))
+  (remove nil? (map (fn [row]
+                      (let [row' (apply-field-opts-on-row row field-reader-opts)]
+                        (if (pred-fn row') {(key-fn row') (val-fn row')} nil)))
+                    csv-rows)))
 
 (defn csv-rows->map [csv-rows field-reader-opts]
   (reduce merge (apply-field-opts csv-rows field-reader-opts)))
