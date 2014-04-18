@@ -26,29 +26,32 @@
             (#(if skip-header (rest %) %))
             (filter #(not= [""] %))))))
 
-(defn- apply-field-opts-on-row [csv-row field-reader-opts]
-  (let [exclude-columns (:exclude-columns field-reader-opts)
-        add-column (fn [m i]
+(defn- csv-row->value [csv-row {:keys [val-fn exclude-columns]
+                              :or {val-fn identity}
+                              :as field-reader-opts}]
+  (let [add-column (fn [m i]
                      (let [col (get csv-row i)
                            field (get field-reader-opts i)]
                        (if (and field
                                 (not (contains? exclude-columns i)))
                          (assoc m (:label field) ((:reader field) col))
                          m)))]
-    (reduce add-column nil (range (count csv-row)))))
+    (->> csv-row
+         count
+         range
+         (reduce add-column nil)
+         val-fn)))
 
-(defn- apply-field-opts [m csv-row {:keys [key-fn val-fn pred-fn]
-                                    :or {val-fn identity
-                                         key-fn identity
-                                         pred-fn (constantly true)}
-                                    :as field-reader-opts}]
-  (let [row (apply-field-opts-on-row csv-row field-reader-opts)]
-    (if (pred-fn row)
-      (assoc m (key-fn row) (val-fn row))
-      m)))
+(defn csv-rows->coll [csv-rows {:keys [pred-fn]
+                                :or {pred-fn (constantly true)}
+                                :as field-reader-opts}]
+  (->> csv-rows
+       (map #(csv-row->value % field-reader-opts))
+       (filter pred-fn)))
 
-(defn csv-rows->map [csv-rows field-reader-opts]
-  (reduce #(apply-field-opts %1 %2 field-reader-opts) nil csv-rows))
-
-(defn csv-rows->coll [csv-rows field-reader-opts]
-  (map (comp val first) (apply-field-opts csv-rows field-reader-opts)))
+(defn csv-rows->map [csv-rows {:keys [key-fn]
+                               :or {key-fn identity}
+                               :as field-reader-opts}]
+  (reduce #(assoc %1 (key-fn %2) %2)
+          nil
+          (csv-rows->coll csv-rows field-reader-opts)))

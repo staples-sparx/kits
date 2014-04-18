@@ -95,7 +95,7 @@
              id-1-p-result)))
 
     (testing "The parsed csv does not contain empty lines"
-      (is (empty? (filter #(= (:id  %) nil) coll-result))))))
+      (is (empty? (->> coll-result (filter :id) (filter nil?)))))))
 
 (deftest parsing-csv-into-nested-maps-with-columns-excluded
   (testing
