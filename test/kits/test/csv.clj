@@ -73,7 +73,10 @@
         (csv/csv-rows->map result sample-field-reader-opts)
 
         coll-result
-        (csv/csv-rows->coll result sample-field-reader-opts)]
+        (csv/csv-rows->coll result sample-field-reader-opts)
+
+        id-1-p-result
+        (csv/csv-rows->coll result (assoc sample-field-reader-opts :pred-fn #(= (:id %) 1)))]
 
     (testing "Given a csv, generate map of maps {k-fn, the row}"
       (is (= expected-map-result
@@ -85,7 +88,14 @@
       (is (= expected-coll-result
              coll-result))
       (is (seq? coll-result))
-      (is (map? (first coll-result))))))
+      (is (map? (first coll-result))))
+
+    (testing "Given a csv and a predicate function, filter the collection of maps by the predicate function"
+      (is (= [(get expected-map-result 1)]
+             id-1-p-result)))
+
+    (testing "The parsed csv does not contain empty lines"
+      (is (empty? (filter #(= (:id  %) nil) coll-result))))))
 
 (deftest parsing-csv-into-nested-maps-with-columns-excluded
   (testing
