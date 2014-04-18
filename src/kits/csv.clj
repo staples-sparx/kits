@@ -36,18 +36,18 @@
                                        (not (contains? exclude-columns i))))]
                     (assoc {} (:label ifield) ((:reader ifield) irow))))))
 
-(defn- apply-field-opts [csv-rows {:keys [key-fn val-fn pred-fn]
-                                   :or {val-fn identity
-                                        key-fn identity
-                                        pred-fn (constantly true)}
-                                   :as field-reader-opts}]
-  (for [row csv-rows
-        :let [row' (apply-field-opts-on-row row field-reader-opts)]
-        :when (pred-fn row')]
-    {(key-fn row') (val-fn row')}))
+(defn- apply-field-opts [m csv-row {:keys [key-fn val-fn pred-fn]
+                                    :or {val-fn identity
+                                         key-fn identity
+                                         pred-fn (constantly true)}
+                                    :as field-reader-opts}]
+  (let [row (apply-field-opts-on-row csv-row field-reader-opts)]
+    (if (pred-fn row)
+      (assoc m (key-fn row) (val-fn row))
+      m)))
 
 (defn csv-rows->map [csv-rows field-reader-opts]
-  (reduce merge (apply-field-opts csv-rows field-reader-opts)))
+  (reduce #(apply-field-opts %1 %2 field-reader-opts) {} csv-rows))
 
 (defn csv-rows->coll [csv-rows field-reader-opts]
   (map (comp val first) (apply-field-opts csv-rows field-reader-opts)))
