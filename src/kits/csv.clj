@@ -27,14 +27,15 @@
             (filter #(not= [""] %))))))
 
 (defn- apply-field-opts-on-row [csv-row field-reader-opts]
-  (let [exclude-columns (:exclude-columns field-reader-opts)]
-    (reduce merge (for [i (range (count csv-row))
-                        :let [ifield (get field-reader-opts i)
-                              irow (get csv-row i)]
-                        :when (and ifield
-                                   (or (nil? exclude-columns)
-                                       (not (contains? exclude-columns i))))]
-                    (assoc {} (:label ifield) ((:reader ifield) irow))))))
+  (let [exclude-columns (:exclude-columns field-reader-opts)
+        add-column (fn [m i]
+                     (let [col (get csv-row i)
+                           field (get field-reader-opts i)]
+                       (if (and field
+                                (not (contains? exclude-columns i)))
+                         (assoc m (:label field) ((:reader field) col))
+                         m)))]
+    (reduce add-column {} (range (count csv-row)))))
 
 (defn- apply-field-opts [m csv-row {:keys [key-fn val-fn pred-fn]
                                     :or {val-fn identity
