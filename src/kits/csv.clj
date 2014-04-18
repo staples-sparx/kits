@@ -35,7 +35,7 @@
                                 (not (contains? exclude-columns i)))
                          (assoc m (:label field) ((:reader field) col))
                          m)))]
-    (reduce add-column {} (range (count csv-row)))))
+    (reduce add-column nil (range (count csv-row)))))
 
 (defn- apply-field-opts [m csv-row {:keys [key-fn val-fn pred-fn]
                                     :or {val-fn identity
@@ -48,7 +48,7 @@
       m)))
 
 (defn csv-rows->map [csv-rows field-reader-opts]
-  (reduce #(apply-field-opts %1 %2 field-reader-opts) {} csv-rows))
+  (reduce #(apply-field-opts %1 %2 field-reader-opts) nil csv-rows))
 
 (defn csv-rows->coll [csv-rows field-reader-opts]
   (map (comp val first) (apply-field-opts csv-rows field-reader-opts)))
