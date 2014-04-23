@@ -60,14 +60,14 @@
   ([log-config] (start-thread-pool! log-q log-config))
   ([queue log-config]
      (reset-q! queue (get log-config :max-msg 10000))
-       (t/start-thread-pool
-        (:thread-count log-config)
-        (:thread-prefix log-config)
-        (log-consumer/make-log-rotate-loop
-         {:queue @queue
-          :compute-file-name log-generator/log-file-path-for
-          :formatter (partial log-generator/log-formatter
-                              (:default-context log-config))
-          :io-error-handler (or (:io-error-handler log-config)
-                                (partial log-consumer/stdout))
-          :conf log-config}))))
+     (t/start-thread-pool
+      (:thread-count log-config)
+      (:thread-prefix log-config)
+      (log-consumer/make-log-rotate-loop
+       {:queue @queue
+        :compute-file-name log-generator/log-file-path-for
+        :formatter (partial log-generator/log-formatter
+                            (:default-context log-config))
+        :io-error-handler (or (:io-error-handler log-config)
+                              (partial log-consumer/stdout))
+        :conf log-config}))))
