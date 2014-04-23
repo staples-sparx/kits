@@ -59,7 +59,7 @@
     :queue-timeout-ms 1000}"
   ([log-config] (start-thread-pool! log-q log-config))
   ([queue log-config]
-     (reset-q! (get log-config :max-msg 10000))
+     (reset-q! queue (get log-config :max-msg 10000))
        (t/start-thread-pool
         (:thread-count log-config)
         (:thread-prefix log-config)
