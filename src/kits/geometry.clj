@@ -39,24 +39,7 @@
       gc-dist-km ))
 
 (defn -main []
-  (let [dist-kits (haversine-great-circle-km  33.088678 -117.242227
-                                              37.561820 -122.324625)
-        dist-ref  677.9969
-        delta     (Math/abs (- dist-ref dist-kits)) 
-        ratio     (/ delta earth-radius-km)
-  ]
-    (assert (< ratio max-error-ratio))
-  )
-  (let [dist-kits (haversine-great-circle-km  33.088678 -117.242227
-                                              40.689215, -74.044627)
-        dist-ref  3892.9607
-        delta     (Math/abs (- dist-ref dist-kits)) 
-        ratio     (/ delta earth-radius-km)
-  ]
-    (assert (< ratio max-error-ratio))
-  )
-
   (println)
-  (println "*** all tests passed ***")
+  (println "*** in main ***")
   (println)
 )

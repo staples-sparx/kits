@@ -24,32 +24,28 @@
                         (geom/haversine-great-circle-angle 0 0 pi-ovr-2 0) )))
     ; 90 deg spanning equator
     (is (> max-error-ratio
-           (error-ratio 1 pi-ovr-2
-                        (geom/haversine-great-circle-angle (- pi-ovr-4) 2 pi-ovr-4 2) )))
+          (error-ratio 1 pi-ovr-2
+            (geom/haversine-great-circle-angle (- pi-ovr-4) 2 pi-ovr-4 2) )))
 
     ; 90 deg on equator
     (is (> max-error-ratio
-           (error-ratio 1 pi-ovr-2
-                        (geom/haversine-great-circle-angle 0 (- pi-ovr-4) 0 pi-ovr-4) )))
+          (error-ratio 1 pi-ovr-2
+            (geom/haversine-great-circle-angle 0 (- pi-ovr-4) 0 pi-ovr-4) )))
   )
   (testing "Great circle dist calc"
     ; Carlsbad to Staples Labs
     (is (let [dist-kits (geom/haversine-great-circle-km  33.088678 -117.242227
-                                                    37.561820 -122.324625)
-              dist-ref  677.9969
-              delta     (Math/abs (- dist-ref dist-kits)) 
-              ratio     (/ delta geom/earth-radius-km)
-        ]
-          (< ratio max-error-ratio)
+                                                         37.561820 -122.324625)
+              dist-ref  677.9969 ]
+          (> max-error-ratio 
+            (error-ratio  geom/earth-radius-km dist-ref dist-kits))
         ))
     ; Carlsbad to Statue of Liberty
     (is (let [dist-kits (geom/haversine-great-circle-km  33.088678 -117.242227
-                                                    40.689215, -74.044627)
-              dist-ref  3892.9607
-              delta     (Math/abs (- dist-ref dist-kits)) 
-              ratio     (/ delta geom/earth-radius-km)
-        ]
-          (< ratio max-error-ratio)
+                                                         40.689215, -74.044627)
+              dist-ref  3892.9607 ]
+          (> max-error-ratio 
+            (error-ratio  geom/earth-radius-km dist-ref dist-kits))
         ))
   )
 )
