@@ -13,7 +13,7 @@
                  [org.clojars.runa/runa.tools.logging "0.2.7"]
                  [clojure-csv/clojure-csv "2.0.0-alpha1"]
                  [org.eclipse.jetty/jetty-server "8.1.14.v20131031"]]
-  :warn-on-reflection true
+  :global-vars {*warn-on-reflection* true}
   :profiles {:dev {:dependencies [[org.clojars.runa/conjure "2.2.0"]
                                   [slamhound "1.3.3"]]}
              :1.4.0 {:dependencies [[org.clojure/clojure "1.4.0"]
