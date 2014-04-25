@@ -1,10 +1,11 @@
-(ns kits.test.geometry
-  (:use clojure.test)
-  (:require [kits.geometry :as geom] ))
+(ns kits.geometry-test
+  (:require  [kits.geometry :as geom] )
+  (:use      [clojure.test] )
+)
 
-(def ^:private ^:const pi              Math/PI   )
-(def ^:private ^:const pi-ovr-2     (/ Math/PI 2))
-(def ^:private ^:const pi-ovr-4     (/ Math/PI 4))
+(def ^:private ^:const pi              Math/PI   )   ; 180 deb
+(def ^:private ^:const pi-ovr-2     (/ Math/PI 2))   ;  90 deg
+(def ^:private ^:const pi-ovr-4     (/ Math/PI 4))   ;  45 deg
 
 (def ^:private ^:const max-error-ratio 1e-4)
 
