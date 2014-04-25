@@ -44,13 +44,11 @@
     (is (let [dist-kits (geom/great-circle-km  33.088678 -117.242227
                                                37.561820 -122.324625)
               dist-ref  677.9969 ]
-          (> max-error-ratio (error-ratio  dist-ref dist-kits))
-        ))
+          (> max-error-ratio (error-ratio  dist-ref dist-kits)) ))
     ; Carlsbad to Statue of Liberty
     (is (let [dist-kits (geom/great-circle-km  33.088678 -117.242227
                                                40.689215, -74.044627)
               dist-ref  3892.9607 ]
-          (> max-error-ratio (error-ratio  dist-ref dist-kits))
-        ))
+          (> max-error-ratio (error-ratio  dist-ref dist-kits)) ))
   )
 )
