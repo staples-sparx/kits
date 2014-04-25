@@ -25,19 +25,23 @@
 
     ; equator to north pole
     (is (> max-error-ratio
-            (error-ratio  pi-ovr-2 (geom/great-circle-radians-haversine 0 0 pi-ovr-2 0)) ))
+            (error-ratio  pi-ovr-2 
+              (geom/great-circle-radians-haversine 0 0 pi-ovr-2 0)) ))
 
     ; 90 deg spanning equator
     (is (> max-error-ratio
-            (error-ratio  pi-ovr-2 (geom/great-circle-radians-haversine (- pi-ovr-4) 2 pi-ovr-4 2)) ))
+            (error-ratio  pi-ovr-2 
+              (geom/great-circle-radians-haversine (- pi-ovr-4) 2 pi-ovr-4 2)) ))
 
     ; 90 deg spanning equator
     (is (> max-error-ratio
-            (error-ratio  pi-ovr-2 (geom/great-circle-radians-haversine (- pi-ovr-4) 2 pi-ovr-4 2)) ))
+            (error-ratio  pi-ovr-2 
+              (geom/great-circle-radians-haversine (- pi-ovr-4) 2 pi-ovr-4 2)) ))
 
     ; 90 deg on equator
     (is (> max-error-ratio
-            (error-ratio  pi-ovr-2 (geom/great-circle-radians-haversine 0 (- pi-ovr-4) 0 pi-ovr-4)) ))
+            (error-ratio  pi-ovr-2 
+              (geom/great-circle-radians-haversine 0 (- pi-ovr-4) 0 pi-ovr-4)) ))
   )
   (testing "Great circle dist calc"
     ; Carlsbad to Staples Labs
