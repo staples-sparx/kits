@@ -1,4 +1,4 @@
-(ns kits.csv
+(ns kits.csv-test
   "wrapper around clojure-csv library that turn csv in to column-name,
    column-value key value pair that can be configured via :key-fn, :val-fn
    and :reader for each field"
