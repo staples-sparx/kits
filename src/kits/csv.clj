@@ -17,36 +17,41 @@
   ([csv-rdr opts]
      (let [merged-opts (merge *parse-opts* opts)
            {:keys [skip-header delimiter end-of-line
-                   quote-char strict]} merged-opts
-           rows (csv/parse-csv csv-rdr
-                               :delimiter delimiter
-                               :end-of-line end-of-line
-                               :quote-char quote-char
-                               :strict strict)]
-       (if skip-header
-         (rest rows)
-         rows))))
+                   quote-char strict skip-blank-lines]} merged-opts]
+       (->> (csv/parse-csv csv-rdr
+                           :delimiter delimiter
+                           :end-of-line end-of-line
+                           :quote-char quote-char
+                           :strict strict)
+            (#(if skip-header (rest %) %))
+            (filter #(not= [""] %))))))
 
-(defn- apply-field-opts-on-row [csv-row field-reader-opts]
-  (let [exclude-columns (:exclude-columns field-reader-opts)]
-    (reduce merge (for [i (range (count csv-row))
-                        :let [ifield (get field-reader-opts i)
-                              irow (get csv-row i)]
-                        :when (and ifield
-                                   (or (nil? exclude-columns)
-                                       (not (contains? exclude-columns i))))]
-                    (assoc {} (:label ifield) ((:reader ifield) irow))))))
+(defn- csv-row->value [csv-row {:keys [val-fn exclude-columns]
+                              :or {val-fn identity}
+                              :as field-reader-opts}]
+  (let [add-column (fn [m i]
+                     (let [col (get csv-row i)
+                           field (get field-reader-opts i)]
+                       (if (and field
+                                (not (contains? exclude-columns i)))
+                         (assoc m (:label field) ((:reader field) col))
+                         m)))]
+    (->> csv-row
+         count
+         range
+         (reduce add-column nil)
+         val-fn)))
 
-(defn- apply-field-opts [csv-rows {:keys [key-fn val-fn]
-                                   :or {val-fn identity
-                                        key-fn identity}
-                                   :as field-reader-opts}]
-  (map (fn [row] (let [row' (apply-field-opts-on-row row field-reader-opts)]
-                   {(key-fn row') (val-fn row')}))
-       csv-rows))
+(defn csv-rows->coll [csv-rows {:keys [pred-fn]
+                                :or {pred-fn (constantly true)}
+                                :as field-reader-opts}]
+  (->> csv-rows
+       (map #(csv-row->value % field-reader-opts))
+       (filter pred-fn)))
 
-(defn csv-rows->map [csv-rows field-reader-opts]
-  (reduce merge (apply-field-opts csv-rows field-reader-opts)))
-
-(defn csv-rows->coll [csv-rows field-reader-opts]
-  (map (comp val first) (apply-field-opts csv-rows field-reader-opts)))
+(defn csv-rows->map [csv-rows {:keys [key-fn]
+                               :or {key-fn identity}
+                               :as field-reader-opts}]
+  (reduce #(assoc %1 (key-fn %2) %2)
+          nil
+          (csv-rows->coll csv-rows field-reader-opts)))
