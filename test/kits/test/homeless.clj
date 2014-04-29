@@ -4,11 +4,13 @@
         kits.homeless))
 
 (deftest all-kits.namespaces-have-doc-strings
-  (testing "Since Kits is a set of core libraries for Runa, we want things to be well documented.
-            Each namespace should have a clear Single Responsibility explained in its doc string."
+  (testing "Since Kits is a set of core libraries for Runa, we want things to 
+            be well documented.  Each namespace should have a clear Single 
+            Responsibility explained in its doc string."
     (is (= [] (->> (all-ns)
                    (filter #(.startsWith (str (ns-name %)) "kits."))
                    (remove #(.startsWith (str (ns-name %)) "kits.test"))
+                   (remove #(.endsWith   (str (ns-name %)) "-test"))
                    (remove (fn [ns] (:doc (meta ns)))))))))
 
 (deftest test-raise

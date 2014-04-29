@@ -15,3 +15,4 @@
 /target
 /.lein-repl-history
 /jar
+.*.swp

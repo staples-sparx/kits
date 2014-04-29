@@ -4,6 +4,7 @@
             [clojure.pprint :as pprint])
   (:use clojure.test))
 
+(set! *warn-on-reflection* false)
 
 (defmacro assert-tables-equal
   "Assert that two seqs of seqs are equal, and when there is a
@@ -83,3 +84,17 @@
        :for (str expected " " (second pair))
        :at-line (+ (:line spec-meta) (inc i))
        :msg "If you see line number mismatch, make sure you do not have blank lines, extra comments lines and make sure first pair starts right after def spec line"})))
+
+(defn error-ratio
+  "Compute the error ratio for two floating-point values."
+  [ val1 val2 ]
+  (let [  dbl1         (double val1)
+          dbl2         (double val2)
+          abs-delta    (Math/abs (- dbl1 dbl2))
+          max-abs-val  (Math/max (double (Math/abs dbl1))
+                                 (double (Math/abs dbl2)) )
+          error-ratio  (/ abs-delta max-abs-val) ]
+    error-ratio 
+  ))
+
+
