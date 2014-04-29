@@ -19,7 +19,7 @@
         error-ratio  (/ abs-delta max-abs-val) ]
     error-ratio ))
 
-(deftest great-circle-radians
+(deftest great-circle-calc
   (testing "Great circle angle calc"
     (is (= 4 (* 2 2)))
 

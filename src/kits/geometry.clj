@@ -1,4 +1,5 @@
-(ns kits.geometry)
+(ns kits.geometry
+  "Functions for geometric calculations." )
 
 (set! *warn-on-reflection* true)
 
@@ -6,7 +7,9 @@
   "Earth radius (volumetric mean - NASA)" 
   6371 )
 
-(defn square-dbl [^:double dbl-val]
+(defn square-dbl 
+  "Square a double value." 
+  [^:double dbl-val]
   (* dbl-val dbl-val))
 
 (defn haversine 
@@ -38,8 +41,3 @@
         gc-dist-km (* gc-angle-rad earth-radius-km) ]
       gc-dist-km ))
 
-(defn -main []
-  (println)
-  (println "*** in main ***")
-  (println)
-)
