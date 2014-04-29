@@ -5,10 +5,8 @@
             :url "http://mit-license.org/"}
   :url "https://github.com/runa-dev/kits"
   :plugins [[jonase/eastwood "0.0.2"]
-            [lein-expectations "0.0.7"]
             [lein-kibit "0.0.7"]]
   :dependencies [[org.clojure/clojure "1.5.1"]
-                 [expectations "2.0.6"]
                  [cheshire "5.3.1"]
                  [org.clojars.runa/clj-utils "1.3.1"]
                  [org.clojure/java.jdbc "0.3.3"]
