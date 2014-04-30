@@ -2,6 +2,8 @@
   "A library that models a series of steps, each of which can abort the workflow"
   (:require [kits.logging.log-async :as log]))
 
+(set! *warn-on-reflection* true)
+
 (defn aborting? [job]
   (:aborting job))
 

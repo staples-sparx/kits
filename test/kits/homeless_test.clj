@@ -1,7 +1,9 @@
-(ns kits.test.homeless
+(ns kits.homeless-test
   (:use clojure.test
         conjure.core
         kits.homeless))
+
+(set! *warn-on-reflection* false)
 
 (deftest all-kits.namespaces-have-doc-strings
   (testing "Since Kits is a set of core libraries for Runa, we want things to 

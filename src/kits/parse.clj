@@ -1,6 +1,8 @@
 (ns kits.parse
   "Thin Clojure wrappers for Java parse functions.")
 
+(set! *warn-on-reflection* true)
+
 ; AWTAWT TODO:  add examples for wrapper macro to catch exceptions and return nil
 ; (with-nil-exceptions
 ;   (str->byte "xyz"))

@@ -4,7 +4,7 @@
             [clojure.pprint :as pprint])
   (:use clojure.test))
 
-(set! *warn-on-reflection* false)
+(set! *warn-on-reflection* true)
 
 (defmacro assert-tables-equal
   "Assert that two seqs of seqs are equal, and when there is a

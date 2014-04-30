@@ -1,7 +1,8 @@
-(ns kits.test.seq
+(ns kits.seq-test
   (:use clojure.test
         kits.seq))
 
+(set! *warn-on-reflection* false)
 
 (deftest test-any?
   (is (= true (any? #{'a 'b} ['a])))

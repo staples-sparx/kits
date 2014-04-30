@@ -1,6 +1,8 @@
 (ns kits.thread
   "Thread utility functions")
 
+(set! *warn-on-reflection* true)
+
 
 (defn start-thread-pool
   "Starts a thread pool with 'thread-count' threads. 'f' is a function

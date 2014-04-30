@@ -3,6 +3,8 @@
   (:require [kits.queues :as q]
             [kits.logging.log-async :as log-async]))
 
+(set! *warn-on-reflection* true)
+
 (defn- nano-time
   "Returns the current value of the most precise available system timer, in nanoseconds."
   []

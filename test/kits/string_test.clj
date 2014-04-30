@@ -1,7 +1,8 @@
-(ns kits.test.string
+(ns kits.string-test
   (:use clojure.test
         kits.string))
 
+(set! *warn-on-reflection* false)
 
 (deftest test-keyword-munging
   (is (= "a-foo-1" (keyword->hyphenated-string :a_foo_1)))

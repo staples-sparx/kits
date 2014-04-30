@@ -9,6 +9,8 @@
            (java.net MalformedURLException)
            (java.util.concurrent Future TimeoutException)))
 
+(set! *warn-on-reflection* true)
+
 (defmacro ignore-exceptions
   "Evaluate body, but return nil if any exceptions are thrown."
   [& body]

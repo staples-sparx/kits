@@ -1,6 +1,8 @@
-(ns kits.test.timestamp
+(ns kits.timestamp-test
   (:use clojure.test
         kits.timestamp))
+
+(set! *warn-on-reflection* false)
 
 
 (deftest test->timestamp-at-day-end

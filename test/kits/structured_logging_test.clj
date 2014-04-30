@@ -1,10 +1,12 @@
-(ns kits.test.structured-logging
+(ns kits.structured-logging-test
   (:require [clojure.test :refer :all]
             [conjure.core :refer :all]
             [kits.structured-logging :refer :all]
             [kits.syslog :as syslog]
             [kits.timestamp :as ts]
             [runa.tools.logging :as log]))
+
+(set! *warn-on-reflection* false)
 
 ;; TODO: several of these tests no longer work now that
 ;; we are using syslog. (# 58455260)

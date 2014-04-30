@@ -6,6 +6,8 @@
             [kits.thread :as thread]
             [org.rathore.amit.utils.logger :as amit]))
 
+(set! *warn-on-reflection* true)
+
 
 ;;; Synchronous Logging
 

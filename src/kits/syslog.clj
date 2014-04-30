@@ -5,6 +5,8 @@
             [kits.timestamp :as ts])
   (:import kits.syslog.udp.Channel))
 
+(set! *warn-on-reflection* true)
+
 ;; http://www.springsurprise.com/2010/01/30/enable-remote-logging-on-mac-os-x/
 ;; http://labs.animoto.com/2008/08/20/ruby-syslog-considered-harmful-or-at-least-undocumented/
 

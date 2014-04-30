@@ -1,7 +1,9 @@
-(ns kits.test.job-test
+(ns kits.job-test
   (:require [clojure.test :refer :all]
             [kits.job :refer :all]
             [kits.logging.log-async :as log]))
+
+(set! *warn-on-reflection* false)
 
 (defn- successful-inc [val job]
   [(inc val) job])

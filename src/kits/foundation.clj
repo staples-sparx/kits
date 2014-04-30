@@ -4,6 +4,8 @@
             [clojure.string :as str])
   (:import (java.util.concurrent Future TimeoutException)))
 
+(set! *warn-on-reflection* true)
+
 ;; WARNING: this namespace is deprecated.  Use kits.homeless instead, and
 ;; consider adding your code to a focused, Single-Responsibility namespace instead
 

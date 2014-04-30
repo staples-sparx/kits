@@ -3,6 +3,8 @@
   (:require [clojure.xml :as xml])
   (:import (java.io StringBufferInputStream)))
 
+(set! *warn-on-reflection* true)
+
 
 (defn parse [xml-string]
   (xml/parse (StringBufferInputStream. xml-string)))

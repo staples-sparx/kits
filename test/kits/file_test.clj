@@ -1,6 +1,8 @@
-(ns kits.test.file
+(ns kits.file-test
   (:require [clojure.test :refer :all]
             [kits.file :refer :all]))
+
+(set! *warn-on-reflection* false)
 
 
 (deftest test-path

@@ -4,6 +4,8 @@
   (:import (java.text SimpleDateFormat)
            (java.util Calendar Date GregorianCalendar TimeZone)))
 
+(set! *warn-on-reflection* true)
+
 
 ;;; formats
 

@@ -1,6 +1,8 @@
 (ns kits.class
   "Class and instance related utilities" )
 
+(set! *warn-on-reflection* true)
+
 (defn base-array?
   "Test if specified array is of a base-type (long/double etc.)"
   [a]

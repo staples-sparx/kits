@@ -10,6 +10,8 @@
    [kits.logging.log-consumer :as log-consumer]
    [kits.logging.log-generator :as log-generator]))
 
+(set! *warn-on-reflection* true)
+
 (defonce log-q (atom nil))
 
 (defn reset-q!

@@ -1,6 +1,8 @@
-(ns kits.test.xml
+(ns kits.xml-test
   (:use clojure.test
         kits.xml))
+
+(set! *warn-on-reflection* false)
 
 (deftest test-content-of-node-with-tag
   (is (= ["Gomez"]

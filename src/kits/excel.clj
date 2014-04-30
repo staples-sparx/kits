@@ -9,6 +9,8 @@
                                         Sheet Workbook WorkbookFactory)
            (org.apache.poi.ss.util CellRangeAddress)))
 
+(set! *warn-on-reflection* true)
+
 
 (defn save-workbook [wb, file-name]
   (.write wb (FileOutputStream. file-name)))

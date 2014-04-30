@@ -1,5 +1,7 @@
 (ns kits.monitored-seq)
 
+(set! *warn-on-reflection* true)
+
 
 (defmacro ^:private safely [& body]
   `(try

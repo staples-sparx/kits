@@ -3,6 +3,8 @@
   (:require [clojure.string :as str])
   (:import (java.io File)))
 
+(set! *warn-on-reflection* true)
+
 
 (def file-separator File/separator)
 

@@ -1,7 +1,9 @@
-(ns kits.test.queues
+(ns kits.queues-test
   (:use clojure.test)
   (:require [kits.homeless :as kits]
             [kits.queues :as q]))
+
+(set! *warn-on-reflection* false)
 
 (deftest basic-queue-mechanics
   (let [q (q/make-basic-queue 1)]

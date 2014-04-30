@@ -1,6 +1,8 @@
-(ns kits.test.flowcontrol
+(ns kits.flowcontrol-test
   (:require [clojure.test :refer :all]
             [kits.flowcontrol :refer :all]))
+
+(set! *warn-on-reflection* false)
 
 
 (deftest test-if-lets
