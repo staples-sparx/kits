@@ -1,7 +1,9 @@
-(ns kits.test.foundation
+(ns kits.foundation-test
   (:use clojure.test)
   (:require [clojure.string :as str]
             [kits.foundation :as f]))
+
+(set! *warn-on-reflection* false)
 
 
 ;; WARNING: Use of this namespace is deprecated.  Please stop depending on it whereever you can.

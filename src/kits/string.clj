@@ -3,6 +3,8 @@
   (:require [clojure.string :as str])
   (:import (java.net URLDecoder)))
 
+(set! *warn-on-reflection* true)
+
 
 ;;; String Functions
 

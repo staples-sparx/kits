@@ -2,6 +2,8 @@
   "A tool for timing code"
   (:require [org.rathore.amit.utils.logger :as log]))
 
+(set! *warn-on-reflection* true)
+
 (def ^:dynamic timings nil)
 
 (defn benchmark* [message body-fn]

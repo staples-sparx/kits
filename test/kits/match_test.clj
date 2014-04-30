@@ -1,6 +1,8 @@
-(ns kits.test.match
+(ns kits.match-test
   (:use clojure.test
         kits.match))
+
+(set! *warn-on-reflection* false)
 
 
 (deftest ^:unit test-matches

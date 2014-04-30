@@ -1,6 +1,8 @@
-(ns kits.test.test-utils
+(ns kits.test-utils-test
   (:use clojure.test
         kits.test-utils))
+
+(set! *warn-on-reflection* false)
 
 (deftest test-not-thrown?
   (is (not-thrown? Exception (+ 1 2))))

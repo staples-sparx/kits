@@ -1,6 +1,8 @@
-(ns kits.test.function
+(ns kits.function-test
   (:require [clojure.test :refer :all]
             [kits.function :refer :all]))
+
+(set! *warn-on-reflection* false)
 
 
 (deftest test-flip

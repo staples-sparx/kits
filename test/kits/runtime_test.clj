@@ -1,6 +1,8 @@
-(ns kits.test.runtime
+(ns kits.runtime-test
   (:use clojure.test)
   (:require [kits.runtime :as r]))
+
+(set! *warn-on-reflection* false)
 
 (deftest smoke-test
   (is (not (nil? (r/process-info))))

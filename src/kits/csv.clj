@@ -4,6 +4,8 @@
    and :reader for each field"
   (:require [clojure-csv.core :as csv]))
 
+(set! *warn-on-reflection* true)
+
 (def ^:dynamic *parse-opts*
   {:skip-header false
    :delimiter \,

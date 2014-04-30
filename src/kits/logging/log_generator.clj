@@ -6,6 +6,8 @@
            (java.text SimpleDateFormat)
            (java.io StringWriter PrintWriter)))
 
+(set! *warn-on-reflection* true)
+
 (defn stacktrace [^Throwable ex]
   (if (nil? ex)
     ""

@@ -3,6 +3,8 @@
   (:require [clojure.java.jdbc :as jdbc])
   (:import (java.sql Timestamp)))
 
+(set! *warn-on-reflection* true)
+
 
 (defn- run-and-record [db [migration-name migration-seq]]
   (println "***" migration-name "***")

@@ -4,6 +4,8 @@
   (:import java.text.SimpleDateFormat
            java.util.Date))
 
+(set! *warn-on-reflection* true)
+
 (def date-format-pattern "MMM dd HH:mm:ss");
 
 (def ^ThreadLocal date-format-holder (ThreadLocal.))

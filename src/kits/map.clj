@@ -6,6 +6,8 @@
             [kits.seq :as sq]
             [kits.string :as kstr]))
 
+(set! *warn-on-reflection* true)
+
 
 ;;; Mapping and Filtering Over Maps
 

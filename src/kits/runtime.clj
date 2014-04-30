@@ -5,6 +5,8 @@
            (java.lang.management ManagementFactory
                                  OperatingSystemMXBean RuntimeMXBean)))
 
+(set! *warn-on-reflection* true)
+
 (def ^:private ^Runtime runtime (Runtime/getRuntime))
 
 (def ^:private ^java.lang.management.RuntimeMXBean runtime-mx

@@ -1,6 +1,8 @@
 (ns ^{:doc "New flow control constructs"}
   kits.flowcontrol)
 
+(set! *warn-on-reflection* true)
+
 
 (defmacro if-lets
   ([bindings expr1]

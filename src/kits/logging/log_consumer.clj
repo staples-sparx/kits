@@ -6,6 +6,8 @@
   (:import (java.util Calendar TimeZone)
            (java.io FileWriter Writer IOException)))
 
+(set! *warn-on-reflection* true)
+
 (def utc-tz (TimeZone/getTimeZone "UTC"))
 (defmacro _+ [a b] `(unchecked-add (long ~a) (long ~b)))
 (defmacro _- [a b] `(unchecked-subtract (long ~a) (long ~b)))

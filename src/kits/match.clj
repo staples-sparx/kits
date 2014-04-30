@@ -4,6 +4,8 @@
   (:require [kits.seq :as sq]
             [kits.string :as str]))
 
+(set! *warn-on-reflection* true)
+
 (defn- create-wildcard-regex [^String regex]
   (re-pattern
    (str "^" (str/escape-regex-except-* (.toLowerCase regex)) "$")))

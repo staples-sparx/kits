@@ -1,8 +1,10 @@
-(ns kits.test.contextual-logging
+(ns kits.contextual-logging-test
   (:require [org.rathore.amit.utils.logger :as amit])
   (:use clojure.test
         conjure.core
         kits.contextual-logging))
+
+(set! *warn-on-reflection* false)
 
 (use-fixtures :once (fn [f]
                       (init-async-logging-queue)

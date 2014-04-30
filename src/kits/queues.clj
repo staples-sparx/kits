@@ -5,6 +5,8 @@
                                  PriorityBlockingQueue TimeUnit))
   (:refer-clojure :exclude [get peek]))
 
+(set! *warn-on-reflection* true)
+
 (defn make-basic-queue
   "Create a new queue that can hold at max 'capacity' items"
   [& [capacity]]

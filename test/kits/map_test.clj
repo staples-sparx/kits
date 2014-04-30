@@ -1,7 +1,9 @@
-(ns kits.test.map
+(ns kits.map-test
   (:use clojure.test
         conjure.core
         kits.map))
+
+(set! *warn-on-reflection* false)
 
 
 (deftest test-keywords->underscored-strings

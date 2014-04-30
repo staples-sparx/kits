@@ -1,6 +1,8 @@
-(ns kits.test.class
+(ns kits.class-test
   (:use clojure.test)
   (:require [kits.class :as cl]))
+
+(set! *warn-on-reflection* false)
 
 (deftest is-a-base-array
   (testing "Determince if a given object is Java array"

@@ -9,6 +9,8 @@
             [runa.tools.logging :as log])
   (:import kits.syslog.udp.Channel))
 
+(set! *warn-on-reflection* true)
+
 (def ^ThreadLocal syslog-channel (ThreadLocal.))
 
 (def ^{:dynamic true

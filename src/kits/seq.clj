@@ -3,6 +3,8 @@
   (:require [clojure.walk :as walk]
             [kits.string :as kstr]))
 
+(set! *warn-on-reflection* true)
+
 
 (defn any?
   "Returns true if some element in coll matches the pred"

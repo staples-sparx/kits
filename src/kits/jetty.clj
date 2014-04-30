@@ -15,6 +15,8 @@
    org.eclipse.jetty.util.thread.ExecutorThreadPool
    org.eclipse.jetty.server.nio.SelectChannelConnector))
 
+(set! *warn-on-reflection* true)
+
 (defn copy
   ([in out]
      (copy in out 10240))

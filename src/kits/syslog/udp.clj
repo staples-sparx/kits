@@ -6,6 +6,8 @@
            java.net.InetAddress
            java.nio.charset.Charset))
 
+(set! *warn-on-reflection* true)
+
 (def ^Charset utf-8-charset (Charset/forName "UTF-8"))
 
 (defn create-socket [so-timeout-ms]
