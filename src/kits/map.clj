@@ -313,6 +313,13 @@
   [m n]
   (select-keys m (sq/rand-take (keys m) n)))
 
+(defn rmerge
+  "Recursive merge of the provided maps."
+  [& maps]
+  (if (every? (some-fn nil? map?) maps)
+    (apply merge-with rmerge maps)
+    (last maps)))
+
 (defn sget
   "Safe get. Get the value of key `k` from map `m` only if the key really
   exists, throw exception otherwise."
