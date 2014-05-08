@@ -97,4 +97,12 @@
     error-ratio 
   ))
 
-
+(defmacro doseq-tests
+  "Labels each case with an test-num starting from one."
+  [bindings & body]
+  `(let [test-num# (atom 0)
+         bindings-vec# '~(vec (first (rest bindings)))]
+     (doseq ~bindings
+       (testing (str "\n   #" @test-num# ": " (get bindings-vec# @test-num#))
+         (swap! test-num# inc)
+         ~@body))))
