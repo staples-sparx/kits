@@ -1,59 +1,136 @@
 (ns kits.csv-test
-  "wrapper around clojure-csv library that turn csv in to column-name,
-   column-value key value pair that can be configured via :key-fn, :val-fn
-   and :reader for each field"
-  (:require [clojure-csv.core :as csv]))
+  (:use clojure.test)
+  (:require [clojure.java.io :as io]
+            [kits.csv :as csv]
+            [kits.foundation :as f]))
 
-(set! *warn-on-reflection* false)
+(def sample-csv (str (System/getProperty "user.dir")
+                     "/samples/sample.csv"))
 
-(def ^:dynamic *parse-opts*
-  {:skip-header false
-   :delimiter \,
-   :end-of-line nil
-   :quote-char \"
-   :strict false})
+(def sample-field-reader-opts
+  {:key-fn :id
+   :val-fn (fn [row] (assoc row :extra "added this"))
+   0 {:label :id :reader f/parse-int}
+   1 {:label :left :reader f/parse-int}
+   2 {:label :right :reader f/parse-int}
+   3 {:label :split_var :reader identity}
+   4 {:label :split_point :reader identity}
+   5 {:label :status :reader identity}
+   6 {:label :prediction :reader identity}})
 
-(defn read-csv
-  ([csv-rdr]
-     (read-csv csv-rdr *parse-opts*))
-  ([csv-rdr opts]
-     (let [merged-opts (merge *parse-opts* opts)
-           {:keys [skip-header delimiter end-of-line
-                   quote-char strict]} merged-opts]
-       (->> (csv/parse-csv csv-rdr
-                           :delimiter delimiter
-                           :end-of-line end-of-line
-                           :quote-char quote-char
-                           :strict strict)
-            (#(if skip-header (rest %) %))
-            (filter #(not= [""] %))))))
 
-(defn- csv-row->value [csv-row {:keys [val-fn exclude-columns]
-                              :or {val-fn identity}
-                              :as field-reader-opts}]
-  (let [add-column (fn [m i]
-                     (let [col (get csv-row i)
-                           field (get field-reader-opts i)]
-                       (if (and field
-                                (not (contains? exclude-columns i)))
-                         (assoc m (:label field) ((:reader field) col))
-                         m)))]
-    (->> csv-row
-         count
-         range
-         (reduce add-column nil)
-         val-fn)))
+(def expected-map-result
+  {1
+   {:status "1",
+    :split_point "1990",
+    :prediction "NA",
+    :split_var "most_expensive_product_in_cart",
+    :right 3,
+    :left 2,
+    :extra "added this",
+    :id 1},
+   2
+   {:status "1",
+    :split_point "0.5",
+    :prediction "NA",
+    :split_var "os.Windows",
+    :right 5,
+    :left 4,
+    :extra "added this",
+    :id 2},
+   3
+   {:status "1",
+    :split_point "1.5",
+    :prediction "NA",
+    :split_var "cart_actions",
+    :right 7,
+    :left 6,
+    :extra "added this",
+    :id 3},
+   4
+   {:status "1",
+    :split_point "8983.5",
+    :prediction "NA",
+    :split_var "price",
+    :right 9,
+    :left 8,
+    :extra "added this",
+    :id 4}})
 
-(defn csv-rows->coll [csv-rows {:keys [pred-fn]
-                                :or {pred-fn (constantly true)}
-                                :as field-reader-opts}]
-  (->> csv-rows
-       (map #(csv-row->value % field-reader-opts))
-       (filter pred-fn)))
+(def expected-coll-result
+  [(get expected-map-result 1)
+   (get expected-map-result 2)
+   (get expected-map-result 3)
+   (get expected-map-result 4)])
 
-(defn csv-rows->map [csv-rows {:keys [key-fn]
-                               :or {key-fn identity}
-                               :as field-reader-opts}]
-  (reduce #(assoc %1 (key-fn %2) %2)
-          nil
-          (csv-rows->coll csv-rows field-reader-opts)))
+(deftest parsing-csv-into-nested-maps
+  (let [result
+        (with-open [rdr (io/reader sample-csv)]
+          (doall (csv/read-csv rdr
+                               {:skip-header true
+                                :delimiter \space})))
+        map-result
+        (csv/csv-rows->map result sample-field-reader-opts)
+
+        coll-result
+        (csv/csv-rows->coll result sample-field-reader-opts)
+
+        id-1-p-result
+        (csv/csv-rows->coll result (assoc sample-field-reader-opts :pred-fn #(= (:id %) 1)))]
+
+    (testing "Given a csv, generate map of maps {k-fn, the row}"
+      (is (= expected-map-result
+             map-result))
+      (is (map? map-result))
+      (is (map? (get map-result 1))))
+
+    (testing "Given a csv, generate a coll of maps {k-fn, the row}"
+      (is (= expected-coll-result
+             coll-result))
+      (is (seq? coll-result))
+      (is (map? (first coll-result))))
+
+    (testing "Given a csv and a predicate function, filter the collection of maps by the predicate function"
+      (is (= [(get expected-map-result 1)]
+             id-1-p-result)))
+
+    (testing "The parsed csv does not contain empty lines"
+      (is (empty? (->> coll-result (filter :id) (filter nil?)))))))
+
+(deftest parsing-csv-into-nested-maps-with-columns-excluded
+  (testing
+      "Given a csv, generate map of maps {k-fn, the row} excludes columns"
+    (is (= {1
+            {:status "1",
+             :split_point "1990",
+             :split_var "most_expensive_product_in_cart",
+             :right 3,
+             :extra "added this",
+             :id 1},
+            2
+            {:status "1",
+             :split_point "0.5",
+             :split_var "os.Windows",
+             :right 5,
+             :extra "added this",
+             :id 2},
+            3
+            {:status "1",
+             :split_point "1.5",
+             :split_var "cart_actions",
+             :right 7,
+             :extra "added this",
+             :id 3},
+            4
+            {:status "1",
+             :split_point "8983.5",
+             :split_var "price",
+             :right 9,
+             :extra "added this",
+             :id 4}}
+           (with-open [rdr (io/reader sample-csv)]
+             (csv/csv-rows->map (csv/read-csv
+                                 rdr
+                                 {:skip-header true :delimiter \space})
+                                (assoc sample-field-reader-opts
+                                  :exclude-columns #{1 6})))))))
