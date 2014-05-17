@@ -13,11 +13,6 @@ Usage
 (require '[kits.map :refer [map-keys]])
 ```
 
-Room For Contribution
----------------------
-
-* Doc strings
-
 Tests
 -----
 
