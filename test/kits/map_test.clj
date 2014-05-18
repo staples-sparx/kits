@@ -292,20 +292,3 @@
   (is (= {"a" 1 "b" 1}
          (let-map "a" 1
                   "b" a))))
-
-(deftest test-rmerge
-  (are [expected base override]
-    (= expected
-       (rmerge base override))
-
-    {:b 2}
-    {:b 2} nil
-
-    {:a 1 :b 2}
-    {:b 2} {:a 1}
-
-    {:a {:x {:y {:z 3}}} :b 2}
-    {:a {:x 1} :b 2} {:a {:x {:y {:z 3}}}}
-
-    {:a {:x {:y {:z 3}}} :b 2}
-    {:a {:x {:y {:z 1}}} :b 2} {:a {:x {:y {:z 3}}}}))

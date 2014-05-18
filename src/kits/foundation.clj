@@ -262,7 +262,7 @@
 (defn rmerge
   "Recursive merge of the provided maps."
   [& maps]
-  (if (every? (some-fn nil? map?) maps)
+  (if (every? map? maps)
     (apply merge-with rmerge maps)
     (last maps)))
 
