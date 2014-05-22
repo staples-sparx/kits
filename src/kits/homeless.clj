@@ -222,12 +222,28 @@ to return."
         millis (+ min-millis (rand-int range))]
     (safe-sleep millis)))
 
+;; TODO: can we move fns like these into a meaningful namespace?
+;;       they all deal with changing call semantics. -sd
+;;       wait-until, attempt-until, wrap-periodic, periodic-fn
+;;       with-timeout, call-with-timeout, etc.
 (defn wait-until [done-fn? & {:keys [ms-per-loop timeout]
                               :or {ms-per-loop 1000 timeout 10000}}]
   (loop [elapsed (long 0)]
     (when-not (or (>= elapsed timeout) (done-fn?))
       (Thread/sleep ms-per-loop)
       (recur (long (+ elapsed ms-per-loop))))))
+
+(defn attempt-until [f done?-fn & {:keys [ms-per-loop timeout]
+                                   :or {ms-per-loop 1000
+                                        timeout 10000}}]
+  (loop [elapsed (long 0)
+         result (f)]
+    (if (or (done?-fn result)
+            (>= elapsed timeout))
+      result
+      (do
+        (Thread/sleep ms-per-loop)
+        (recur (long (+ elapsed ms-per-loop)) (f))))))
 
 (defn boolean? [x]
   (or (true? x) (false? x)))
