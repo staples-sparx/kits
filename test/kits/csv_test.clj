@@ -134,3 +134,30 @@
                                  {:skip-header true :delimiter \space})
                                 (assoc sample-field-reader-opts
                                   :exclude-columns #{1 6})))))))
+
+(def sample-psv (let [psv "/tmp/sample-psv.psv"
+                      _ (spit "/tmp/sample-psv.psv"
+"PERSON_ID|bc_seg|ZIP_POSTAL_CODE
+1427447|Holdout Runa|03903
+1428540|Holdout Runa|45231
+1428694|Holdout Runa|18104
+1428727|Holdout Runa|33610
+1429587|Holdout Runa|17856
+1429905|Holdout Runa|50480
+1430343|Holdout Runa|28270
+1431186|Holdout Runa|11580
+1431413|Holdout Runa|03062")]
+                  psv))
+
+(deftest load-psv-files
+  (testing "loading of psv files"
+    (is (= {:zip "03062", :id "1431413"}
+           (get (with-open [rdr (io/reader sample-psv)]
+                  (csv/csv-rows->map (csv/read-csv
+                                      rdr
+                                      {:skip-header true :delimiter \|})
+                                     {:key-fn :id
+                                      0 {:label :id :reader identity}
+                                      2 {:label :zip :reader identity}}))
+                "1431413")))))
+
