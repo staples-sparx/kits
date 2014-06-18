@@ -140,14 +140,23 @@
    (< a0 b1)
    (> a1 b0)))
 
-(defn ->timestamp-at-day-start [t]
-  (-> t ->timestamp (truncate :day)))
+(defn ->timestamp-at-day-start
+  ([]
+     (->timestamp-at-day-start (now)))
+  ([t]
+     (-> t ->timestamp (truncate :day))))
 
-(defn timestamp-at-day-end [ts]
-  (-> ts (add :day 1) (decrement :second)))
+(defn timestamp-at-day-end 
+  ([]
+     (timestamp-at-day-end (now)))
+  ([ts]
+     (-> ts (add :day 1) (decrement :second))))
 
-(defn ->timestamp-at-day-end [t]
-  (-> t ->timestamp timestamp-at-day-end))
+(defn ->timestamp-at-day-end 
+  ([]
+     (->timestamp-at-day-end (now)))
+  ([t]
+     (-> t ->timestamp timestamp-at-day-end)))
 
 
 ;;; Ranges
