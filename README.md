@@ -6,7 +6,7 @@ Usage
 -----
 
 ```clj
-[org.clojars.runa/kits "1.16.0"]
+[org.clojars.runa/kits "1.17.12"]
 ```
 
 ```clj
