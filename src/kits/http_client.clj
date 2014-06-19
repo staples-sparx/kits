@@ -14,7 +14,7 @@
            java.net.URLConnection
            java.net.URLEncoder))
 
-(set! *warn-on-reflection* true)
+(set! *warn-on-reflection* false)
 
 (defn url-encode [value]
   (URLEncoder/encode (str value)))
