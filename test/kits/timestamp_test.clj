@@ -35,7 +35,7 @@
        "2012-05-01 12:12:12" "2012-05-01 12:12:12"
        "1335830400000" "2012-05-01 00:00:00"
        1335830400000 "2012-05-01 00:00:00")
-  (are [t] (thrown-with-msg? IllegalArgumentException #"Don't know how to parse" 
+  (are [t] (thrown-with-msg? IllegalArgumentException #"Don't know how to parse"
                              (->timestamp t))
        nil
        "cat"
@@ -46,7 +46,7 @@
 
 (deftest test->str
   (testing "with specified format"
-    (is (= "2012-01-30 00:00:00" 
+    (is (= "2012-01-30 00:00:00"
            (->str (->timestamp "01 30, 2012" "MM dd, yyyy")))))
 
   (testing "with specified timezone"
@@ -61,93 +61,91 @@
   (is (= true (instance? Long (->timestamp (short 5))))))
 
 (deftest test-timestamp-ranges
-
   (testing "Calendar units are (milli second minute hour day month week year)"
+    (testing "second ranges"
+      (is (= [[(->timestamp "2000-01-01 12:00:01")
+               (+ (->timestamp "2000-01-01 12:00:01") 999)]
+              [(->timestamp "2000-01-01 12:00:02")
+               (+ (->timestamp "2000-01-01 12:00:02") 999)]
+              [(->timestamp "2000-01-01 12:00:03")
+               (+ (->timestamp "2000-01-01 12:00:03") 999)]]
+             (timestamp-ranges "2000-01-01 12:00:01" "2000-01-01 12:00:03" :second))))
 
-    (testing "There is no support for millisecond/second ranges."
-      (is (thrown? IllegalArgumentException
-                   (timestamp-ranges
-                    "2000-01-01 12:00:01" "2000-01-01 12:00:10" :milli)))
-      (is (thrown? IllegalArgumentException
-                   (timestamp-ranges
-                    "2000-01-01 12:00:01" "2000-01-01 12:00:10" :second))))
+    (testing "minute ranges"
+      (is (= [[(->timestamp "2000-01-01 12:01:00")
+               (+ (->timestamp "2000-01-01 12:01:59") 999)]
+              [(->timestamp "2000-01-01 12:02:00")
+               (+ (->timestamp "2000-01-01 12:02:59") 999)]
+              [(->timestamp "2000-01-01 12:03:00")
+               (+ (->timestamp "2000-01-01 12:03:59") 999)]]
+             (timestamp-ranges "2000-01-01 12:01" "2000-01-01 12:03" :minute))))
 
-    (testing "Function timestamp-ranges works only for: "
-      (testing "minute ranges"
-        (is (= [[(->timestamp "2000-01-01 12:01:00") 
-                 (->timestamp "2000-01-01 12:01:59")]
-                [(->timestamp "2000-01-01 12:02:00")
-                 (->timestamp "2000-01-01 12:02:59")]
-                [(->timestamp "2000-01-01 12:03:00")
-                 (->timestamp "2000-01-01 12:03:59")]]
-               (timestamp-ranges "2000-01-01 12:01" "2000-01-01 12:03" :minute))))
+    (testing "hour ranges"
+      (is (= [[(->timestamp "2000-01-01 12:00:00")
+               (+ (->timestamp "2000-01-01 12:59:59") 999)]
+              [(->timestamp "2000-01-01 13:00:00")
+               (+ (->timestamp "2000-01-01 13:59:59") 999)]
+              [(->timestamp "2000-01-01 14:00:00")
+               (+ (->timestamp "2000-01-01 14:59:59") 999)]]
+             (timestamp-ranges "2000-01-01 12:00" "2000-01-01 14:00" :hour))))
 
-      (testing "hour ranges"
-        (is (= [[(->timestamp "2000-01-01 12:00:00")
-                 (->timestamp "2000-01-01 12:59:59")]
-                [(->timestamp "2000-01-01 13:00:00")
-                 (->timestamp "2000-01-01 13:59:59")]
-                [(->timestamp "2000-01-01 14:00:00")
-                 (->timestamp "2000-01-01 14:59:59")]]
-               (timestamp-ranges "2000-01-01 12:00" "2000-01-01 14:00" :hour))))
+    (testing "day ranges"
+      (is (= [[(->timestamp "2000-01-01 00:00:00")
+               (+ (->timestamp "2000-01-01 23:59:59") 999)]
+              [(->timestamp "2000-01-02 00:00:00")
+               (+ (->timestamp "2000-01-02 23:59:59") 999)]
+              [(->timestamp "2000-01-03 00:00:00")
+               (+ (->timestamp "2000-01-03 23:59:59") 999)]]
+             (timestamp-ranges "2000-01-01" "2000-01-03" :day)))
 
-      (testing "day ranges"
-        (is (= [[(->timestamp "2000-01-01 00:00:00")
-                 (->timestamp "2000-01-01 23:59:59")]
-                [(->timestamp "2000-01-02 00:00:00")
-                 (->timestamp "2000-01-02 23:59:59")]
-                [(->timestamp "2000-01-03 00:00:00")
-                 (->timestamp "2000-01-03 23:59:59")]]
-               (timestamp-ranges "2000-01-01" "2000-01-03" :day)))
+      (is (= [[(->timestamp "2000-01-01 00:00:00")
+               (+ (->timestamp "2000-01-02 23:59:59") 999)]]
+             (timestamp-ranges "2000-01-01" "2000-01-03" :day-2))))
 
-        (is (= [[(->timestamp "2000-01-01 00:00:00")
-                 (->timestamp "2000-01-02 23:59:59")]]
-               (timestamp-ranges "2000-01-01" "2000-01-03" :day-2))))
+    (testing "week ranges"
+      (is (= [[(->timestamp "2000-01-01 00:00:00")
+               (+ (->timestamp "2000-01-07 23:59:59") 999)]
+              [(->timestamp "2000-01-08 00:00:00")
+               (+ (->timestamp "2000-01-14 23:59:59") 999)]
+              [(->timestamp "2000-01-15 00:00:00")
+               (+ (->timestamp "2000-01-21 23:59:59") 999)]
+              [(->timestamp "2000-01-22 00:00:00")
+               (+ (->timestamp "2000-01-28 23:59:59") 999)]]
+             (timestamp-ranges "2000-01-01" "2000-01-24" :week)))
 
-      (testing "week ranges"
-        (is (= [[(->timestamp "2000-01-01 00:00:00")
-                 (->timestamp "2000-01-07 23:59:59")]
-                [(->timestamp "2000-01-08 00:00:00")
-                 (->timestamp "2000-01-14 23:59:59")]
-                [(->timestamp "2000-01-15 00:00:00")
-                 (->timestamp "2000-01-21 23:59:59")]
-                [(->timestamp "2000-01-22 00:00:00")
-                 (->timestamp "2000-01-28 23:59:59")]]
-               (timestamp-ranges "2000-01-01" "2000-01-24" :week)))
+      (is (= [[(->timestamp "2000-01-01 00:00:00")
+               (+ (->timestamp "2000-01-14 23:59:59") 999)]
+              [(->timestamp "2000-01-15 00:00:00")
+               (+ (->timestamp "2000-01-28 23:59:59") 999)]]
+             (timestamp-ranges "2000-01-01" "2000-01-24" :week-2))))
 
-        (is (= [[(->timestamp "2000-01-01 00:00:00")
-                 (->timestamp "2000-01-14 23:59:59")]
-                [(->timestamp "2000-01-15 00:00:00")
-                 (->timestamp "2000-01-28 23:59:59")]]
-               (timestamp-ranges "2000-01-01" "2000-01-24" :week-2))))
+    (testing "month ranges"
+      (is (= [[(->timestamp "2000-01-01 00:00:00")
+               (+ (->timestamp "2000-01-31 23:59:59") 999)]
+              [(->timestamp "2000-02-01 00:00:00")
+               (+ (->timestamp "2000-02-29 23:59:59") 999)]
+              [(->timestamp "2000-03-01 00:00:00")
+               (+ (->timestamp "2000-03-02 23:59:59") 999)]]
+             (timestamp-ranges "2000-01-01" "2000-03-02" :month))))
 
-      (testing "month ranges"
-        (is (= [[(->timestamp "2000-01-01 00:00:00")
-                 (->timestamp "2000-01-31 23:59:59")]
-                [(->timestamp "2000-02-01 00:00:00")
-                 (->timestamp "2000-02-29 23:59:59")]
-                [(->timestamp "2000-03-01 00:00:00")
-                 (->timestamp "2000-03-02 23:59:59")]]
-               (timestamp-ranges "2000-01-01" "2000-03-02" :month))))
+    (testing "year ranges"
+      (is (= [[(->timestamp "2000-01-01 00:00:00")
+               (+ (->timestamp "2000-12-31 23:59:59") 999)]
+              [(->timestamp "2001-01-01 00:00:00")
+               (+ (->timestamp "2001-12-31 23:59:59") 999)]
+              [(->timestamp "2002-01-01 00:00:00")
+               (+ (->timestamp "2002-12-31 23:59:59") 999)]
+              [(->timestamp "2003-01-01 00:00:00")
+               (+ (->timestamp "2003-12-31 23:59:59") 999)]]
+             (timestamp-ranges "2000-01-01" "2003-03-02" :year)))
 
-      (testing "year ranges"
-        (is (= [[(->timestamp "2000-01-01 00:00:00")
-                 (->timestamp "2000-12-31 23:59:59")]
-                [(->timestamp "2001-01-01 00:00:00")
-                 (->timestamp "2001-12-31 23:59:59")]
-                [(->timestamp "2002-01-01 00:00:00")
-                 (->timestamp "2002-12-31 23:59:59")]
-                [(->timestamp "2003-01-01 00:00:00")
-                 (->timestamp "2003-12-31 23:59:59")]]
-               (timestamp-ranges "2000-01-01" "2003-03-02" :year)))
+      (is (= [[(->timestamp "2000-01-01 00:00:00")
+               (+ (->timestamp "2002-12-31 23:59:59") 999)]]
+             (timestamp-ranges "2000-01-01" "2003-03-02" :year-3))))
 
-        (is (= [[(->timestamp "2000-01-01 00:00:00")
-                 (->timestamp "2002-12-31 23:59:59")]]
-               (timestamp-ranges "2000-01-01" "2003-03-02" :year-3))))
-
-      (testing "no range"
-        (is (= [[(->timestamp "2013-05-01") (->timestamp "2013-05-31")]]
-               (timestamp-ranges "2013-05-01" "2013-05-31" :none)))))))
+    (testing "no range"
+      (is (= [[(->timestamp "2013-05-01") (->timestamp "2013-05-31")]]
+             (timestamp-ranges "2013-05-01" "2013-05-31" :none))))))
 
 
 (deftest test-add
