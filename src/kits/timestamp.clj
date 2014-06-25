@@ -161,7 +161,7 @@
 
 ;;; Ranges
 
-(def legal-interval-set 
+(def ^:private legal-interval-set 
   #{"none" "second" "minute" "hour" "day" "week" "month" "year"})
 
 (defmulti ^:private timestamp-ranges-internal
@@ -189,7 +189,8 @@
 (defmethod timestamp-ranges-internal
   :standard-interval
   [start-date end-date interval]
-  (let [end (increment (->timestamp end-date) interval)
+  (let [interval (keyword interval)
+        end (increment (->timestamp end-date) interval)
         ranges (->> (->timestamp start-date)
                     (iterate #(increment % interval))
                     (take-while #(<= % end))
@@ -199,7 +200,8 @@
          ranges)))
 
 (defmethod timestamp-ranges-internal :month [start-date end-date interval]
-  (let [start-ts (->timestamp start-date)
+  (let [interval (keyword interval)
+        start-ts (->timestamp start-date)
         end-ts (->timestamp end-date)
         month-decrementor (fn [[from to]]
                             [from (-> to

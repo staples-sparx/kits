@@ -69,7 +69,7 @@
                (+ (->timestamp "2000-01-01 12:00:02") 999)]
               [(->timestamp "2000-01-01 12:00:03")
                (+ (->timestamp "2000-01-01 12:00:03") 999)]]
-             (timestamp-ranges "2000-01-01 12:00:01" "2000-01-01 12:00:03" :second))))
+             (timestamp-ranges "2000-01-01 12:00:01" "2000-01-01 12:00:03" "second"))))
 
     (testing "minute ranges"
       (is (= [[(->timestamp "2000-01-01 12:01:00")
@@ -87,7 +87,7 @@
                (+ (->timestamp "2000-01-01 13:59:59") 999)]
               [(->timestamp "2000-01-01 14:00:00")
                (+ (->timestamp "2000-01-01 14:59:59") 999)]]
-             (timestamp-ranges "2000-01-01 12:00" "2000-01-01 14:00" :hour))))
+             (timestamp-ranges "2000-01-01 12:00" "2000-01-01 14:00" "hour"))))
 
     (testing "day ranges"
       (is (= [[(->timestamp "2000-01-01 00:00:00")
@@ -100,7 +100,7 @@
 
       (is (= [[(->timestamp "2000-01-01 00:00:00")
                (+ (->timestamp "2000-01-02 23:59:59") 999)]]
-             (timestamp-ranges "2000-01-01" "2000-01-03" :day-2))))
+             (timestamp-ranges "2000-01-01" "2000-01-03" "day-2"))))
 
     (testing "week ranges"
       (is (= [[(->timestamp "2000-01-01 00:00:00")
@@ -126,7 +126,8 @@
                (+ (->timestamp "2000-02-29 23:59:59") 999)]
               [(->timestamp "2000-03-01 00:00:00")
                (+ (->timestamp "2000-03-02 23:59:59") 999)]]
-             (timestamp-ranges "2000-01-01" "2000-03-02" :month))))
+             (timestamp-ranges "2000-01-01" "2000-03-02" :month)
+             (timestamp-ranges "2000-01-01" "2000-03-02" "month"))))
 
     (testing "year ranges"
       (is (= [[(->timestamp "2000-01-01 00:00:00")
@@ -137,7 +138,7 @@
                (+ (->timestamp "2002-12-31 23:59:59") 999)]
               [(->timestamp "2003-01-01 00:00:00")
                (+ (->timestamp "2003-12-31 23:59:59") 999)]]
-             (timestamp-ranges "2000-01-01" "2003-03-02" :year)))
+             (timestamp-ranges "2000-01-01" "2003-03-02" "year")))
 
       (is (= [[(->timestamp "2000-01-01 00:00:00")
                (+ (->timestamp "2002-12-31 23:59:59") 999)]]
