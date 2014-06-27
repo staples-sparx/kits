@@ -8,6 +8,7 @@
             [lein-kibit "0.0.7"]]
   :dependencies [[org.clojure/clojure "1.5.1"]
                  [cheshire "5.3.1"]
+                 [clout "1.1.0"]
                  [org.clojars.runa/clj-utils "1.3.1"]
                  [org.clojure/java.jdbc "0.3.3"]
                  [org.clojars.runa/runa.tools.logging "0.2.7"]
