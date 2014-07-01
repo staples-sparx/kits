@@ -5,8 +5,9 @@
   (:require [clojure.pprint :as pprint]
             [clojure.set :as set]
             [clojure.string :as str])
-  (:import (clojure.lang Var)
-           (java.net MalformedURLException)
+  (:import clojure.lang.Var
+           java.net.MalformedURLException
+           java.sql.SQLException
            (java.util.concurrent Future TimeoutException)))
 
 (set! *warn-on-reflection* false)
@@ -835,7 +836,10 @@ to return."
    {:message (.getMessage e)
     :stacktrace (mapv str (.getStackTrace e))}
    (when (.getCause e)
-     {:cause (exception->map (.getCause e))})))
+     {:cause (exception->map (.getCause e))})
+   (if (instance? SQLException e)
+     (if-let [ne (.getNextException ^SQLException e)]
+       {:next-exception (exception->map ne)}))))
 
 (defn name-generator [prefix]
   (let [cnt (atom -1)]
