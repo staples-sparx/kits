@@ -158,6 +158,14 @@
   (is (= {:a 99} (assoc-if-not-nil nil :a 99)))
   (is (= {:a 99} (assoc-if-not-nil {} :a 99))))
 
+(deftest test-assoc-if-not-blank
+  (is (= {:a "22"} (assoc-if-not-blank {:a "22"} :a " ")))
+  (is (= {:a "22"} (assoc-if-not-blank {:a "22"} :a nil)))
+  (is (= {:a "99" :b "22"} (assoc-if-not-blank {:b "22"} :a "99")))
+  (is (= {:a "99" :b "22" :c "88"} (assoc-if-not-blank {:b "22"} :a "99" :c "88")))
+  (is (= {:a "99"} (assoc-if-not-blank nil :a "99")))
+  (is (= {:a "99"} (assoc-if-not-blank {} :a "99"))))
+
 (deftest test-update-in-if-present
   (are [result m] (= result (update-in-if-present m [:a :b] (constantly 99)))
 

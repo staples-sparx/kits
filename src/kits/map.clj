@@ -132,6 +132,10 @@
   (make-conditional-assoc-fn (fn [_m _k v]
                                (not= nil v))))
 
+(def assoc-if-not-blank
+  (make-conditional-assoc-fn (fn [_m _k v]
+                               (not (str/blank? v)))))
+
 
 (defn contains-path?
   "Whether the specified path exists in the map"
