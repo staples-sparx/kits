@@ -849,3 +849,7 @@ to return."
 
 (defn trap-nil [x default]
   (if-not (nil? x) x default))
+
+(defn within? [max-difference x y]
+  (<= (Math/abs ^double (double (- x y)))
+      max-difference))
