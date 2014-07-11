@@ -34,7 +34,7 @@
                          (throw e))))
                    thread-name))))))
 
-(defn ->abort-policy [message]
+(defn ->abort-policy [^String message]
   (reify RejectedExecutionHandler
     (rejectedExecution [_ _runnable _executor]
       (throw (RejectedExecutionException. message)))))
