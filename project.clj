@@ -1,4 +1,4 @@
-(defproject org.clojars.runa/kits "1.18.4-SNAPSHOT"
+(defproject org.clojars.runa/kits "1.18.5-SNAPSHOT"
   :description "Runa's core utilities."
   :min-lein-version "2.0.0"
   :license {:name "MIT License"
