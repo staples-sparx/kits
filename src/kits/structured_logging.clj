@@ -102,7 +102,7 @@
 (defn exception
   "Log an exception at log level of error."
   ([syslog-config local-name ^Throwable exception]
-     syslog-config local-name ^Throwable exception {})
+     (exception syslog-config local-name ^Throwable exception {}))
   ([syslog-config local-name ^Throwable exception log-map]
      (let [root (root-cause exception)]
        (error syslog-config
