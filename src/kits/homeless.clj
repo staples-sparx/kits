@@ -853,3 +853,15 @@ to return."
 (defn within? [max-difference x y]
   (<= (Math/abs ^double (double (- x y)))
       max-difference))
+
+(defmacro when-resolvable [sym & body]
+  (try
+    (when (resolve sym)
+      (list* 'do body))
+    (catch ClassNotFoundException _#)))
+
+(defmacro when-not-resolvable [sym & body]
+  (try
+    (when-not (resolve sym)
+      (list* 'do body))
+    (catch ClassNotFoundException _#)))

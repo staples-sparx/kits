@@ -44,6 +44,10 @@
                     xs seen)))]
        (step coll {}))))
 
+(defmacro doseq-indexed [index-sym [item-sym coll] & body]
+  `(doseq [[~item-sym ~index-sym] (map vector ~coll (range))]
+     ~@body))
+
 (defn ensure-sequential
   "Returns x as [x] if x is not sequential, otherwise return x untouched."
   [x]
@@ -124,6 +128,13 @@
   [coll]
   (when (seq coll)
     (into {} coll)))
+
+(defn map-nth [n f coll]
+  (map-indexed (fn [idx x]
+                 (if (zero? (rem (inc idx) n))
+                   (f x)
+                   x))
+               coll))
 
 (defn zip
   "[[:a 1] [:b 2] [:c 3]] ;=> [[:a :b :c] [1 2 3]]"

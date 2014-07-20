@@ -1,10 +1,31 @@
 (ns kits.file
   "File system related functions."
-  (:require [clojure.string :as str])
+  (:require [clojure.java.io :as io]
+            [clojure.string :as str])
   (:import (java.io File)))
 
 (set! *warn-on-reflection* true)
 
+(defn filter-line-seq
+  "Filter one file into another file one line at a time.
+  Only needs to keep one line in memory at a time."
+  [pred input output]
+  (with-open [in (io/reader input)
+              out (io/writer output)]
+    (binding [*out* out]
+      (doseq [line (line-seq in)]
+        (when (pred line)
+          (println line))))))
+
+(defn map-line-seq
+  "Map one file into another file one line at a time.
+   Only needs to keep one line in memory at a time."
+  [f input output]
+  (with-open [in (io/reader input)
+              out (io/writer output)]
+    (binding [*out* out]
+      (doseq [line (line-seq in)]
+        (println (f line))))))
 
 (def file-separator File/separator)
 
