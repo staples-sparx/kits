@@ -129,13 +129,6 @@
   (when (seq coll)
     (into {} coll)))
 
-(defn map-nth [n f coll]
-  (map-indexed (fn [idx x]
-                 (if (zero? (rem (inc idx) n))
-                   (f x)
-                   x))
-               coll))
-
 (defn zip
   "[[:a 1] [:b 2] [:c 3]] ;=> [[:a :b :c] [1 2 3]]"
   [seqs]
