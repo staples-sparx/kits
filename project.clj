@@ -7,6 +7,7 @@
   :plugins [[jonase/eastwood "0.0.2"]
             [lein-kibit "0.0.7"]]
   :dependencies [[org.clojure/clojure "1.5.1"]
+                 [ca.umontreal.iro/ssj "2.5"]
                  [cheshire "5.3.1"]
                  [clout "1.1.0"]
                  [org.clojars.runa/clj-utils "1.3.1"]
