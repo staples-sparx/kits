@@ -151,6 +151,9 @@
 (defn strip-whitespace [s]
   (str/replace s #"[\s\t\r]" ""))
 
+(defn truncate [s n]
+  (subs s 0 (min (count s) n)))
+
 (defn urldecode [s]
   (when s
     (URLDecoder/decode s "UTF-8")))
