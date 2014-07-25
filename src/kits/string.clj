@@ -151,8 +151,8 @@
 (defn strip-whitespace [s]
   (str/replace s #"[\s\t\r]" ""))
 
-(defn truncate [s n]
-  (subs s 0 (min (count s) n)))
+(defn truncate [^String s n]
+  (.substring s 0 (min (.length s) n)))
 
 (defn urldecode [s]
   (when s
