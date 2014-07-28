@@ -60,7 +60,7 @@
 
 (def escape-regex-except-*
   (memoize (fn
-                                        ;"Escapes special Regex symbols except *."
+             ;;"Escapes special Regex symbols except *."
              [^String s]
              (.. s
                  (replace "\\" "\\\\")
@@ -82,6 +82,9 @@
 (defn hyphenize [s]
   (when s
     (str/replace s #"_" "-")))
+
+(defn length [^String s]
+  (.length s))
 
 (defn mapify [s sep]
   (when s
