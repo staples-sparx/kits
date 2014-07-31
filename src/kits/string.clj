@@ -1,7 +1,9 @@
 (ns kits.string
   "Functions that operate on Strings or Keywords."
   (:require [clojure.string :as str])
-  (:import (java.net URLDecoder)))
+  (:import (java.net URLDecoder)
+           (java.nio ByteBuffer CharBuffer)
+           (java.nio.charset Charset CharsetDecoder CodingErrorAction)))
 
 (set! *warn-on-reflection* true)
 
@@ -189,3 +191,22 @@
 
 (defn keyword->underscored-keyword [k]
   (-> k keyword->underscored-string keyword))
+
+;; Performance optimization
+(def ^Charset utf8-charset (Charset/forName "UTF-8"))
+
+(defn utf8-bytes [^String s]
+  (.getBytes s utf8-charset))
+
+(defn num-utf8-bytes [^String s]
+  (alength ^bytes (utf8-bytes s)))
+
+(defn truncate-utf8-bytes [s n]
+  (let [bytes (utf8-bytes s)
+        decoder (.newDecoder utf8-charset)
+        byte-buffer (ByteBuffer/wrap bytes 0 n)
+        char-buffer (CharBuffer/allocate n)]
+    (.onMalformedInput decoder CodingErrorAction/IGNORE)
+    (.decode decoder byte-buffer char-buffer true)
+    (.flush decoder char-buffer)
+    (String. (.array char-buffer) 0 (.position char-buffer))))

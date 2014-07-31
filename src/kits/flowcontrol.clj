@@ -24,3 +24,10 @@
   `(if-lets ~bindings
             (do ~@body)
             nil))
+
+(defn call-in-parallel [thunks]
+  (->> thunks
+       (map future-call)
+       doall
+       (map deref)
+       doall))
