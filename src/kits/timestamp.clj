@@ -190,7 +190,7 @@
   :standard-interval
   [start-date end-date interval]
   (let [interval (keyword interval)
-        end (->timestamp end-date)
+        end (increment (->timestamp end-date) interval)
         ranges (->> (->timestamp start-date)
                     (iterate #(increment % interval))
                     (take-while #(<= % end))
