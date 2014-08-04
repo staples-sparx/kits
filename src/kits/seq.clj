@@ -44,6 +44,10 @@
                     xs seen)))]
        (step coll {}))))
 
+(defmacro doseq-indexed [index-sym [item-sym coll] & body]
+  `(doseq [[~item-sym ~index-sym] (map vector ~coll (range))]
+     ~@body))
+
 (defn ensure-sequential
   "Returns x as [x] if x is not sequential, otherwise return x untouched."
   [x]

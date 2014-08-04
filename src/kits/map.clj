@@ -94,31 +94,48 @@
   "Like assoc, except only adds the key-value pair if the key doesn't exist in
    the map"
   ([m k thunk]
-     (if (contains? m k)
-       m
-       (assoc m k (thunk))))
+     (if (not (contains? m k))
+       (assoc m k (thunk))
+       m))
   ([m k thunk & kvs]
-     (let [ret (if (contains? m k)
-                 m
-                 (assoc m k (thunk)))]
+     (let [ret (if (not (contains? m k))
+                 (assoc m k (thunk))
+                 m)]
        (if kvs
          (recur ret (first kvs) (second kvs) (nnext kvs))
          ret))))
 
-(defn assoc-if-not-present
-  "Like assoc, except only adds the key-value pair if the key doesn't exist in
-   the map"
-  ([m k v]
-     (if (contains? m k)
-       m
-       (assoc m k v)))
-  ([m k v & kvs]
-     (let [ret (if (contains? m k)
-                 m
-                 (assoc m k v))]
-       (if kvs
-         (recur ret (first kvs) (second kvs) (nnext kvs))
-         ret))))
+(defn- make-conditional-assoc-fn 
+  "Only assocs if the kv-checker returns a logical true value"
+  [kv-checker]
+  (fn
+    ([m k v]
+       (if (kv-checker m k v)
+         (assoc m k v)
+         m))
+    ([m k v & kvs]
+       (let [ret (if (kv-checker m k v)
+                   (assoc m k v)
+                   m)]
+         (if kvs
+           (if (next kvs)
+             (recur ret (first kvs) (second kvs) (nnext kvs))
+             (throw (IllegalArgumentException.
+                     "expects even number of arguments after map/vector, found odd number")))
+           ret)))))
+
+(def assoc-if-not-present
+  (make-conditional-assoc-fn (fn [m k _v]
+                               (not (contains? m k)))))
+
+(def assoc-if-not-nil
+  (make-conditional-assoc-fn (fn [_m _k v]
+                               (not= nil v))))
+
+(def assoc-if-not-blank
+  (make-conditional-assoc-fn (fn [_m _k v]
+                               (not (str/blank? v)))))
+
 
 (defn contains-path?
   "Whether the specified path exists in the map"
@@ -198,7 +215,7 @@
   (let [ks (take-nth 2 kvs)
         sym-ks (map (comp symbol name) ks)
         vs (take-nth 2 (rest kvs))]
-    `(let ~(vec (interleave sym-ks vs)) 
+    `(let ~(vec (interleave sym-ks vs))
        ~(apply hash-map (interleave ks sym-ks)))))
 
 (defn map-difference

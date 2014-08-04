@@ -181,3 +181,7 @@
   (testing "WHEN given string that can't be made a legal regex
             THEN nil"
     (is (= nil (safe-string-pattern-re-find "*alex*" "alexalexalex")))))
+
+(deftest ^:unit test-truncate
+  (is (= "abc" (truncate "abcdef" 3)))
+  (is (= "abcdef" (truncate "abcdef" 10))))

@@ -102,14 +102,14 @@
 (defn exception
   "Log an exception at log level of error."
   ([syslog-config local-name ^Throwable exception]
-     syslog-config local-name ^Throwable exception {})
+     (exception syslog-config local-name ^Throwable exception {}))
   ([syslog-config local-name ^Throwable exception log-map]
      (let [root (root-cause exception)]
-       (error syslog-config local-name (-> log-map
-                                           (assoc :log/stacktrace (stacktrace root))
-                                           (cond-> (not= exception root)
-                                                   (assoc :log/cause (class exception)))
-                                           (update-in [:tags] #(conj (or % []) :exception)))))))
+       (error syslog-config
+              local-name
+              (-> log-map
+                  (assoc :log/exception (hl/exception->map exception))
+                  (update-in [:tags] #(conj (or % []) :exception)))))))
 
 (defmacro in-log-context
   "Any calls to structured-logging info, warn or error macros

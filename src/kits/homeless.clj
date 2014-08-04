@@ -5,11 +5,12 @@
   (:require [clojure.pprint :as pprint]
             [clojure.set :as set]
             [clojure.string :as str])
-  (:import (clojure.lang Var)
-           (java.net MalformedURLException)
+  (:import clojure.lang.Var
+           java.net.MalformedURLException
+           java.sql.SQLException
            (java.util.concurrent Future TimeoutException)))
 
-(set! *warn-on-reflection* true)
+(set! *warn-on-reflection* false)
 
 (defmacro ignore-exceptions
   "Evaluate body, but return nil if any exceptions are thrown."
@@ -835,7 +836,10 @@ to return."
    {:message (.getMessage e)
     :stacktrace (mapv str (.getStackTrace e))}
    (when (.getCause e)
-     {:cause (exception->map (.getCause e))})))
+     {:cause (exception->map (.getCause e))})
+   (if (instance? SQLException e)
+     (if-let [ne (.getNextException ^SQLException e)]
+       {:next-exception (exception->map ne)}))))
 
 (defn name-generator [prefix]
   (let [cnt (atom -1)]
@@ -845,3 +849,19 @@ to return."
 
 (defn trap-nil [x default]
   (if-not (nil? x) x default))
+
+(defn within? [max-difference x y]
+  (<= (Math/abs ^double (double (- x y)))
+      max-difference))
+
+(defmacro when-resolvable [sym & body]
+  (try
+    (when (resolve sym)
+      (list* 'do body))
+    (catch ClassNotFoundException _#)))
+
+(defmacro when-not-resolvable [sym & body]
+  (try
+    (when-not (resolve sym)
+      (list* 'do body))
+    (catch ClassNotFoundException _#)))

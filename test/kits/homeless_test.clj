@@ -287,3 +287,8 @@
 
 (deftest test-apply-kw
   (is (= "abcd" (apply-kw kw-fn "a" "b" {:c "c" :d "d"}))))
+
+(deftest test-within?
+  (is (= true (within? 10 5 15)))
+  (is (= true (within? 10 5 14)))
+  (is (= false (within? 10 5 16))))

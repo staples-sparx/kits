@@ -6,7 +6,7 @@
            java.util.Date
            [java.util.logging Level Logger Formatter LogRecord Handler]))
 
-(set! *warn-on-reflection* true)
+(set! *warn-on-reflection* false)
 
 (def ^:private ^SimpleDateFormat date-formatter
   (timestamp/simple-date-format "yyyy-MM-dd HH:mm:ss"))

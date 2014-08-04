@@ -140,51 +140,64 @@
    (< a0 b1)
    (> a1 b0)))
 
-(defn ->timestamp-at-day-start [t]
-  (-> t ->timestamp (truncate :day)))
+(defn ->timestamp-at-day-start
+  ([]
+     (->timestamp-at-day-start (now)))
+  ([t]
+     (-> t ->timestamp (truncate :day))))
 
-(defn timestamp-at-day-end [ts]
-  (-> ts (add :day 1) (decrement :second)))
+(defn timestamp-at-day-end 
+  ([]
+     (timestamp-at-day-end (now)))
+  ([ts]
+     (-> ts (add :day 1) (decrement :second))))
 
-(defn ->timestamp-at-day-end [t]
-  (-> t ->timestamp timestamp-at-day-end))
+(defn ->timestamp-at-day-end 
+  ([]
+     (->timestamp-at-day-end (now)))
+  ([t]
+     (-> t ->timestamp timestamp-at-day-end)))
 
 
 ;;; Ranges
 
-(def ^:private legal-interval-set #{"none" "minute" "hour" "day" "week" "month" "year"})
+(def ^:private legal-interval-set 
+  #{"none" "second" "minute" "hour" "day" "week" "month" "year"})
 
 (defmulti ^:private timestamp-ranges-internal
   (fn [_ _ interval]
-    (if (contains? #{:minute :hour :day :week :year} (keyword interval))
+    (if (contains? #{:second :minute :hour :day :week :year} (keyword interval))
       :standard-interval
       (keyword interval))))
 
 (defn timestamp-ranges [start-date end-date interval]
   (if (contains? legal-interval-set (name interval))
     (timestamp-ranges-internal start-date end-date interval)
-    (if-let [matching-interval-prefix (first (filter #(.startsWith (name interval) %) legal-interval-set))]
+    (if-let [matching-interval-prefix (->> legal-interval-set
+                                           (filter #(.startsWith (name interval) %))
+                                           first)]
       (let [[interval' n] (str/split (name interval) #"-")]
-        (->> (timestamp-ranges-internal start-date end-date interval')
+        (->> (timestamp-ranges-internal start-date end-date (keyword interval'))
              (partition (Long/parseLong n))
              (map #(vector (ffirst %) (last (last %))))))
-      (throw (IllegalArgumentException. (format "Can't use supplied interval '%s'" interval))))))
+      (throw (IllegalArgumentException. (format "Can't use supplied interval '%s'"
+                                                interval))))))
 
 (defmethod timestamp-ranges-internal :none [start-date end-date interval]
   [[(->timestamp start-date) (->timestamp end-date)]])
 
-(defmethod timestamp-ranges-internal :standard-interval [start-date end-date interval]
+(defmethod timestamp-ranges-internal
+  :standard-interval
+  [start-date end-date interval]
   (let [interval (keyword interval)
-        start (->timestamp start-date)
-        end-ts (->timestamp end-date)
-        end (increment end-ts interval)
-        stdrd-decrementor (fn [[from to]]
-                            [from (decrement to :second)])
-        ranges (->> start
+        end (increment (->timestamp end-date) interval)
+        ranges (->> (->timestamp start-date)
                     (iterate #(increment % interval))
                     (take-while #(<= % end))
                     (partition 2 1))]
-    (map stdrd-decrementor ranges)))
+    (map (fn [[from to]]
+           [from (decrement to :milli)])
+         ranges)))
 
 (defmethod timestamp-ranges-internal :month [start-date end-date interval]
   (let [interval (keyword interval)
@@ -193,7 +206,7 @@
         month-decrementor (fn [[from to]]
                             [from (-> to
                                       (truncate :month)
-                                      (decrement :second))])
+                                      (decrement :milli))])
         ranges (->> (truncate start-ts :month)
                     (iterate #(increment % interval))
                     (take-while #(<= % (increment end-ts interval)))
@@ -201,9 +214,11 @@
         first-month-pair (first ranges)
         last-month-pair (last ranges)
         month-pairs-middle (butlast (rest ranges))
-        fix-first (fn [[f _]] [start-ts _])
-        fix-last  (fn [[_ l]] [_ (timestamp-at-day-end end-ts)])
-        mid-month-ranges (flatten (map month-decrementor month-pairs-middle))
+        fix-first (fn [[_ end]] 
+                    [start-ts end])
+        fix-last  (fn [[start _]]
+                    [start (-> end-ts (add :day 1) (decrement :milli))])
+        mid-month-ranges (map month-decrementor month-pairs-middle)
         flat-month-ranges (flatten [(fix-first (month-decrementor first-month-pair))
                                     mid-month-ranges
                                     (fix-last last-month-pair)])]
