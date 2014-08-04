@@ -148,6 +148,17 @@
   )
 
 (deftest test-with-retries
+  (instrumenting
+   [throws-on-1st-or-2nd-call
+    retry-handler
+    fail-handler]
+   (is (thrown? Exception
+                (with-retries {:max-times 1}
+                  (throws-on-1st-or-2nd-call)
+                  (verify-call-times-for throws-on-1st-or-2nd-call 1)
+                  (verify-call-times-for retry-handler 0)
+                  (verify-call-times-for fail-handler 0)))))
+
   (testing "handles map options or integer max-times"
     (mocking
      [retry-handler fail-handler]
@@ -169,7 +180,7 @@
                   (raise Exception "BLAMMO!")
                   (verify-call-times-for retry-handler 2)
                   (verify-call-times-for fail-handler 0)))))
-  
+
   (mocking
    [retry-handler fail-handler]
    (is (thrown? Exception
