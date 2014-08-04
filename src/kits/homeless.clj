@@ -451,9 +451,9 @@ to return."
       (str prefix "-" @cnt))))
 
 (defn retrying-fn
-  "Take a no-arg function f and max times it should be called, returns a new no-arg
+  "Take a no-arg function f and max num retries, returns a new no-arg
  function that will call f again if calling f throws a Throwable."
-  [f max-times]
+  [f {:keys [max-times retry-handler fail-handler] :as options}]
   (fn this
     ([]
        (this max-times))
@@ -462,12 +462,23 @@ to return."
          (f)
          (catch Throwable t
            (if (zero? retry-count)
-             (throw t)
-             (this (dec retry-count))))))))
+             (do
+               (when fail-handler
+                 (fail-handler options))
+               (throw t))
+             (do
+               (when retry-handler
+                 (retry-handler options retry-count))
+               (this (dec retry-count)))))))))
 
-(defmacro with-retries [retry-count & body]
-  `((retrying-fn
-     (fn [] ~@body) ~retry-count)))
+(defmacro with-retries 
+  "options can either be a map, or a number (which represents max-times)"
+  [max-times & body]
+  (let [opts (if (map? max-times)
+               max-times
+               {:max-times max-times})]
+    `((retrying-fn
+       (fn [] ~@body) ~opts))))
 
 (defn make-comparator
   "Similar to clojure.core/comparator but optionally accepts a

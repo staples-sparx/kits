@@ -6,8 +6,8 @@
 (set! *warn-on-reflection* false)
 
 (deftest all-kits.namespaces-have-doc-strings
-  (testing "Since Kits is a set of core libraries for Runa, we want things to 
-            be well documented.  Each namespace should have a clear Single 
+  (testing "Since Kits is a set of core libraries for Runa, we want things to
+            be well documented.  Each namespace should have a clear Single
             Responsibility explained in its doc string."
     (is (= [] (->> (all-ns)
                    (filter #(.startsWith (str (ns-name %)) "kits."))
@@ -141,9 +141,44 @@
         :foo
         (raise "BOOM!")))))
 
+(defn retry-handler [opts retry-count]
+  )
+
+(defn fail-handler [opts]
+  )
+
 (deftest test-with-retries
-  (is (= :foo (with-retries 3 (throws-on-1st-or-2nd-call))))
-  (is (thrown? Exception (with-retries 3 (raise Exception "BLAMMO!")))))
+  (testing "handles map options or integer max-times"
+    (mocking
+     [retry-handler fail-handler]
+     (is (= :foo (with-retries {:max-times 3}
+                   (let [result (throws-on-1st-or-2nd-call)]
+                     (verify-call-times-for retry-handler 0)
+                     (verify-call-times-for fail-handler 0)
+                     result)))))
+
+    (is (= :foo (with-retries 3
+                  (throws-on-1st-or-2nd-call)))))
+
+  (mocking
+   [retry-handler fail-handler]
+   (is (thrown? Exception
+                (with-retries {:max-times 3
+                               :retry-handler retry-handler
+                               :fail-handler fail-handler}
+                  (raise Exception "BLAMMO!")
+                  (verify-call-times-for retry-handler 2)
+                  (verify-call-times-for fail-handler 0)))))
+  
+  (mocking
+   [retry-handler fail-handler]
+   (is (thrown? Exception
+                (with-retries {:max-times 3
+                               :retry-handler retry-handler
+                               :fail-handler fail-handler}
+                  (raise Exception "BLAMMO!")
+                  (verify-call-times-for retry-handler 3)
+                  (verify-call-times-for fail-handler 1))))))
 
 (let [name-maker (incremental-name-with-prefix "name")]
 
