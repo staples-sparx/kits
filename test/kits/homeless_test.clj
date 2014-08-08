@@ -141,10 +141,10 @@
         :foo
         (raise "BOOM!")))))
 
-(defn retry-handler [opts retry-count]
+(defn retry-handler [opts t retry-count]
   )
 
-(defn fail-handler [opts]
+(defn fail-handler [opts t]
   )
 
 (deftest test-with-retries

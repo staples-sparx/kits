@@ -464,11 +464,11 @@ to return."
            (if (zero? retry-count)
              (do
                (when fail-handler
-                 (fail-handler options))
+                 (fail-handler options t))
                (throw t))
              (do
                (when retry-handler
-                 (retry-handler options retry-count))
+                 (retry-handler options t retry-count))
                (this (dec retry-count)))))))))
 
 (defmacro with-retries 
