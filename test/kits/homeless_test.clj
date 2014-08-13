@@ -1,7 +1,8 @@
 (ns kits.homeless-test
   (:use clojure.test
         conjure.core
-        kits.homeless))
+        kits.homeless
+        kits.test-utils))
 
 (set! *warn-on-reflection* false)
 
@@ -189,14 +190,24 @@
                                :fail-handler fail-handler}
                   (raise Exception "BLAMMO!")
                   (verify-call-times-for retry-handler 3)
-                  (verify-call-times-for fail-handler 1))))))
+                  (verify-call-times-for fail-handler 1)))))
 
-(let [name-maker (incremental-name-with-prefix "name")]
+  (mocking
+   [retry-handler fail-handler]
+   (is (not-thrown? Exception
+                    (with-retries {:max-times 3
+                                   :retry-handler retry-handler
+                                   :fail-handler fail-handler
+                                   :swallow-exceptions? true}
+                      (raise Exception "BLAMMO!")
+                      (verify-call-times-for retry-handler 3)
+                      (verify-call-times-for fail-handler 1))))))
 
-  (deftest test-incremental-name-with-prefix
-    (is (= "name-0" (name-maker)))
-    (is (= "name-1" (name-maker)))
-    (is (= "name-2" (name-maker)))))
+(deftest test-incremental-name-with-prefix
+  (let [name-maker1 (incremental-name-with-prefix "name")]
+    (is (= "name-0" (name-maker1)))
+    (is (= "name-1" (name-maker1)))
+    (is (= "name-2" (name-maker1)))))
 
 
 (deftest test-make-comparator

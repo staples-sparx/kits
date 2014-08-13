@@ -453,7 +453,7 @@ to return."
 (defn retrying-fn
   "Take a no-arg function f and max num retries, returns a new no-arg
  function that will call f again if calling f throws a Throwable."
-  [f {:keys [max-times retry-handler fail-handler] :as options}]
+  [f {:keys [max-times retry-handler fail-handler swallow-exceptions?] :as options}]
   (fn this
     ([]
        (this max-times))
@@ -465,18 +465,26 @@ to return."
              (do
                (when fail-handler
                  (fail-handler options t))
-               (throw t))
+               (when-not swallow-exceptions?
+                 (throw t)))
              (do
                (when retry-handler
                  (retry-handler options t retry-count))
                (this (dec retry-count)))))))))
 
-(defmacro with-retries 
+(def valid-with-retries-arg-set #{:max-times
+                                  :retry-handler
+                                  :fail-handler
+                                  :swallow-exceptions?})
+
+(defmacro with-retries
   "options can either be a map, or a number (which represents max-times)"
   [max-times & body]
   (let [opts (if (map? max-times)
                max-times
-               {:max-times max-times})]
+               {:max-times max-times})
+        arg-diff (set/difference (set (keys opts)) valid-with-retries-arg-set)]
+    (assert (= #{} arg-diff) (str "Valid args: " (vec valid-with-retries-arg-set)))
     `((retrying-fn
        (fn [] ~@body) ~opts))))
 
