@@ -31,23 +31,28 @@
 
 ;;;
 
+(def ^TimeZone utc-tz (TimeZone/getTimeZone "UTC"))
+
 (defn ^:dynamic now []
   (System/currentTimeMillis))
 
 (defn ^SimpleDateFormat simple-date-format
   ([format-string]
-     (simple-date-format format-string "UTC"))
-  ([format-string tz-string]
-     (doto (SimpleDateFormat. format-string)
-       (.setTimeZone (TimeZone/getTimeZone tz-string)))))
+     (simple-date-format format-string utc-tz))
+  ([format-string tz-or-tz-str]
+     (let [^TimeZone tz (if (instance? TimeZone tz-or-tz-str)
+                          tz-or-tz-str
+                          (TimeZone/getTimeZone tz-or-tz-str))]
+       (doto (SimpleDateFormat. format-string)
+         (.setTimeZone tz)))))
 
 (defn ^Long ->timestamp
-  ([s format-string timezone-str]
-     (-> (simple-date-format format-string timezone-str)
+  ([s format-string tz-or-tz-str]
+     (-> (simple-date-format format-string tz-or-tz-str)
          (.parse s)
          .getTime))
   ([s format-string]
-     (->timestamp s format-string "UTC"))
+     (->timestamp s format-string utc-tz))
   ([x]
      (cond
       (integer? x)
@@ -72,10 +77,10 @@
   ([x]
      (->str x yyyy-mm-dd-hh-mm-ss))
   ([x date-format]
-     (->str x date-format "UTC"))
-  ([x date-format timezone-str]
+     (->str x date-format utc-tz))
+  ([x date-format tz-or-tz-str]
      (.format
-      (simple-date-format date-format timezone-str)
+      (simple-date-format date-format tz-or-tz-str)
       (Date. (long (->timestamp x))))))
 
 (defn ->date-str [x]
@@ -110,7 +115,7 @@
 
 (defn truncate [timestamp unit]
   (assert-valid-unit unit)
-  (let [cal (doto ^Calendar (GregorianCalendar. ^TimeZone (TimeZone/getTimeZone "UTC"))
+  (let [cal (doto ^Calendar (GregorianCalendar. utc-tz)
                   (.setTime (Date. (long timestamp))))
         units-to-drop (take-while #(not= unit %) ordered-units)]
     (doseq [{:keys [type starts-at]} (map unit->calendar-unit units-to-drop)]
@@ -119,7 +124,7 @@
 
 (defn add [timestamp unit val]
   (assert-valid-unit unit)
-  (let [cal (doto ^Calendar (GregorianCalendar. ^TimeZone (TimeZone/getTimeZone "UTC"))
+  (let [cal (doto ^Calendar (GregorianCalendar. utc-tz)
                   (.setTime (Date. (long timestamp)))
                   (.add (:type (unit->calendar-unit unit)) val))]
     (-> cal .getTime .getTime)))
