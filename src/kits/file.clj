@@ -29,6 +29,12 @@
 
 (def file-separator File/separator)
 
+(defn files-in-dir [dir]
+  (->> dir
+       io/file
+       file-seq
+       (filterv #(.isFile ^File %))))
+
 (defn path
   "Concatenate pieces of a path into a full path.  Adds file separators when
    missing and squashing multiple file separators into one."

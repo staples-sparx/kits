@@ -3,7 +3,7 @@
   (:require [kits.thread :as thread])
   (:import (java.util.concurrent ArrayBlockingQueue BlockingQueue
                                  PriorityBlockingQueue TimeUnit))
-  (:refer-clojure :exclude [get peek]))
+  (:refer-clojure :exclude [get peek empty?]))
 
 (set! *warn-on-reflection* true)
 
@@ -52,6 +52,9 @@
 
 (defn used [^BlockingQueue q]
   (.size q))
+
+(defn empty? [q]
+  (== 0 (used q)))
 
 (defn free [^BlockingQueue q]
   (.remainingCapacity q))
