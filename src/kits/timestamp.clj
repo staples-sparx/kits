@@ -36,6 +36,9 @@
 (defn ^:dynamic now []
   (System/currentTimeMillis))
 
+(defn now-s []
+  (Math/round (/ (System/currentTimeMillis) 1000.0)))
+
 (defn ^SimpleDateFormat simple-date-format
   ([format-string]
      (simple-date-format format-string utc-tz))
