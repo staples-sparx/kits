@@ -10,6 +10,7 @@
                  [ca.umontreal.iro/ssj "2.5"]
                  [cheshire "5.3.1"]
                  [clout "1.1.0"]
+                 [org.clojure/math.numeric-tower "0.0.2"]
                  [org.clojars.runa/clj-utils "1.3.1"]
                  [org.clojure/java.jdbc "0.3.3"]
                  [org.clojars.runa/runa.tools.logging "0.2.7"]

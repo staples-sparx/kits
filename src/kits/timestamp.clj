@@ -1,7 +1,8 @@
 (ns kits.timestamp
   "Functions for creating and formatting timestamps (Longs)"
   (:require [clojure.string :as str])
-  (:import (java.text SimpleDateFormat)
+  (:import (java.sql Timestamp)
+           (java.text SimpleDateFormat)
            (java.util Calendar Date GregorianCalendar TimeZone)))
 
 (set! *warn-on-reflection* true)
@@ -231,3 +232,14 @@
                                     mid-month-ranges
                                     (fix-last last-month-pair)])]
     (partition 2 flat-month-ranges)))
+
+;; SQL helpers
+
+(defn ->sql-time [timestamp]
+  (->str timestamp "yyyy-MM-dd HH:mm:ss.SSS"))
+
+(defn ->Timestamp
+  "Creating a UTC string and parsing it adjusts the timezone
+   properly. (Timestamp. millis) alters the millis into the local timezone"
+  [ts]
+  (Timestamp/valueOf (->sql-time ts)))

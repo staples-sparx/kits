@@ -24,9 +24,6 @@
            (str "Row index: " row-idx# ", Column index: " column-idx#)))))
 
 
-;; TODO - Alex - Nov 26, 2012 - taken from furtive.test.unit.spec-utils.spec-utils
-;; Replace uses of it in Furtive with this.  And I'm sure there are
-;; plenty of other good spec-utils to pull into this namespace as well.
 (defmethod clojure.test/assert-expr 'not-thrown? [msg form]
   ;; (is (not-thrown? c expr))
   ;; Asserts that evaluating expr does not throw an exception of class c.
