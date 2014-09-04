@@ -14,8 +14,8 @@
 
 (def histogram-ceiling (* 5 1000 1000 1000))
 
-(defonce ^LinkedBlockingQueue session-q (LinkedBlockingQueue. 10000))
-(defonce ^LinkedBlockingQueue response-q (LinkedBlockingQueue. 10000))
+(defonce ^LinkedBlockingQueue session-q (LinkedBlockingQueue.))
+(defonce ^LinkedBlockingQueue response-q (LinkedBlockingQueue.))
 (defonce errors (atom []))
 (defonce clear-histograms? (atom false))
 (defonce stop-workers? (atom false))
