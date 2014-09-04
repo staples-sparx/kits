@@ -2,7 +2,6 @@
   kits.load-driver
   (:require [kits.load-driver.histograms :as h]
             [kits.load-driver.rate :as r]
-            [kits.load-driver.users :as users]
             [kits.thread :as thread])
   (:import (java.util.concurrent LinkedBlockingQueue
                                  TimeUnit)))
@@ -132,8 +131,7 @@
   (reset! errors [])
   (reset! clear-histograms? true)
   (reset! num-msgs-processed 0)
-  (r/reset-state!)
-  (users/reset-state!))
+  (r/reset-state!))
 
 (defn- wait-until-all-sessions-processed [num-sessions]
   (while (not= num-sessions @num-msgs-processed)
@@ -148,7 +146,6 @@
 
 (defn run-and-report [num-device-tracker-ids sessions]
   (reset-state!)
-  (users/generate-random-device-tracker-ids num-device-tracker-ids)
   (doseq [session sessions]
     (.offer session-q session))
   (let [num-sessions (count sessions)]
