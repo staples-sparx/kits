@@ -1,9 +1,11 @@
 (ns ^{:doc "Driver for load testing"}
   kits.load-driver
   (:require [kits.load-driver.histograms :as h]
-            [kits.load-driver.queues :as q]
             [kits.load-driver.rate :as r]
-            [kits.load-driver.users :as users]))
+            [kits.load-driver.users :as users]
+            [kits.thread :as thread])
+  (:import (java.util.concurrent LinkedBlockingQueue
+                                 TimeUnit)))
 
 ;;                       _ Workers --
 ;;  Generator -> | Q| <-|             --> | Q | <-- Metrics
@@ -12,8 +14,8 @@
 
 (def histogram-ceiling (* 5 1000 1000 1000))
 
-(defonce session-q (q/create 10000))
-(defonce response-q (q/create 10000))
+(defonce ^LinkedBlockingQueue session-q (LinkedBlockingQueue. 10000))
+(defonce ^LinkedBlockingQueue response-q (LinkedBlockingQueue. 10000))
 (defonce errors (atom []))
 (defonce clear-histograms? (atom false))
 (defonce stop-workers? (atom false))
@@ -88,7 +90,7 @@
     (loop [i 0
            histograms {}]
       (maybe-clear-histograms histograms)
-      (if-let [msg (q/fetch response-q 500)]
+      (if-let [msg (.poll response-q 500 TimeUnit/MILLISECONDS)]
         (let [next-histograms (add-histogram histograms msg)]
           (try
             (handle-response-msg step-title-fn thread-name msg i next-histograms)
@@ -107,9 +109,9 @@
 (defn- session-worker-loop [scheduler thread-name args]
   (println (str "Starting session worker thread " thread-name))
   (loop []
-    (when-let [session (q/fetch session-q 500)]
-      (when-let [result-session (scheduler session #(q/add response-q %) session-completed)]
-        (q/add session-q result-session)))
+    (when-let [session (.poll session-q 500 TimeUnit/MILLISECONDS)]
+      (when-let [result-session (scheduler session #(.offer response-q %) session-completed)]
+        (.offer session-q result-session)))
     (if @stop-workers?
       (println "Stopping request worker thread")
       (recur))))
@@ -117,13 +119,13 @@
 (defn- start-response-worker [step-title-fn]
   (reset! stop-workers? false)
   (println "Starting resp worker")
-  (q/start-thread-pool 1 "resp-worker-" (->response-worker step-title-fn))
+  (thread/start-thread-pool 1 "resp-worker-" (->response-worker step-title-fn))
   (println "Started resp worker"))
 
 (defn- start-session-workers [n scheduler]
   (reset! stop-workers? false)
   (println "Starting session worker")
-  (q/start-thread-pool n "session-worker-" (partial session-worker-loop scheduler))
+  (thread/start-thread-pool n "session-worker-" (partial session-worker-loop scheduler))
   (println "Started session worker"))
 
 (defn reset-state! []
@@ -148,7 +150,7 @@
   (reset-state!)
   (users/generate-random-device-tracker-ids num-device-tracker-ids)
   (doseq [session sessions]
-    (q/add session-q session))
+    (.offer session-q session))
   (let [num-sessions (count sessions)]
     (wait-until-all-sessions-processed num-sessions)
     (print-summary num-sessions)))
