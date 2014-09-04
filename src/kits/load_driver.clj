@@ -144,7 +144,7 @@
 (defn stop-workers! []
   (reset! stop-workers? true))
 
-(defn run-and-report [num-device-tracker-ids sessions]
+(defn run-and-report [sessions]
   (reset-state!)
   (doseq [session sessions]
     (.offer session-q session))
