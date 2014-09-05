@@ -1,4 +1,4 @@
-(defproject org.clojars.runa/kits "1.19.11"
+(defproject org.clojars.runa/kits "1.19.19"
   :description "Runa's core utilities."
   :min-lein-version "2.0.0"
   :license {:name "MIT License"
@@ -10,6 +10,8 @@
                  [ca.umontreal.iro/ssj "2.5"]
                  [cheshire "5.3.1"]
                  [clout "1.1.0"]
+                 [org.hdrhistogram/HdrHistogram "1.2.1"]
+                 [org.clojure/math.numeric-tower "0.0.2"]
                  [org.clojars.runa/clj-utils "1.3.1"]
                  [org.clojure/java.jdbc "0.3.3"]
                  [org.clojars.runa/runa.tools.logging "0.2.7"]
