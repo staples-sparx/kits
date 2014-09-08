@@ -32,6 +32,11 @@
                    (str/join ", or")))
    :status 405})
 
+(defn error-response [msg]
+  {:status 400
+   :headers {"content-type" "text/plain"}
+   :body msg}) 
+
 (defn no-handler-response [message]
   {:status 404
    :headers {"content-type" "text/plain"}
