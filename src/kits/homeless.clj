@@ -852,7 +852,8 @@ to return."
 
 (defn exception->map [^Throwable e]
   (merge
-   {:message (.getMessage e)
+   {:class (str (class e))
+    :message (.getMessage e)
     :stacktrace (mapv str (.getStackTrace e))}
    (when (.getCause e)
      {:cause (exception->map (.getCause e))})
