@@ -71,6 +71,7 @@
 
 (defn- maybe-clear-histograms [step-name->histogram]
   (when @clear-histograms?
+    (println "Resetting historgrams")
     (reset! clear-histograms? false)
     (doseq [histogram (vals step-name->histogram)]
       (h/reset histogram))))
@@ -79,9 +80,7 @@
   (if (and step-name
            (contains? existing step-name))
     existing
-    (assoc existing
-      step-name
-      (h/create histogram-ceiling 2))))
+    (assoc existing step-name (h/create histogram-ceiling 2))))
 
 (defn- ->response-worker [step-title-fn]
   (fn [thread-name args]
