@@ -24,6 +24,8 @@
 
 (def ^:const yyyy-mm-dd-hh-mm-ss "yyyy-MM-dd HH:mm:ss")
 
+(def ^:const yyyy-mm-dd-hh-mm-ss-SSS "yyyy-MM-dd HH:mm:ss.SSS")
+
 (defn yyyy-mm-dd-hh-mm-ss? [x]
   (and (string? x)
        (boolean (re-matches #"\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}" x))))
@@ -236,7 +238,7 @@
 ;; SQL helpers
 
 (defn ->sql-time [timestamp]
-  (->str timestamp "yyyy-MM-dd HH:mm:ss.SSS"))
+  (->str timestamp yyyy-mm-dd-hh-mm-ss-SSS))
 
 (defn ->Timestamp
   "Creating a UTC string and parsing it adjusts the timezone
