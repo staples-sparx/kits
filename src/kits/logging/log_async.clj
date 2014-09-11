@@ -8,7 +8,8 @@
    [kits.queues :as q]
    [kits.thread :as t]
    [kits.logging.log-consumer :as log-consumer]
-   [kits.logging.log-generator :as log-generator]))
+   [kits.logging.log-generator :as log-generator]
+   [kits.structured-logging :as sl]))
 
 (set! *warn-on-reflection* true)
 
@@ -21,6 +22,7 @@
 (defn exception
   ([e msg] (exception log-q e msg))
   ([queue e msg] (q/add @queue (assoc msg :exception e
+                                      :stacktrace (sl/stacktrace e)
                                       "log-level" :ERROR))))
 
 (defn error
