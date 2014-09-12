@@ -44,11 +44,6 @@
    (/ (ns->ms (total-elapsed-ns transit-times))
       (count transit-times))))
 
-(defn- steps-per-sec [transit-times]
-  (float
-   (/ (count transit-times)
-      (ns->s (total-elapsed-ns transit-times)))))
-
 (defn- rate-report [transit-times errors]
   (let [num-steps (count transit-times)]
     (cond
@@ -62,41 +57,37 @@
      {:steps-per-sec-of-run (steps-per-second-of-run transit-times)
       :num-steps num-steps
       :start-to-end-time-in-secs (start-to-end-time-in-secs transit-times)
-      :millis-per-step (millis-per-step transit-times)
-      :steps-per-sec (steps-per-sec transit-times)})))
+      :millis-per-step (millis-per-step transit-times)})))
 
 (defn rate-report-str [errors]
   (let [report (rate-report @step-transit-times-atom errors)]
     (or (:error report)
         (format
-         (str "Steps per sec of run: %.2f, %s steps in %.2f total secs\n"
+         (str "Steps per sec of run: %.2f steps/sec -- %s steps in %.2f total secs\n"
               "                      (includes all time from beginning of run to end)\n"
               "Millis per step: %.2f ms/step\n"
-              "                 (only includes time spent executing steps)\n"
-              "Steps per second: %.2f steps/sec \n"
-              "                  (only includes time spent executing steps)\n")
+              "                 (only includes time spent executing steps)\n")
          (:steps-per-sec-of-run report)
          (:num-steps report)
          (:start-to-end-time-in-secs report)
-         (:millis-per-step report)
-         (:steps-per-sec report)))))
+         (:millis-per-step report)))))
 
 (comment
-  (use 'kits.timestamp)
-  (def x [{:start-time (ms->ns (->timestamp "2014-01-01 12:00:00"))
-           :end-time (ms->ns (->timestamp "2014-01-01 12:00:01"))}
-          {:start-time (ms->ns (->timestamp "2014-01-01 12:00:00"))
-           :end-time (ms->ns (->timestamp "2014-01-01 12:00:01"))}
-          {:start-time (ms->ns (->timestamp "2014-01-01 12:00:01"))
-           :end-time (ms->ns (->timestamp "2014-01-01 12:00:02"))}])
+  (do
+    (use 'kits.timestamp)
+    (def x [{:start-time (ms->ns (->timestamp "2014-01-01 12:00:00"))
+             :end-time (ms->ns (->timestamp "2014-01-01 12:00:01"))}
+            {:start-time (ms->ns (->timestamp "2014-01-01 12:00:00"))
+             :end-time (ms->ns (->timestamp "2014-01-01 12:00:01"))}
+            {:start-time (ms->ns (->timestamp "2014-01-01 12:00:01"))
+             :end-time (ms->ns (->timestamp "2014-01-01 12:00:02"))}])
 
-  (reset! step-transit-times-atom x)
+    (reset! step-transit-times-atom x))
 
   (print (rate-report-str []))
 
   (print "Total time: 1.50, 3 steps in 2.00 total secs\n            (includes all time from beginning of run to end)\nMillis per step: 1000000000.00 ms/step\n                 (only includes time spent executing steps)\nSteps per second: 1.00 steps/sec \n                  (only includes time spent executing steps)\n")
 
-  [(steps-per-second x)
-   (total-elapsed-ns x)
+  [(total-elapsed-ns x)
    (ns->s (total-elapsed-ns x))]
   )
