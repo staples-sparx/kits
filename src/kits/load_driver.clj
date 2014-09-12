@@ -1,7 +1,7 @@
 (ns ^{:doc "Driver for load testing"}
   kits.load-driver
   (:require [kits.load-driver.histograms :as h]
-            [kits.load-driver.rate :as r]
+            [kits.load-driver.rate :as rate]
             [kits.thread :as thread])
   (:import (java.util.concurrent LinkedBlockingQueue
                                  TimeUnit)))
@@ -45,18 +45,19 @@
           (printf "\t%5s % 9.2f ms\n" (name k) (get h k)))
         (println "")))))
 
-(defn- print-summary [total-sessions]
-  (println "Summary:")
-  (println "   All Error Counts:  " (pr-str (error-counts @errors)))
-  (println "   Non-timeout Errors:" (pr-str (non-timeout-errors @errors)))
-  (println "  " (r/req-per-second-str total-sessions @errors)))
+(defn- print-summary []
+  (println "SUMMARY")
+  (println "=======")
+  (println "All Error Counts:" (pr-str (error-counts @errors)))
+  (println "Non-timeout Errors:" (pr-str (non-timeout-errors @errors)))
+  (println (rate/rate-report-str @errors)))
 
 (defn- handle-valid-response-msg
   [thread-name {:keys [transit-start transit-end] :as msg} histogram]
   ;; Latency Histogram
   (let [elapsed-microseconds (/ (- transit-end transit-start) 1000)]
     ;; (println "msg took " elapsed "µs")
-    (r/record-runtimes transit-start transit-end)
+    (rate/record-step-transit-time transit-start transit-end)
     (h/record histogram elapsed-microseconds)))
 
 (defn- handle-error-response-msg [thread-name msg]
@@ -71,7 +72,7 @@
 
 (defn- maybe-clear-histograms [step-name->histogram]
   (when @clear-histograms?
-    (println "Resetting historgrams")
+    (println "Resetting histograms")
     (reset! clear-histograms? false)
     (doseq [histogram (vals step-name->histogram)]
       (h/reset histogram))))
@@ -130,7 +131,7 @@
   (reset! errors [])
   (reset! clear-histograms? true)
   (reset! num-msgs-processed 0)
-  (r/reset-state!))
+  (rate/reset-state!))
 
 (defn- wait-until-all-sessions-processed [num-sessions]
   (while (not= num-sessions @num-msgs-processed)
@@ -147,6 +148,27 @@
   (reset-state!)
   (doseq [session sessions]
     (.offer session-q session))
-  (let [num-sessions (count sessions)]
-    (wait-until-all-sessions-processed num-sessions)
-    (print-summary num-sessions)))
+  (wait-until-all-sessions-processed (count sessions))
+  (print-summary))
+
+(comment
+  (require '[kits.load-driver.sessions :as sessions])
+
+  (def test-session (sessions/->session [(fn [state]
+                                           (let [start (System/nanoTime)]
+                                             (Thread/sleep 100)
+                                             {:status nil
+                                              :step-name :test-step
+                                              :transit-start start
+                                              :transit-end (System/nanoTime)
+                                              :error nil
+                                              :exception nil
+                                              :state state}))]))
+
+  (start-workers (fn [step-name]
+                   (str "\n====== STEP: " step-name))
+                 5
+                 (sessions/->round-robin {:ms-between-session 3}))
+  (run-and-report (repeat 5 test-session))
+  (reset-state!)
+  (stop-workers!))
