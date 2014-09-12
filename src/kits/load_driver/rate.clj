@@ -41,7 +41,7 @@
 
 (defn- millis-per-step [transit-times]
   (float
-   (/ (total-elapsed-ns transit-times)
+   (/ (ns->ms (total-elapsed-ns transit-times))
       (count transit-times))))
 
 (defn- steps-per-sec [transit-times]
@@ -69,8 +69,8 @@
   (let [report (rate-report @step-transit-times-atom errors)]
     (or (:error report)
         (format
-         (str "Total time: %.2f, %s steps in %.2f total secs\n"
-              "            (includes all time from beginning of run to end)\n"
+         (str "Steps per sec of run: %.2f, %s steps in %.2f total secs\n"
+              "                      (includes all time from beginning of run to end)\n"
               "Millis per step: %.2f ms/step\n"
               "                 (only includes time spent executing steps)\n"
               "Steps per second: %.2f steps/sec \n"
