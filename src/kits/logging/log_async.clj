@@ -7,6 +7,7 @@
   (:require
    [kits.queues :as q]
    [kits.thread :as t]
+   [kits.homeless :as hl]
    [kits.logging.log-consumer :as log-consumer]
    [kits.logging.log-generator :as log-generator]
    [kits.structured-logging :as sl]))
@@ -21,9 +22,9 @@
 
 (defn exception
   ([e msg] (exception log-q e msg))
-  ([queue e msg] (q/add @queue (assoc msg :exception e
-                                      :stacktrace (sl/stacktrace e)
-                                      "log-level" :ERROR))))
+  ([queue e msg] (q/add @queue (merge msg
+                                      {"log-level" :ERROR}
+                                      (hl/exception->map e)))))
 
 (defn error
   ([msg] (error log-q msg))
