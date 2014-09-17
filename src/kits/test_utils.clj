@@ -8,7 +8,7 @@
 
 (defmacro assert-tables-equal
   "Assert that two seqs of seqs are equal, and when there is a
-   failure, reports exactly which row/column pair failed."
+  failure, reports exactly which row/column pair failed."
   [expected-table actual-table]
   `(let [expected-table# ~expected-table
          actual-table# ~actual-table
@@ -84,22 +84,23 @@
 
 (defn error-ratio
   "Compute the error ratio for two floating-point values."
-  [ val1 val2 ]
-  (let [  dbl1         (double val1)
-          dbl2         (double val2)
-          abs-delta    (Math/abs (- dbl1 dbl2))
-          max-abs-val  (Math/max (double (Math/abs dbl1))
-                                 (double (Math/abs dbl2)) )
-          error-ratio  (/ abs-delta max-abs-val) ]
-    error-ratio 
-  ))
+  [val1 val2]
+  (let [dbl1 (double val1)
+        dbl2 (double val2)
+        abs-delta (Math/abs (- dbl1 dbl2))
+        max-abs-val (Math/max (double (Math/abs dbl1))
+                              (double (Math/abs dbl2)))]
+    (/ abs-delta max-abs-val)))
 
 (defmacro doseq-tests
-  "Labels each case with an test-num starting from one."
+  "Labels each case with an test-num starting from #0, and test failures print
+  the right-hand side's binding values for that failure."
   [bindings & body]
-  `(let [test-num# (atom 0)
-         bindings-vec# '~(vec (first (rest bindings)))]
-     (doseq ~bindings
-       (testing (str "\n   #" @test-num# ": " (get bindings-vec# @test-num#))
-         (swap! test-num# inc)
-         ~@body))))
+  (let [syms-to-bind-to (first bindings)
+        bindings-rhs-vec (vec (first (rest bindings)))]
+    `(do
+       ~@(for [i (range (count bindings-rhs-vec))
+               :let [rhs (get bindings-rhs-vec i)]]
+           `(let [~syms-to-bind-to ~rhs]
+              (testing (str "\n   #" ~i ": " '~rhs)
+                ~@body))))))
