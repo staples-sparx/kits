@@ -70,3 +70,15 @@
 
 (deftest test-map-nth
   (is (= [1 2 1 2] (map-nth inc 2 [1 1 1 1]))))
+
+(deftest test-map-all
+  (is (= ["onetwothree" "BC" "longest!"]
+         (map-all str
+                  ["one"]
+                  ["two" "B"]
+                  ["three" "C" "longest!"])))
+  (is (= [{:c 1, :b 3, :a 1} {:c 2, :a 2} {:c 3}]
+         (map-all merge
+                  [{:a 1} {:a 2}]
+                  [{:b 3}]
+                  [{:c 1} {:c 2} {:c 3}]))))

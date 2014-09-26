@@ -135,3 +135,9 @@
   (if (empty? seqs)
     []
     (apply map list seqs)))
+
+(defn map-all [f & colls]
+  (lazy-seq
+  (when (some seq colls)
+    (cons (apply f (map first colls))
+          (apply map-all f (map rest colls))))))
