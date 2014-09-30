@@ -93,8 +93,9 @@
     (/ abs-delta max-abs-val)))
 
 (defmacro doseq-tests
-  "Labels each case with an test-num starting from #0, and test failures print
-  the right-hand side's binding values for that failure."
+  "Behaves just like a regular doseq, except it labels each case with an
+  test-num starting from #0, and test failures print the right-hand
+  side's binding values for that failure."
   [bindings & body]
   (let [syms-to-bind-to (first bindings)
         bindings-rhs-vec (vec (first (rest bindings)))]
