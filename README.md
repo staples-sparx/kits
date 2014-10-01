@@ -19,7 +19,14 @@ Tests
 Run tests vs all supported Clojure versions:
 
 ```
-lein run-tests # using Leningen 2
+lein run-tests
+```
+
+Deploy
+------
+
+```
+make deploy ## enter your clojars username and password when prompted
 ```
 
 License

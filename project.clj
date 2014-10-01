@@ -26,4 +26,6 @@
              :1.5.0 {:dependencies [[org.clojure/clojure "1.5.1"]
                                     [org.clojars.runa/conjure "2.2.0"]]}}
   :aliases {"run-tests" ["with-profile" "1.4.0:1.5.0" "test"]
-            "slamhound" ["run" "-m" "slam.hound"]})
+            "slamhound" ["run" "-m" "slam.hound"]}
+  :deploy-repositories [["clojars" {:url "https://clojars.org/repo/"
+                                    :sign-releases false}]])
