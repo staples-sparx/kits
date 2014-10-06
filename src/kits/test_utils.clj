@@ -1,7 +1,9 @@
 (ns kits.test-utils
   "Functions and macros for making writing tests more effectively."
   (:require [clojure.data :as data]
-            [clojure.pprint :as pprint])
+            [clojure.pprint :as pprint]
+            [clojure.test :as ct]
+            [kits.string :as kstr])
   (:use clojure.test))
 
 (set! *warn-on-reflection* false)
@@ -105,3 +107,24 @@
            `(let [~syms-to-bind-to ~rhs]
               (testing (str "\n   #" ~i ": " '~rhs)
                 ~@body))))))
+
+
+;;;; Pending tests
+
+(defn- pending-str- [name]
+  (apply str
+         (kstr/repeat-str 100 "*") "\n"
+         "========\n" name " is pending !!\n========\n"
+         (kstr/repeat-str 100 "*") "\n"))
+
+(defmacro deftest-pending
+  "A Simple macro that enable to mark your test to pending"
+  [name & body]
+  (let [message (#'pending-str- name)]
+    `(ct/deftest ~name
+       (println ~message))))
+
+(defmacro testing-pending [name & body]
+  (let [message (#'pending-str- name)]
+    `(ct/testing ~name
+       (println ~message))))
