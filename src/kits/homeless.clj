@@ -885,3 +885,11 @@ to return."
     (when-not (resolve sym)
       (list* 'do body))
     (catch ClassNotFoundException _#)))
+
+(defn approximately-equal?
+  "true if x is within epsilon of y. Default epsilon of 0.0001"
+  ([x y]
+     (approximately-equal? x y 0.0001))
+  ([x y epsilon]
+     (<= (Math/abs (- x y))
+         epsilon)))

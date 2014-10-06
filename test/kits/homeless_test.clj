@@ -349,3 +349,15 @@
   (is (= true (within? 10 5 15)))
   (is (= true (within? 10 5 14)))
   (is (= false (within? 10 5 16))))
+
+(deftest test-approximately-equal?
+  (is (approximately-equal? 0.0 0.0))
+  (is (approximately-equal? 10.0 10.0))
+  (is (approximately-equal? -10.0 -10.0))
+  (is (approximately-equal? 10.0 10.00001))
+  (is (not (approximately-equal? 10.0 10.00001 0.0000001)))
+  (is (not (approximately-equal? 10.0 10.001)))
+  (is (approximately-equal? Double/NaN 0.0))
+  (is (approximately-equal? 0.0 Double/NaN))
+  (is (not (approximately-equal? 10.0 -10.0)))
+  (is (approximately-equal? 10.0 10)))
