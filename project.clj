@@ -1,4 +1,4 @@
-(defproject org.clojars.runa/kits "1.19.30"
+(defproject org.clojars.runa/kits "1.20.0"
   :description "Runa's core utilities."
   :min-lein-version "2.0.0"
   :license {:name "MIT License"
@@ -16,7 +16,7 @@
                  [org.clojure/java.jdbc "0.3.3"]
                  [org.clojars.runa/runa.tools.logging "0.2.7"]
                  [clojure-csv/clojure-csv "2.0.0-alpha1"]
-                 [org.eclipse.jetty/jetty-server "8.1.14.v20131031"]]
+                 [org.eclipse.jetty/jetty-server "9.2.3.v20140905"]]
   :clean-targets  [ :target-path ]
   :global-vars {*warn-on-reflection* false}
   :profiles {:dev {:dependencies [[org.clojars.runa/conjure "2.2.0"]
