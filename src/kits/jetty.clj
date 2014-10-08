@@ -1,19 +1,10 @@
 (ns kits.jetty
-  (:import
-   java.io.InputStream
-   java.io.OutputStream
-   java.io.File
-   java.io.FileInputStream
-   java.util.Map
-   java.util.HashMap
-   javax.servlet.http.HttpServletRequest
-   javax.servlet.http.HttpServletResponse
-   org.eclipse.jetty.server.Server
-   org.eclipse.jetty.server.Handler
-   org.eclipse.jetty.server.Request
-   org.eclipse.jetty.util.thread.QueuedThreadPool
-   org.eclipse.jetty.util.thread.ExecutorThreadPool
-   org.eclipse.jetty.server.nio.SelectChannelConnector))
+  (:import (java.io File FileInputStream InputStream OutputStream)
+           (java.util Map HashMap)
+           (javax.servlet.http HttpServletResponse HttpServletRequest)
+           (org.eclipse.jetty.server Server Request ServerConnector)
+           (org.eclipse.jetty.server.handler AbstractHandler)
+           (org.eclipse.jetty.util.thread QueuedThreadPool ExecutorThreadPool)))
 
 (set! *warn-on-reflection* true)
 
@@ -65,60 +56,39 @@
       (put! params name (last values)))
     params))
 
-(deftype JettyAdapter [^{:unsynchronized-mutable true} server application-handler
-                       exception-handler]
-  Handler
-  (handle [this target base-request request servlet-resp]
-    (try
-      (let [^HttpServletRequest request request
-            method (.getMethod request)
-            from-ip (.getRemoteAddr request)
-            clj-request {:uri target
-                         :method method
-                         :from-ip from-ip
-                         :base-request request}
-            servlet-params (.getParameterMap request)
-            sanitized-params (sanitize-params servlet-params)]
-        (try
-          (let [clj-resp (application-handler clj-request sanitized-params)]
-            (reply base-request servlet-resp clj-resp))
-          (catch Exception e
-            (let [error (exception-handler e clj-request sanitized-params)]
-              (reply-with-server-error base-request servlet-resp error)))))
-      (catch Exception e
-        (let [error (exception-handler e nil nil)]
-          (reply-with-server-error base-request servlet-resp error)))))
-
-  (setServer [this new-server]
-    (let [previous server]
-      (when (and previous (not= previous new-server))
-        (-> ^Server server
-          (.getContainer)
-          (.removeBean ^Handler this)))
-      (set! server new-server)
-      (when (and new-server (not= previous new-server))
-        (-> ^Server server
-          (.getContainer)
-          (.addBean ^Handler this)))))
-  (getServer [this]
-    server)
-  (destroy [this]
-    (when server
-      (-> ^Server server
-        (.getContainer)
-        (.removeBean ^Handler this))))
-
-  (start [this])
-  (stop [this]))
+(defn- handler [http-handler exception-handler]
+  (proxy [AbstractHandler] []
+    (handle [_ ^Request base-request request servlet-resp]
+      (try
+        (let [^HttpServletRequest request request
+              method (.getMethod request)
+              from-ip (.getRemoteAddr request)
+              uri (.getRequestURI request)
+              clj-request {:uri uri
+                           :method method
+                           :from-ip from-ip
+                           :base-request request}
+              servlet-params (.getParameterMap request)
+              sanitized-params (sanitize-params servlet-params)]
+          (try
+            (let [clj-resp (http-handler clj-request sanitized-params)]
+              (reply base-request servlet-resp clj-resp))
+            (catch Exception e
+              (let [error (exception-handler e clj-request sanitized-params)]
+                (reply-with-server-error base-request servlet-resp error)))))
+        (catch Exception e
+          (let [error (exception-handler e nil nil)]
+            (reply-with-server-error base-request servlet-resp error)))))))
 
 (defn server [config http-handler exception-handler]
   (let [thread-pool (doto (QueuedThreadPool.)
                       (.setMaxThreads (int (:max-threads config)))
                       (.setMinThreads (int (:min-threads config))))
-        connector (doto (SelectChannelConnector.)
-                    (.setAcceptors (int (:acceptors config)))
-                    (.setPort (int (:port config)))) ]
-    (doto (Server.)
-                 (.setThreadPool thread-pool)
-                 (.addConnector connector)
-                 (.setHandler (JettyAdapter. nil http-handler exception-handler)))))
+        server ^Server (Server. thread-pool)
+        acceptors (int (or (:acceptors config) -1))
+        selectors (int (or (:selectors config) -1))
+        connector (doto ^Connector (ServerConnector. server acceptors selectors)
+                        (.setPort (int (:port config))))]
+    (doto ^Server server
+      (.addConnector connector)
+      (.setHandler (handler http-handler exception-handler)))))
