@@ -1,17 +1,19 @@
 .PHONY:	help ? test deploy
 
+LEIN = HTTP_CLIENT="curl --insecure -f -L -o" lein
+
 all: tests
 
 jar:
-	lein jar
+	$(LEIN) jar
 
 tests:
-	lein test
+	$(LEIN) test
 
 ci: tests
 
 deploy:
-	lein deploy clojars
+	$(LEIN) deploy clojars
 
 help: ?
 
