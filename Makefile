@@ -27,4 +27,4 @@ help: ?
 	@echo
 	@echo "ci ...................... Target for CI build"
 	@echo
-	@echo "deploy .................. Deploy Kits on Clojar"
+	@echo "deploy .................. Deploy Kits artifacts on Clojars.org (requires gpg signing)"

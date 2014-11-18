@@ -28,4 +28,4 @@
   :aliases {"run-tests" ["with-profile" "1.4.0:1.5.0" "test"]
             "slamhound" ["run" "-m" "slam.hound"]}
   :deploy-repositories [["clojars" {:url "https://clojars.org/repo/"
-                                    :sign-releases false}]])
+                                    :signing {:gpg-key "76FD68DC"}}]])
