@@ -1,10 +1,10 @@
-(defproject org.clojars.runa/kits "1.20.2"
+(defproject org.clojars.sparx/kits "1.20.2"
   :description "Runa's core utilities."
   :local-repo ".m2"
   :min-lein-version "2.0.0"
   :license {:name "MIT License"
             :url "http://mit-license.org/"}
-  :url "https://github.com/runa-dev/kits"
+  :url "https://github.com/staples-sparx/kits"
   :plugins [[jonase/eastwood "0.0.2"]
             [lein-kibit "0.0.7"]]
   :dependencies [[org.clojure/clojure "1.5.1"]
