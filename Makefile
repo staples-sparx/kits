@@ -4,13 +4,16 @@ LEIN = HTTP_CLIENT="curl --insecure -f -L -o" lein
 
 all: tests
 
+clean:
+	rm -rf ./m2
+
 jar:
 	$(LEIN) jar
 
 tests:
 	$(LEIN) test
 
-ci: tests
+ci: clean tests
 
 deploy:
 	$(LEIN) deploy clojars

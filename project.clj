@@ -1,5 +1,6 @@
-(defproject org.clojars.runa/kits "1.20.1"
+(defproject org.clojars.runa/kits "1.20.2"
   :description "Runa's core utilities."
+  :local-repo ".m2"
   :min-lein-version "2.0.0"
   :license {:name "MIT License"
             :url "http://mit-license.org/"}
@@ -7,7 +8,6 @@
   :plugins [[jonase/eastwood "0.0.2"]
             [lein-kibit "0.0.7"]]
   :dependencies [[org.clojure/clojure "1.5.1"]
-                 [ca.umontreal.iro/ssj "2.5"]
                  [cheshire "5.3.1"]
                  [clout "1.1.0"]
                  [org.hdrhistogram/HdrHistogram "1.2.1"]
