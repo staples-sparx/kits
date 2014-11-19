@@ -6,6 +6,7 @@
   (:import
    java.io.BufferedReader
    java.io.ByteArrayInputStream
+   java.io.ByteArrayOutputStream
    java.io.File
    java.io.FileInputStream
    java.io.FileOutputStream
@@ -33,6 +34,11 @@
            (when (pos? size)
              (.write out ^bytes buf 0 size)
              (recur)))))))
+
+(defn stream->str ^String [^InputStream in ^long expected-size ^String encoding]
+  (let [out (ByteArrayOutputStream. expected-size)]
+    (io/copy in out expected-size)
+    (.toString out encoding)))
 
 (defn copy-file [^String from ^String to]
   (with-open [in (FileInputStream. from)
