@@ -32,10 +32,18 @@
       (.append \newline)
       (.toString)))
 
+(defn log-line-plain [^String message]
+  (-> (StringBuilder. 256)
+      (.append message)
+      (.append \newline)
+      (.toString)))
+
 (defn log-formatter [default-context msg-map]
   (let [log-level (get-in msg-map ["log-level"] :INFO)
         context (get-in msg-map [:reply "context"] default-context)]
-    (log-line log-level context (str msg-map) nil)))
+    (if (= log-level :PLAIN)
+      (log-line-plain (str msg-map))
+      (log-line log-level context (str msg-map) nil))))
 
 (defn simple-date-format
   ([format-string]
