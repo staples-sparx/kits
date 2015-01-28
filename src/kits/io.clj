@@ -37,7 +37,7 @@
 
 (defn stream->str ^String [^InputStream in ^long expected-size ^String encoding]
   (let [out (ByteArrayOutputStream. expected-size)]
-    (io/copy in out expected-size)
+    (jio/copy in out expected-size)
     (.toString out encoding)))
 
 (defn copy-file [^String from ^String to]
