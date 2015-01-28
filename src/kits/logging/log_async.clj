@@ -75,8 +75,9 @@
       (log-consumer/make-log-rotate-loop
        {:queue @queue
         :compute-file-name log-generator/log-file-path-for
-        :formatter (partial log-generator/log-formatter
-                            (:default-context log-config))
+        :formatter (or (:formatter-fn log-config)
+                       (partial log-generator/log-formatter
+                                (:default-context log-config)))
         :io-error-handler (or (:io-error-handler log-config)
                               (partial log-consumer/stdout))
         :conf log-config}))))
