@@ -41,6 +41,10 @@
   ([msg] (info log-q msg))
   ([queue msg] (q/add @queue (assoc msg :log-level :INFO))))
 
+(defn plain
+  ([msg] (plain log-q msg))
+  ([queue msg] (q/add @queue (assoc msg :log-level :PLAIN))))
+
 (defn debug
   ([msg] (debug log-q msg))
   ([queue msg] (q/add @queue (assoc msg :log-level :DEBUG))))
