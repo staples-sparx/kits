@@ -1,4 +1,5 @@
 (ns kits.io
+  "IO related convenience functions"
   (:use kits.foundation)
   (:require
    [kits.logging :as log]
@@ -43,7 +44,7 @@
 (defn copy-file [^String from ^String to]
   (with-open [in (FileInputStream. from)
               out (FileOutputStream. to)]
-    (copy  in out)))
+    (copy in out)))
 
 (defn file ^File [path] (if (string? path) (File. ^String path) path))
 
@@ -55,7 +56,9 @@
   (.getName path))
 
 (defn exists? [^String path]
-  (.exists ^File (file path)))
+  (when path
+    (.exists
+      (java.io.File. path))))
 
 (defn mkdir
   "Creates a directory including any missing parents"

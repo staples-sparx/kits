@@ -28,13 +28,13 @@
   "Add a new msg to the queue. Returns false if the msg could not be
    added because the queue is full, true otherwise."
   [q msg]
-  (.offer ^ArrayBlockingQueue q msg))
+  (.offer ^BlockingQueue q msg))
 
 (defn fetch
   "Retrieves a message from the queue, waiting if necessary until an
    element becomes available."
   [q timeout-in-ms]
-  (.poll ^ArrayBlockingQueue q timeout-in-ms TimeUnit/MILLISECONDS))
+  (.poll ^BlockingQueue q timeout-in-ms TimeUnit/MILLISECONDS))
 
 (defn peek
   "Retrieves, but does not remove, a message from the queue"
@@ -57,7 +57,7 @@
 
 (defn stats
   "Return current stats for the queue"
-  [^ArrayBlockingQueue q]
+  [^BlockingQueue q]
   (let [s (used q)
         r (free q)]
     {:total (_+ s r)
