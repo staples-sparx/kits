@@ -16,3 +16,4 @@
 /.lein-repl-history
 /jar
 .*.swp
+.m2
