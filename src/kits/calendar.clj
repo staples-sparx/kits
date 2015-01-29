@@ -1,5 +1,7 @@
 (ns kits.calendar
-  (:use kits.foundation)
+  "Convenience function to manipulate time & date on the JVM"
+  (:use
+    kits.foundation)
   (:import
     java.util.Date
     java.util.Calendar

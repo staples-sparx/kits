@@ -1,11 +1,38 @@
 (ns kits.csv-test
-  (:use clojure.test)
-  (:require [clojure.java.io :as io]
-            [kits.csv :as csv]
-            [kits.foundation :as f]))
+  (:use
+    kits.foundation
+    clojure.test)
+  (:require
+    [clojure.java.io :as clj-io]
+    [kits.io :as io]
+    [kits.csv :as csv]
+    [kits.foundation :as f]))
 
-(def sample-csv (str (System/getProperty "user.dir")
-                     "/samples/sample.csv"))
+(defn sample-csv []
+  (io/tmp-file-with "sample" ".csv"
+
+"\"id\" \"left\" \"right\" \"split_var\" \"split_point\" \"status\" \"prediction\"
+\"1\" 2 3 \"most_expensive_product_in_cart\" 1990 1 NA
+\"2\" 4 5 \"os.Windows\" 0.5 1 NA
+
+
+\"3\" 6 7 \"cart_actions\" 1.5 1 NA
+\"4\" 8 9 \"price\" 8983.5 1 NA"))
+
+(defn sample-psv []
+  (io/tmp-file-with "sample" ".psv"
+
+"PERSON_ID|bc_seg|ZIP_POSTAL_CODE
+1427447|Holdout Runa|03903
+1428540|Holdout Runa|45231
+1428694|Holdout Runa|18104
+1428727|Holdout Runa|33610
+1429587|Holdout Runa|17856
+1429905|Holdout Runa|50480
+1430343|Holdout Runa|28270
+1431186|Holdout Runa|11580
+1431413|Holdout Runa|03062"))
+
 
 (def sample-field-reader-opts
   {:key-fn :id
@@ -65,7 +92,7 @@
 
 (deftest parsing-csv-into-nested-maps
   (let [result
-        (with-open [rdr (io/reader sample-csv)]
+        (with-open [rdr (clj-io/reader (sample-csv))]
           (doall (csv/read-csv rdr
                                {:skip-header true
                                 :delimiter \space})))
@@ -128,31 +155,17 @@
              :right 9,
              :extra "added this",
              :id 4}}
-           (with-open [rdr (io/reader sample-csv)]
+           (with-open [rdr (clj-io/reader (sample-csv))]
              (csv/csv-rows->map (csv/read-csv
                                  rdr
                                  {:skip-header true :delimiter \space})
                                 (assoc sample-field-reader-opts
                                   :exclude-columns #{1 6})))))))
 
-(def sample-psv (let [psv "/tmp/sample-psv.psv"
-                      _ (spit "/tmp/sample-psv.psv"
-"PERSON_ID|bc_seg|ZIP_POSTAL_CODE
-1427447|Holdout Runa|03903
-1428540|Holdout Runa|45231
-1428694|Holdout Runa|18104
-1428727|Holdout Runa|33610
-1429587|Holdout Runa|17856
-1429905|Holdout Runa|50480
-1430343|Holdout Runa|28270
-1431186|Holdout Runa|11580
-1431413|Holdout Runa|03062")]
-                  psv))
-
 (deftest load-psv-files
   (testing "loading of psv files"
     (is (= {:zip "03062", :id "1431413"}
-           (get (with-open [rdr (io/reader sample-psv)]
+           (get (with-open [rdr (clj-io/reader (sample-psv))]
                   (csv/csv-rows->map (csv/read-csv
                                       rdr
                                       {:skip-header true :delimiter \|})
@@ -160,4 +173,3 @@
                                       0 {:label :id :reader identity}
                                       2 {:label :zip :reader identity}}))
                 "1431413")))))
-

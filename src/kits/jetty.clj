@@ -1,10 +1,12 @@
 (ns kits.jetty
-  (:import (java.io File FileInputStream InputStream OutputStream)
-           (java.util Map HashMap)
-           (javax.servlet.http HttpServletResponse HttpServletRequest)
-           (org.eclipse.jetty.server Server Request ServerConnector)
-           (org.eclipse.jetty.server.handler AbstractHandler)
-           (org.eclipse.jetty.util.thread QueuedThreadPool ExecutorThreadPool)))
+  "Convenience functions to embed Jetty web server"
+  (:import
+    (java.io File FileInputStream InputStream OutputStream)
+    (java.util Map HashMap)
+    (javax.servlet.http HttpServletResponse HttpServletRequest)
+    (org.eclipse.jetty.server Server Request ServerConnector)
+    (org.eclipse.jetty.server.handler AbstractHandler)
+    (org.eclipse.jetty.util.thread QueuedThreadPool ExecutorThreadPool)))
 
 (set! *warn-on-reflection* true)
 

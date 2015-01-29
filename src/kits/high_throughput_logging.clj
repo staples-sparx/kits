@@ -1,4 +1,5 @@
 (ns kits.high-throughput-logging
+  "High throuput logging flushing to disk every N message and M milliseconds"
   (:use
     kits.foundation)
   (:require

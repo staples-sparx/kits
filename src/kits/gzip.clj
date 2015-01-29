@@ -1,11 +1,12 @@
 (ns kits.gzip
+  "GZIP compression/decompression convenience functions"
   (:import
-   java.io.ByteArrayOutputStream
-   java.io.ByteArrayInputStream
-   java.io.BufferedReader
-   java.io.InputStreamReader
-   java.util.zip.GZIPOutputStream
-   java.util.zip.GZIPInputStream))
+    java.io.ByteArrayOutputStream
+    java.io.ByteArrayInputStream
+    java.io.BufferedReader
+    java.io.InputStreamReader
+    java.util.zip.GZIPOutputStream
+    java.util.zip.GZIPInputStream))
 
 (defn compress [^String in]
   (let [^ByteArrayOutputStream byte-stream (ByteArrayOutputStream.)]
