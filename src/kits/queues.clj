@@ -1,54 +1,49 @@
 (ns kits.queues
   "Wrappers for constructing various java.util.concurrent queues."
-  (:require [kits.thread :as thread])
-  (:import (java.util.concurrent ArrayBlockingQueue BlockingQueue
-                                 PriorityBlockingQueue TimeUnit))
-  (:refer-clojure :exclude [get peek empty?]))
+  (:refer-clojure :exclude [get peek empty?])
+  (:use
+    kits.foundation)
+  (:require
+    [kits.thread :as thread])
+  (:import
+    java.util.concurrent.ArrayBlockingQueue
+    java.util.concurrent.BlockingQueue
+    java.util.concurrent.PriorityBlockingQueue
+    java.util.concurrent.TimeUnit))
 
 (set! *warn-on-reflection* true)
 
-(defn make-basic-queue
+(defn create
   "Create a new queue that can hold at max 'capacity' items"
-  [& [capacity]]
-  (let [capacity (or capacity 10)]
-    (ArrayBlockingQueue. (int capacity))))
+  [capacity]
+  (ArrayBlockingQueue.
+    (int capacity)))
 
-(def create make-basic-queue)           ; compatibility alias
-
-(defn make-priority-queue
+(defn create-with-priority
   "Create a new priority-queue with `comparator` and `capacity` items"
-  [comparator & [capacity]]
-  (let [capacity (or capacity 10)]
-    (PriorityBlockingQueue. capacity comparator)))
+  [comparator capacity]
+  (PriorityBlockingQueue. capacity comparator))
 
 (defn add
   "Add a new msg to the queue. Returns false if the msg could not be
    added because the queue is full, true otherwise."
-  [^BlockingQueue q msg]
-  (.offer q msg))
-
-(def offer! add)                        ; compatibility alias
+  [q msg]
+  (.offer ^ArrayBlockingQueue q msg))
 
 (defn fetch
   "Retrieves a message from the queue, waiting if necessary until an
    element becomes available."
-  ([^BlockingQueue q]
-     (fetch q 0))
-  ([^BlockingQueue q timeout-in-ms]
-     (.poll q timeout-in-ms TimeUnit/MILLISECONDS)))
-
-(def poll! fetch)                       ; compatibility alias
-
-(defn fetch-with-timeout
-  "Retrieves a message from the queue, waiting if necessary until an
-   element becomes available."
-  [^BlockingQueue q timeout-in-ms]
-  (.poll q timeout-in-ms TimeUnit/MILLISECONDS))
+  [q timeout-in-ms]
+  (.poll ^ArrayBlockingQueue q timeout-in-ms TimeUnit/MILLISECONDS))
 
 (defn peek
   "Retrieves, but does not remove, a message from the queue"
   [^BlockingQueue q]
   (.peek q))
+
+(def offer! add)                        ; compatibility alias
+
+(def poll! fetch)                       ; compatibility alias
 
 (defn used [^BlockingQueue q]
   (.size q))
@@ -59,11 +54,25 @@
 (defn free [^BlockingQueue q]
   (.remainingCapacity q))
 
+
 (defn stats
   "Return current stats for the queue"
-  [^BlockingQueue q]
+  [^ArrayBlockingQueue q]
   (let [s (used q)
         r (free q)]
-    {:total (+ s r)
+    {:total (_+ s r)
      :used s
      :free r}))
+
+(defn start-thread-pool
+  "Starts a thread pool with 'thread-count' threads. 'f' is a function
+   that constitute the tread loop. Its first argument is the thread
+   name, the second argument will be set  to match the 'args' given
+   when invoking 'start-thread-pool'"
+  [thread-count name-prefix f & args]
+  (doall
+    (map #(let [name (str name-prefix %)
+                t (Thread. ^Runnable (partial f name args) ^String name)]
+            (.start t)
+            t)
+      (range 0 (int thread-count)))))

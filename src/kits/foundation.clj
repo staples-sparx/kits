@@ -1,29 +1,267 @@
 (ns kits.foundation
-  "Deprecated!!!!! A catchall namespace originally pulled from Pythia"
-  (:require [clojure.pprint :as pprint]
-            [clojure.string :as str])
-  (:import (java.util.concurrent Future TimeoutException)))
+  "Basic clojure helper functions"
+  (:require
+    [clojure.pprint :as pprint]
+    [clojure.string :as str]
+    [clojure.data :as data])
+  (:import
+    java.util.concurrent.Future
+    java.util.concurrent.TimeoutException
+    java.io.StringWriter
+    java.util.UUID
+    java.security.MessageDigest
+    java.security.NoSuchAlgorithmException))
 
 (set! *warn-on-reflection* true)
 
-;; WARNING: this namespace is deprecated.  Use kits.homeless instead, and
-;; consider adding your code to a focused, Single-Responsibility namespace instead
+(defmacro _+ [a b] `(unchecked-add (long ~a) (long ~b)))
+(defmacro _- [a b] `(unchecked-subtract (long ~a) (long ~b)))
+(defmacro _* [a b] `(long (unchecked-multiply (long ~a) (long ~b))))
+(defmacro _div [a b] `(long (/ (long ~a) (long ~b))))
+(defmacro _rem [a b] `(let [a# (long ~a)
+                            b# (long ~b)]
+                        (- a# (_* (long (_div a# b#)) b#))))
+(defmacro _1+ [a] `(unchecked-inc (long ~a)))
+(defmacro _1- [a] `(unchecked-dec (long ~a)))
+
+(defn tap [& args]
+  (apply println
+    (cons "*** "
+      (map #(if (string? %)
+              %
+              (with-out-str (pprint/pprint %)))
+        args)))
+  (last args))
+
+(defn within?
+  ([expected actual]
+     (within? expected actual 0.01))
+  ([expected actual delta]
+     (<= (Math/abs (float (- expected actual))) delta)))
+
+(defn nano-time
+  "Returns the current value of the most precise available system timer, in nanoseconds."
+  []
+  ;; http://www.javacodegeeks.com/2012/02/what-is-behind-systemnanotime.html
+  ;;
+  ;; ph7 - Returned values are very different on OS X, Linux, Solaris
+  ;;
+  ;; On Linux:
+  ;;
+  ;;     user=> (System/currentTimeMillis)
+  ;;     1354659982789
+  ;;     user=> (System/nanoTime)
+  ;;     88526629023881
+  ;;
+  ;; On OS X:
+  ;;
+  ;;    user> (System/currentTimeMillis)
+  ;;    1354660113914
+  ;;    user> (kits.foundation/nano-time)
+  ;;    1354660119443686000
+  ;;
+  ;; As a consequence I cannot compute absolute time/data based on (System/nanoTime)
+  ;;
+  ;; Another problem is that the value can leap back or just forward.
+  ;; It may not change monotonically and change rate can vary with
+  ;; dependency on CPU clock speed.
+  ;;
+  ;; If there are multiple cpus/cores, the running thread seem
+  ;; to switch between different cpus and each cpu seem to have a different
+  ;; timer base the result of nanoTime is jumping forward and backward in
+  ;; time, depending on which cpu the thread is currently running.
+  ;;
+  ;; On Linux the value is read from clock_gettime with CLOCK_MONOTONIC flag
+  ;; (for real man, source is available in vclock_gettime.c from Linux source). Which uses
+  ;; either TSC or HPET. The only difference with Windows is that Linux not even trying
+  ;; to sync values of TSC read from different CPUs, it just returns it as it is. It
+  ;; means that value can leap back and jump forward with dependency of CPU where it is
+  ;; read. Also, in contract to Windows, Linux doesn’t keep change frequency constant.
+  ;; On the other hand, it definitely should improve performance.
+  ;;
+
+  ;; ph7 - work around the problem for now (System/nanoTime)
+  (_* (System/currentTimeMillis) 1000000)
+  )
+
+(defn nano->seconds [ts]
+  (_div (long ts) (long 1000000)))
+
+(defn micro->milli [ts]
+  (_div (long ts) (long 1000)))
+
+(defn nano->milli [ts]
+  (_div (long ts) (long 1000000)))
+
+^{:static true}
+(defn nano->min ^long [^long ts]
+  (/ ts (long 60000000000)))
+
+(defn min->nano [ts]
+  (_* (long ts) (long 60000000000)))
+
+(defn min->ms [ts]
+  (_* (long ts) (long 60000)))
+
+(defn ms->min [ts]
+  (_div (long ts) (long 60000)))
+
+(defn ms-time
+  " Returns number of milli-seconds since the epoch"
+  []
+  (System/currentTimeMillis))
+
+(defn starts-with [^String prefix ^String s]
+  (.startsWith s prefix))
+
+(defn ends-with [^String suffix ^String s]
+  (.endsWith s suffix))
+
+(defn substring? [^String fragment ^String str]
+  (>= (.indexOf str fragment) 0))
+
+(defn last-index-of [^String fragment ^String str]
+  (.lastIndexOf str fragment))
 
 (defn raise
   "Raise a RuntimeException with specified message."
   [& msg]
   (throw (RuntimeException. ^String (apply str msg))))
 
-(defmacro ignore-exceptions [& body]
+(defn split [^String str ^String sep]
+  (.split str sep))
+
+(defn trim [^String str]
+  (when str
+    (.trim str)))
+
+(defn blank? [^String str]
+  (or (nil? str) (= "" str)))
+
+(defn squeeze
+  "Remove any space character in a string"
+  [^String str]
+  (.replaceAll str "\\s+" ""))
+
+(defn strip-new-lines [^String str]
+  (.replaceAll str "[\r\n]+" ""))
+
+(defn str-replace [^String regex ^String replacement ^String str]
+  (when str
+    (.replaceAll str regex replacement)))
+
+(defn lowercase [str]
+  (.toLowerCase ^String str))
+
+(defn truncate-str [^Integer len ^String s]
+  (when s
+    (if (> (.length s) len)
+      (.substring s 0 len)
+      s)))
+
+(defn print-error [& args]
+  "Println to *err*"
+  (binding [*out* *err*]
+    (apply println args)))
+
+(defmacro blindly [ & body]
   `(try
      ~@body
-     (catch Exception e# nil)))
+     (catch Exception e#
+       (print-error "Ignoring error " e#))))
 
-(defn parse-int [str] (ignore-exceptions (Integer/parseInt str)))
-(defn parse-long [str] (ignore-exceptions (Long/parseLong str)))
-(defn parse-short [str] (ignore-exceptions (Short/parseShort str)))
-(defn parse-float [str] (ignore-exceptions (Float/parseFloat str)))
-(defn parse-double [str] (ignore-exceptions (Double/parseDouble str)))
+(defmacro nil-on-exceptions [& body]
+  `(try
+     ~@body
+     (catch Exception e#
+       nil)))
+
+(defn parse-int [str]
+  (nil-on-exceptions
+    (Integer/parseInt str)))
+
+(defn parse-long [str]
+  (nil-on-exceptions
+    (Long/parseLong str)))
+
+(defn parse-short [str]
+  (nil-on-exceptions
+    (Short/parseShort str)))
+
+(defn parse-float [str]
+  (nil-on-exceptions
+    (Float/parseFloat str)))
+
+(defn parse-double [str]
+  (nil-on-exceptions
+    (Double/parseDouble str)))
+
+(defn parse-boolean [str]
+  (Boolean/parseBoolean str))
+
+(defn long? [n]
+  (or
+   (= Long (class n))))
+
+(defn truncate-after-first-decimal [n]
+  (float (/ (int  (Math/round (float (* (float n) 10.0)))) 10)))
+
+(defn update-keys
+  "Apply a function on all keys of a map and return the corresponding map (all values untouched)"
+  [f a-map]
+  (zipmap
+    (map f (keys a-map))
+    (vals a-map)))
+
+(defn update-vals
+  "Apply a function on all values of a map and return the corresponding map (all keys untouched)"
+  [f a-map]
+  (zipmap
+    (keys a-map)
+    (map f (vals a-map))))
+
+(defn dissoc-in [m & keys-seq]
+  (reduce
+    (fn [m keys]
+      (let [last (last keys)
+            prefix (drop-last keys)]
+        (if (= 0 (count prefix))
+          (dissoc m last)
+          (update-in m
+            prefix
+            #(dissoc % last)))))
+    m
+    keys-seq))
+
+(defn diff
+  [expected actual]
+  (if-not (= expected actual)
+    (let [[only-in-expected only-in-actual, in-both] (data/diff expected actual)]
+      {:only-in-expected only-in-expected
+       :only-in-actual only-in-actual})
+    nil))
+
+(defn ===
+  "Compare 2 values with = and print diff on stdout when they do not match. Useful for friendly test failures."
+  [expected actual]
+  (if-let [delta (diff expected actual)]
+    (do
+      (pprint/pprint delta)
+      false)
+    true))
+
+(defn deep-merge [& maps]
+  (apply
+    (fn merge-one-level [& maps]
+      (if (every? map? maps)
+        (apply merge-with merge-one-level maps)
+        (last maps)))
+    maps))
+
+(defn uuid
+  "Return a UUID string."
+  []
+  (str (UUID/randomUUID)))
 
 (defn str->boolean
   "Boolean value for the specified string, per the following rules:
@@ -44,13 +282,6 @@
   "Test if specified array is of a base-type (long/double etc.)"
   [a]
   (and (or a false) (.isArray ^Class (class a))))
-
-(defn tap [& args]
-  (apply println
-         (cons "*** "
-               (map #(if (string? %) % (with-out-str (pprint/pprint %)))
-                    args)))
-  (last args))
 
 (defn time-ns
   "Current value of the most precise available system timer, in
@@ -162,10 +393,6 @@
 
 ;; (ip-to-dotted (dotted-to-ip "127.0.0.1"))
 
-(defn uuid
-  "Return a UUID string."
-  []
-  (str (java.util.UUID/randomUUID)))
 
 (defmacro do1
   "Evaluate expr1 and exprs and return the value of expr1."
