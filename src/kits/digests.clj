@@ -15,7 +15,7 @@
       (.update d (.getBytes s))
       d)))
 
-(defn digest-stream ^MessageDigest [^String algo ^InputStream in ^long chunk-size]
+(defn digest-stream ^MessageDigest [^String algo ^InputStream in chunk-size]
   (when in
     (let [d (MessageDigest/getInstance algo)
           buf (make-array Byte/TYPE chunk-size)]
