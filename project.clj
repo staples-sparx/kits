@@ -19,12 +19,9 @@
                  [org.eclipse.jetty/jetty-server "9.2.3.v20140905"]]
   :clean-targets  [ :target-path ]
   :global-vars {*warn-on-reflection* false}
-  :profiles {:dev {:dependencies [[org.clojars.runa/conjure "2.2.0"]
-                                  [slamhound "1.3.3"]]}
-             :1.4.0 {:dependencies [[org.clojure/clojure "1.4.0"]
-                                    [org.clojars.runa/conjure "2.2.0"]]}
-             :1.5.0 {:dependencies [[org.clojure/clojure "1.5.1"]
-                                    [org.clojars.runa/conjure "2.2.0"]]}}
+  :profiles {:dev {:dependencies [[slamhound "1.3.3"]]}
+             :1.4.0 {:dependencies [[org.clojure/clojure "1.4.0"]]}
+             :1.5.0 {:dependencies [[org.clojure/clojure "1.5.1"]]}}
   :aliases {"run-tests" ["with-profile" "1.4.0:1.5.0" "test"]
             "slamhound" ["run" "-m" "slam.hound"]}
   :deploy-repositories [["clojars" {:url "https://clojars.org/repo/"

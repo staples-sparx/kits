@@ -1,9 +1,10 @@
 (ns kits.homeless-test
   (:use
-    clojure.test
-    conjure.core
-    kits.homeless
-    kits.test-utils))
+    kits.foundation
+    clojure.test)
+  (:require
+    [kits.homeless :as h]
+    [kits.test-utils :as u]))
 
 (deftest all-kits.namespaces-have-doc-strings
   (testing "Since Kits is a set of core libraries for Runa, we want things to
@@ -27,7 +28,7 @@
   (is (= 1.0 (parse-float "1.0"))))
 
 (deftest test-parse-number
-  (are [expected str default] (= expected (parse-number str default))
+  (are [expected str default] (= expected (h/parse-number str default))
        nil nil nil
        10 "10" nil
        nil "" nil
@@ -37,7 +38,7 @@
        10 10 0))
 
 (deftest test-boolean?
-  (are [x bool?] (= bool? (boolean? x))
+  (are [x bool?] (= bool? (h/boolean? x))
        false true
        true true
        nil  false
@@ -46,35 +47,36 @@
        {}   false))
 
 (deftest test-wrap-trapping-errors
-  (is (false? ((wrap-trapping-errors pos? false) "string")))
-  (is (nil? ((wrap-trapping-errors pos?) "string")))
-  (is (true?  ((wrap-trapping-errors string?) "string"))))
+  (is (false? ((h/wrap-trapping-errors pos? false) "string")))
+  (is (nil? ((h/wrap-trapping-errors pos?) "string")))
+  (is (true?  ((h/wrap-trapping-errors string?) "string"))))
 
 (deftest test-ip-address-v4?
-  (is (false? (ip-address-v4? "34.342.3.4")))
-  (is (ip-address-v4? "192.168.0.1")))
+  (is (false? (h/ip-address-v4? "34.342.3.4")))
+  (is (h/ip-address-v4? "192.168.0.1")))
 
 (deftest test-str->boolean
-  (is (str->boolean "true"))
-  (is (false? (str->boolean "")))
-  (is (false? (str->boolean "false"))))
+  (is (h/str->boolean "true"))
+  (is (false? (h/str->boolean "")))
+  (is (false? (h/str->boolean "false"))))
 
 (deftest test-ipv4-dotted-to-integer
-  (is (= (ipv4-dotted-to-integer "127.0.0.1") 2130706433)))
+  (is (= (h/ipv4-dotted-to-integer "127.0.0.1") 2130706433)))
 
 (deftest test-ipv4-integer-to-dotted
-  (is (= "127.0.0.1" (ipv4-integer-to-dotted (ipv4-dotted-to-integer "127.0.0.1")))))
+  (is (= "127.0.0.1" (h/ipv4-integer-to-dotted
+                       (h/ipv4-dotted-to-integer "127.0.0.1")))))
 
 (deftest test-parse-url
-  (is (= {:scheme "http", :host "www.runa.com", :path "/design"} (parse-url "http://www.runa.com/design")))
-  (is (= nil (parse-url "")))
-  (is (= nil (parse-url nil))))
+  (is (= {:scheme "http", :host "www.runa.com", :path "/design"} (h/parse-url "http://www.runa.com/design")))
+  (is (= nil (h/parse-url "")))
+  (is (= nil (h/parse-url nil))))
 
 (deftest test-url?
-  (is (false? (url? "malformedhttp:// url")))
-  (is (false? (url? "")))
-  (is (false? (url? nil)))
-  (is (url? "http://www.runa.com/")))
+  (is (false? (h/url? "malformedhttp:// url")))
+  (is (false? (h/url? "")))
+  (is (false? (h/url? nil)))
+  (is (h/url? "http://www.runa.com/")))
 
 (deftest test-periodic-fn
   (let [msgs-logged (atom [])
@@ -82,9 +84,9 @@
                   (swap! msgs-logged conj msg))]
     (testing "creates a fn that only gets call every period times (2 in this example);
             has access to the 'call-count' as well, and the fn body is an implicit 'do'"
-      (let [log-every-other (periodic-fn [msg] [call-count 2]
-                                         (log-msg (format "%s-%s" msg call-count))
-                                         (log-msg (format "%s-%s" msg call-count)))]
+      (let [log-every-other (h/periodic-fn [msg] [call-count 2]
+                              (log-msg (format "%s-%s" msg call-count))
+                              (log-msg (format "%s-%s" msg call-count)))]
 
         (log-every-other "1 message")
         (is (= [] @msgs-logged) )
@@ -99,7 +101,7 @@
         (is (= ["another message-2" "another message-2" "4th-4" "4th-4"] @msgs-logged))))))
 
 (deftest test-timestamp?
-  (are [n result] (= (timestamp? n) result)
+  (are [n result] (= (h/timestamp? n) result)
        nil      false
        -4444444 false
        -333333  false
@@ -149,111 +151,114 @@
 
 (deftest test-with-retries
   (is (thrown? Exception
-        (with-retries {:max-times 1}
+        (h/with-retries {:max-times 1}
           (throws-on-1st-or-2nd-call))))
 
   (testing "handles map options or integer max-times"
-    (is (= :foo (with-retries {:max-times 3}
+    (is (= :foo (h/with-retries {:max-times 3}
                   (throws-on-1st-or-2nd-call))))
 
-    (is (= :foo (with-retries 3
+    (is (= :foo (h/with-retries 3
                   (throws-on-1st-or-2nd-call)))))
 
   (is (thrown? Exception
-        (with-retries {:max-times 3
+        (h/with-retries {:max-times 3
                        :retry-handler retry-handler
                        :fail-handler fail-handler}
           (raise Exception "BLAMMO!"))))
 
   (is (thrown? Exception
-        (with-retries {:max-times 3
+        (h/with-retries {:max-times 3
                        :retry-handler retry-handler
                        :fail-handler fail-handler}
           (raise Exception "BLAMMO!"))))
 
   (is (not-thrown? Exception
-        (with-retries {:max-times 3
+        (h/with-retries {:max-times 3
                        :retry-handler retry-handler
                        :fail-handler fail-handler
                        :swallow-exceptions? true}
           (raise Exception "BLAMMO!")))))
 
 (deftest test-incremental-name-with-prefix
-  (let [name-maker1 (incremental-name-with-prefix "name")]
+  (let [name-maker1 (h/incremental-name-with-prefix "name")]
     (is (= "name-0" (name-maker1)))
     (is (= "name-1" (name-maker1)))
     (is (= "name-2" (name-maker1)))))
 
 
 (deftest test-make-comparator
-  (is (= 1 ((make-comparator < :key-fn :id) {:name "foo" :id 2} {:name "bar" :id 1})))
-  (is (= 0 ((make-comparator < :key-fn :id) {:name "foo" :id 2} {:name "foo" :id 2})))
-  (is (= -1 ((make-comparator < :key-fn :id) {:name "bar" :id 1} {:name "foo" :id 2}))))
+  (is (= 1 ((h/make-comparator < :key-fn :id) {:name "foo" :id 2} {:name "bar" :id 1})))
+  (is (= 0 ((h/make-comparator < :key-fn :id) {:name "foo" :id 2} {:name "foo" :id 2})))
+  (is (= -1 ((h/make-comparator < :key-fn :id) {:name "bar" :id 1} {:name "foo" :id 2}))))
 
 (deftest test-div
-  (is (= 0.5 (div 1 2)))
-  (is (= 0.5 (div 1.0 2.0)))
-  (is (= nil (div 100 0))))
+  (is (= 0.5 (h/div 1 2)))
+  (is (= 0.5 (h/div 1.0 2.0)))
+  (is (= nil (h/div 100 0))))
 
 (deftest test-parse-cents
-  (is (= nil (parse-cents nil)))
-  (is (= 199 (parse-cents "1.99")))
-  (is (= true (long? (parse-cents "1.99"))))
+  (is (= nil (h/parse-cents nil)))
+  (is (= 199 (h/parse-cents "1.99")))
+  (is (= true (long? (h/parse-cents "1.99"))))
 
-  (is (= 199 (parse-cents "1.992")))
-  (is (thrown? Exception (parse-cents :not-a-string))))
+  (is (= 199 (h/parse-cents "1.992")))
+  (is (thrown? Exception (h/parse-cents :not-a-string))))
 
 (deftest test-average
-  (is (= 3 (average 2 3 4)))
-  (is (= nil (average))))
+  (is (= 3 (h/average 2 3 4)))
+  (is (= nil (h/average))))
 
 (deftest test-long?
   (is (= true (long? (long 123))))
   (is (= false (long? 1.99))))
 
 (deftest test-blank->nil
-  (is (= nil (blank->nil nil)))
-  (is (= nil (blank->nil "")))
-  (is (= "   " (blank->nil "   ")))
-  (is (= 222 (blank->nil 222))))
+  (is (= nil (h/blank->nil nil)))
+  (is (= nil (h/blank->nil "")))
+  (is (= "   " (h/blank->nil "   ")))
+  (is (= 222 (h/blank->nil 222))))
 
 (deftest test-ensure-long
-  (is (= (long 5) (ensure-long (int 5))))
-  (is (= true (long? (ensure-long (int 5)))))
+  (is (= (long 5) (h/ensure-long (int 5))))
+  (is (= true (long? (h/ensure-long (int 5)))))
 
-  (is (= (long 5) (ensure-long (long 5))))
-  (is (= true (long? (ensure-long (long 5)))))
+  (is (= (long 5) (h/ensure-long (long 5))))
+  (is (= true (long? (h/ensure-long (long 5)))))
 
-  (is (= (long 5) (ensure-long "5")))
-  (is (= true (long? (ensure-long "5")))))
+  (is (= (long 5) (h/ensure-long "5")))
+  (is (= true (long? (h/ensure-long "5")))))
 
 (deftest test-single-destructuring-arg->form+name
-  (stubbing [gensym 'unique-3]
-            (are [original form name] (let [[frm nm] (single-destructuring-arg->form+name original)]
-                                        (and (= frm form)
-                                             (= nm name)))
-                 'a                     'a                          'a
-                 '[a b]                 '[a b :as unique-3]         'unique-3
-                 '[a b & c :as all]     '[a b & c :as all]          'all
-                 '{:keys [a b]}         '{:keys [a b] :as unique-3} 'unique-3
-                 '{:keys [a b] :as all} '{:keys [a b] :as all}      'all
-                 ;; pathological cases
-                 '[a]                   '[a :as unique-3]           'unique-3
-                 '[a :as b]             '[a :as b]                  'b)))
+  (with-redefs [gensym (constantly 'unique-3)]
+    (are [original form name] (let [[frm nm] (h/single-destructuring-arg->form+name original)]
+                                (and (= frm form)
+                                  (= nm name)))
+
+      'a                     'a                          'a
+      '[a b]                 '[a b :as unique-3]         'unique-3
+      '[a b & c :as all]     '[a b & c :as all]          'all
+      '{:keys [a b]}         '{:keys [a b] :as unique-3} 'unique-3
+      '{:keys [a b] :as all} '{:keys [a b] :as all}      'all
+      ;; pathological cases
+      '[a]                   '[a :as unique-3]           'unique-3
+      '[a :as b]             '[a :as b]                  'b
+
+      )))
 
 (deftest test-read-string-securely
   (is (= '(list 1 2 3)
-         (read-string-securely "(list 1 2 3)")))
-  (is (= nil (read-string-securely nil)))
-  (is (thrown? RuntimeException (read-string-securely "#=(eval (def x 3))"))))
+         (h/read-string-securely "(list 1 2 3)")))
+  (is (= nil (h/read-string-securely nil)))
+  (is (thrown? RuntimeException (h/read-string-securely "#=(eval (def x 3))"))))
 
-(defn-kw my-fn [one two & {:keys [k1 k2] :as opts}]
+(h/defn-kw my-fn [one two & {:keys [k1 k2] :as opts}]
   (+ one
      two
      (if k1 k1 0)
      (if k2 k2 0)))
 
-(defn-kw ^:private doc-string-fn
+(h/defn-kw ^:private doc-string-fn
   "def-kw w/ doc string"
   [& {:keys [k1 k2]}]
   (+ k1 k2))
@@ -264,15 +269,15 @@
 
   (is (thrown-with-msg? AssertionError
                         #"defn-kw expects the final element of the arg list, .*, to be a map destructuring."
-                        (eval `(defn-kw f [a b c] nil))))
+                        (eval `(h/defn-kw f [a b c] nil))))
 
   (is (thrown-with-msg? AssertionError
                         #"defn-kw expects the map destructuring to have a :keys or :strs key."
-                        (eval `(defn-kw f [a b c & {:doorknobs [d e]}] nil))))
+                        (eval `(h/defn-kw f [a b c & {:doorknobs [d e]}] nil))))
 
   (is (thrown-with-msg? AssertionError
                         #"defn-kw expects the second to last element of the arg list, .*, to be an '&"
-                        (eval `(defn-kw f [a b c not-ampersand {:keys [d e]}] nil))))
+                        (eval `(h/defn-kw f [a b c not-ampersand {:keys [d e]}] nil))))
 
   (is (thrown-with-msg? AssertionError #"Was passed these keyword args #\{:k9999\} which were not listed in the arg list \[one two & \{:keys \[k1 k2\], :as opts\}\]"
                         (my-fn 1 2 :k9999 4)))
@@ -281,13 +286,13 @@
   (is (= true (:private (meta #'doc-string-fn)))))
 
 
-(defn-kw my-fn2 [one two & {:strs [k1 k2] :as opts}]
+(h/defn-kw my-fn2 [one two & {:strs [k1 k2] :as opts}]
   (+ one
      two
      (if k1 k1 0)
      (if k2 k2 0)))
 
-(defn-kw ^:private doc-string-fn2
+(h/defn-kw ^:private doc-string-fn2
   "def-kw w/ doc string 2"
   [& {:strs [k1 k2]}]
   (+ k1 k2))
@@ -298,15 +303,15 @@
 
   (is (thrown-with-msg? AssertionError
                         #"defn-kw expects the final element of the arg list, .*, to be a map destructuring."
-                        (eval `(defn-kw f [a b c] nil))))
+                        (eval `(h/defn-kw f [a b c] nil))))
 
   (is (thrown-with-msg? AssertionError
                         #"defn-kw expects the map destructuring to have a :keys or :strs key."
-                        (eval `(defn-kw f [a b c & {"doorknobs" [d e]}] nil))))
+                        (eval `(h/defn-kw f [a b c & {"doorknobs" [d e]}] nil))))
 
   (is (thrown-with-msg? AssertionError
                         #"defn-kw expects the second to last element of the arg list, .*, to be an '&"
-                        (eval `(defn-kw f [a b c not-ampersand {:strs [d e]}] nil))))
+                        (eval `(h/defn-kw f [a b c not-ampersand {:strs [d e]}] nil))))
 
   (is (thrown-with-msg? AssertionError #"Was passed these keyword args #\{\"k9999\"\} which were not listed in the arg list \[one two & \{:strs \[k1 k2\], :as opts\}\]"
                         (my-fn2 1 2 "k9999" 4)))
@@ -318,21 +323,21 @@
   (str a b c d))
 
 (deftest test-apply-kw
-  (is (= "abcd" (apply-kw kw-fn "a" "b" {:c "c" :d "d"}))))
+  (is (= "abcd" (h/apply-kw kw-fn "a" "b" {:c "c" :d "d"}))))
 
 (deftest test-within?
-  (is (= true (within? 10 5 15)))
-  (is (= true (within? 10 5 14)))
-  (is (= false (within? 10 5 16))))
+  (is (= true (h/within? 10 5 15)))
+  (is (= true (h/within? 10 5 14)))
+  (is (= false (h/within? 10 5 16))))
 
 (deftest test-approximately-equal?
-  (is (approximately-equal? 0.0 0.0))
-  (is (approximately-equal? 10.0 10.0))
-  (is (approximately-equal? -10.0 -10.0))
-  (is (approximately-equal? 10.0 10.00001))
-  (is (not (approximately-equal? 10.0 10.00001 0.0000001)))
-  (is (not (approximately-equal? 10.0 10.001)))
-  (is (approximately-equal? Double/NaN 0.0))
-  (is (approximately-equal? 0.0 Double/NaN))
-  (is (not (approximately-equal? 10.0 -10.0)))
-  (is (approximately-equal? 10.0 10)))
+  (is (h/approximately-equal? 0.0 0.0))
+  (is (h/approximately-equal? 10.0 10.0))
+  (is (h/approximately-equal? -10.0 -10.0))
+  (is (h/approximately-equal? 10.0 10.00001))
+  (is (not (h/approximately-equal? 10.0 10.00001 0.0000001)))
+  (is (not (h/approximately-equal? 10.0 10.001)))
+  (is (h/approximately-equal? Double/NaN 0.0))
+  (is (h/approximately-equal? 0.0 Double/NaN))
+  (is (not (h/approximately-equal? 10.0 -10.0)))
+  (is (h/approximately-equal? 10.0 10)))
