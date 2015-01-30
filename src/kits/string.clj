@@ -5,9 +5,6 @@
            (java.nio ByteBuffer CharBuffer)
            (java.nio.charset Charset CharsetDecoder CodingErrorAction)))
 
-(set! *warn-on-reflection* true)
-
-
 ;;; String Functions
 
 (declare nil-str re-matches? split)
@@ -210,3 +207,20 @@
     (.decode decoder byte-buffer char-buffer true)
     (.flush decoder char-buffer)
     (String. (.array char-buffer) 0 (.position char-buffer))))
+
+(defn camel-case->dash-sep [^String s]
+  (when s
+    (let [with-dashes (.replaceAll s
+                        "([a-z])([A-Z])" "$1-$2")]
+      (.toLowerCase with-dashes))))
+
+(defn ->nice-keyword [^String s]
+  (when s
+    (-> (.trim s)
+      (.replaceAll "_" "-")
+      (.replaceAll "\\s+" "-")
+      camel-case->dash-sep
+      keyword)))
+
+(defn ->nice-keywords [scol]
+  (map ->nice-keyword scol))

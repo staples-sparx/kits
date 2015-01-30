@@ -185,3 +185,43 @@
 (deftest ^:unit test-truncate
   (is (= "abc" (truncate "abcdef" 3)))
   (is (= "abcdef" (truncate "abcdef" 10))))
+
+(deftest test-camel-case->dash-sep
+  (are [expected s]
+    (= expected (camel-case->dash-sep s))
+
+    "staples-sku" "StaplesSKU"
+    "cost-of-good" "CostOfGood"
+    "sku" "sku"
+    "sku" "Sku"
+    "sku" "SKU"
+    "" ""
+    nil nil
+
+    ))
+
+(deftest test->nice-keyword
+  (are [expected s]
+    (= expected (->nice-keyword s))
+
+    :staples-sku "StaplesSKU"
+    :cost-of-good "CostOfGood"
+    :cost-of-good "Cost_Of_Good"
+    :cost-of-good "cost_of_good"
+    :sku "sku"
+    :sku "Sku"
+    :sku "SKU"
+    (keyword "") ""
+    nil nil
+
+    ))
+
+(deftest test->nice-keywords
+  (are [expected s]
+    (= expected (->nice-keywords s))
+
+    [:staples-sku :cost-of-good :cost-of-good  :cost-of-good]
+    ["StaplesSKU" "CostOfGood" "Cost_Of_Good" "cost_of_good"]
+    [] []
+
+    ))

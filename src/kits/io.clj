@@ -242,3 +242,9 @@
   (let [path (tmp-file prefix suffix)]
     (spit path content)
     path))
+
+(defn last-modified-date [^String file]
+  (-> file
+      java.io.File.
+      .lastModified
+      java.util.Date.))
