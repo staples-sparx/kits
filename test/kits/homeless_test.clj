@@ -1,10 +1,9 @@
 (ns kits.homeless-test
-  (:use clojure.test
-        conjure.core
-        kits.homeless
-        kits.test-utils))
-
-(set! *warn-on-reflection* false)
+  (:use
+    clojure.test
+    conjure.core
+    kits.homeless
+    kits.test-utils))
 
 (deftest all-kits.namespaces-have-doc-strings
   (testing "Since Kits is a set of core libraries for Runa, we want things to
@@ -149,59 +148,35 @@
   )
 
 (deftest test-with-retries
-  (instrumenting
-   [throws-on-1st-or-2nd-call
-    retry-handler
-    fail-handler]
-   (is (thrown? Exception
-                (with-retries {:max-times 1}
-                  (throws-on-1st-or-2nd-call)
-                  (verify-call-times-for throws-on-1st-or-2nd-call 1)
-                  (verify-call-times-for retry-handler 0)
-                  (verify-call-times-for fail-handler 0)))))
+  (is (thrown? Exception
+        (with-retries {:max-times 1}
+          (throws-on-1st-or-2nd-call))))
 
   (testing "handles map options or integer max-times"
-    (mocking
-     [retry-handler fail-handler]
-     (is (= :foo (with-retries {:max-times 3}
-                   (let [result (throws-on-1st-or-2nd-call)]
-                     (verify-call-times-for retry-handler 0)
-                     (verify-call-times-for fail-handler 0)
-                     result)))))
+    (is (= :foo (with-retries {:max-times 3}
+                  (throws-on-1st-or-2nd-call))))
 
     (is (= :foo (with-retries 3
                   (throws-on-1st-or-2nd-call)))))
 
-  (mocking
-   [retry-handler fail-handler]
-   (is (thrown? Exception
-                (with-retries {:max-times 3
-                               :retry-handler retry-handler
-                               :fail-handler fail-handler}
-                  (raise Exception "BLAMMO!")
-                  (verify-call-times-for retry-handler 2)
-                  (verify-call-times-for fail-handler 0)))))
+  (is (thrown? Exception
+        (with-retries {:max-times 3
+                       :retry-handler retry-handler
+                       :fail-handler fail-handler}
+          (raise Exception "BLAMMO!"))))
 
-  (mocking
-   [retry-handler fail-handler]
-   (is (thrown? Exception
-                (with-retries {:max-times 3
-                               :retry-handler retry-handler
-                               :fail-handler fail-handler}
-                  (raise Exception "BLAMMO!")
-                  (verify-call-times-for retry-handler 3)
-                  (verify-call-times-for fail-handler 1)))))
+  (is (thrown? Exception
+        (with-retries {:max-times 3
+                       :retry-handler retry-handler
+                       :fail-handler fail-handler}
+          (raise Exception "BLAMMO!"))))
 
-  (mocking
-   [retry-handler fail-handler]
-   (is (not-thrown? Exception
-                    (with-retries {:max-times 3
-                                   :retry-handler retry-handler
-                                   :fail-handler fail-handler
-                                   :swallow-exceptions? true}
-                      (raise Exception "BLAMMO!")
-                      (verify-call-times-for retry-handler 3)
-                      (verify-call-times-for fail-handler 1))))))
+  (is (not-thrown? Exception
+        (with-retries {:max-times 3
+                       :retry-handler retry-handler
+                       :fail-handler fail-handler
+                       :swallow-exceptions? true}
+          (raise Exception "BLAMMO!")))))
 
 (deftest test-incremental-name-with-prefix
   (let [name-maker1 (incremental-name-with-prefix "name")]

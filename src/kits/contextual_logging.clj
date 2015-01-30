@@ -19,7 +19,7 @@
   "Any calls to contextual-logging/log-message or contextual-logging/log-exception
    will have the surrounding context added"
   [log-context-map & body]
-  `(binding [kits.contextual-logging/*log-context* (merge kits.contextual-logging/*log-context* ~log-context-map)]
+  `(binding [kits.contextual-logging/*log-context* (merge kits.contextual-logging/*log-context* (sort ~log-context-map))]
      ~@body))
 
 (defn stringify
