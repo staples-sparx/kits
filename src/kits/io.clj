@@ -113,7 +113,8 @@
   (ByteArrayInputStream. (.getBytes str)))
 
 (defn ls [dir]
-  (-> (jio/file dir) (.list)))
+  (-> (jio/file dir)
+    (.list)))
 
 (defn dirs [^String dir]
   (filter
