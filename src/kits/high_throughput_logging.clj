@@ -10,6 +10,26 @@
   (:import
     java.io.FileWriter))
 
+(defn std-log-file-path-fn
+  "Convenience function which return a function can be used as the
+   compute-file-name setting when calling make-log-rotate-loop. Write
+   logs under dir-path with a file name starting with prefix. Also
+   appends information about when that file will be rotated to simplify
+   log shipping and isolates logs by including the thread-id in the
+   name."
+  [dir-path prefix]
+  (fn [thread-id next-rotate-at]
+    (str
+      dir-path
+      "/"
+      prefix
+      next-rotate-at
+      "-"
+      (cal/day-at next-rotate-at)
+      "-"
+      thread-id
+      ".log")))
+
 (defn make-log-rotate-loop
   "Build a loop that can be used in a thread pool to log entry with a
   very high-troughput rate. Code is quite ugly but by lazily rotating
