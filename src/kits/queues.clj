@@ -71,8 +71,22 @@
    when invoking 'start-thread-pool'"
   [thread-count name-prefix f & args]
   (doall
-    (map #(let [name (str name-prefix %)
+    (map (fn [thread-num]
+           (let [name (str name-prefix thread-num)
                 t (Thread. ^Runnable (partial f name args) ^String name)]
             (.start t)
-            t)
-      (range 0 (int thread-count)))))
+            t))
+         (range 0 (int thread-count)))))
+
+(defn join-thread-pool
+  "Join all threads in a thread pool."
+  ([pool] (join-thread-pool pool nil))
+  ([pool timeout-ms]
+    (doall
+      (map (fn [thread]
+             (if timeout-ms
+               (.join thread (long timeout-ms))
+               (.join thread))
+             thread)
+           pool))))
+

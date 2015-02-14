@@ -34,7 +34,7 @@
   "Build a loop that can be used in a thread pool to log entry with a
   very high-troughput rate. Code is quite ugly but by lazily rotating
   and flushing the writer we achieve very troughput."
-  [{:keys [queue compute-file-name formatter io-error-handler conf]}]
+  [{:keys [queue compute-file-name formatter io-error-handler conf run-switch]}]
   (let [{:keys [queue-timeout-ms rotate-every-minute max-unflushed max-elapsed-unflushed-ms]} conf
         compute-next-rotate-at (fn [now]
                                  (cal/round-up-ts now rotate-every-minute))
@@ -59,11 +59,12 @@
                unflushed 0
                rotate-at rotate-at
                writer writer]
-          ;; (log/debug thread-name " | Fetching a message...")
-          (let [msg (q/fetch queue queue-timeout-ms)
-                now (ms-time)]
-            ;; Check whether we should rotate the logs
-            (let [rotate? (> now rotate-at)
+          (when (or (nil? run-switch) @run-switch) ; If there is no switch, it's always on.
+            ;; (log/debug thread-name " | Fetching a message...")
+            (let [msg (q/fetch queue queue-timeout-ms)
+                  now (ms-time)
+                  ;; Check whether we should rotate the logs
+                  rotate? (> now rotate-at)
                   rotate-at (if-not rotate?
                               rotate-at
                               (compute-next-rotate-at now))
