@@ -34,7 +34,7 @@
   "Build a loop that can be used in a thread pool to log entry with a
   very high-troughput rate. Code is quite ugly but by lazily rotating
   and flushing the writer we achieve very troughput."
-  [{:keys [queue compute-file-name formatter io-error-handler conf run-switch]}]
+  [{:keys [queue compute-file-name formatter io-error-handler conf]}]
   (let [{:keys [queue-timeout-ms rotate-every-minute max-unflushed max-elapsed-unflushed-ms]} conf
         compute-next-rotate-at (fn [now]
                                  (cal/round-up-ts now rotate-every-minute))
