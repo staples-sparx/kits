@@ -30,75 +30,63 @@
       thread-id
       ".log")))
 
+(defn- next-rotate-time [now rotation-minutes]
+  (cal/round-up-ts now rotation-minutes))
+
+(defn- format-log-entry [formatter msg]
+  (let [host (runtime/host)
+        pid (runtime/process-id)
+        tid (runtime/thread-id)]
+    (try
+      (formatter host pid tid msg)
+      (catch Throwable e
+        (.printStackTrace e)))))
+
+(defn- create-log-file-writer [file-name-fn ts-ms]
+  (let [path (file-name-fn (runtime/thread-id) ts-ms)]
+    (FileWriter. ^String path true)))
+
+(defn- rotate-log [create-writer writer io-error-handler rotate-at]
+  (io/resilient-close writer io-error-handler)
+  (create-writer rotate-at))
+
 (defn make-log-rotate-loop
-  "Build a loop that can be used in a thread pool to log entry with a
-  very high-troughput rate. Code is quite ugly but by lazily rotating
-  and flushing the writer we achieve very troughput."
+  "Build a loop to write log entries with a high-throughput rate."
   [{:keys [queue compute-file-name formatter io-error-handler conf]}]
-  (let [{:keys [queue-timeout-ms rotate-every-minute max-unflushed max-elapsed-unflushed-ms]} conf
-        compute-next-rotate-at (fn [now]
-                                 (cal/round-up-ts now rotate-every-minute))
-        log-file-for (fn [ts]
-                       (let [path (compute-file-name (runtime/thread-id) ts)]
-                         {:path path
-                          :writer (FileWriter. ^String path true)}))]
-    (fn [thread-name args]
-      (let [now (ms-time)
-            rotate-at (compute-next-rotate-at now)
-            {:keys [path writer]}  (log-file-for rotate-at)
-            host (runtime/host)
-            pid (runtime/process-id)
-            tid (runtime/thread-id)
-            entry-formatter (fn [msg]
-                              (try
-                                (formatter host pid tid msg)
-                                (catch Throwable e
-                                  (.printStackTrace e))))]
-        ;; (log/info "Starting thread writing to " path)
-        (loop [last-flush-at now
-               unflushed 0
-               rotate-at rotate-at
-               writer writer]
-          ;; (log/debug thread-name " | Fetching a message...")
-          (let [msg (q/fetch queue queue-timeout-ms)
-                terminate? (= ::terminate msg)
-                now (ms-time)
-                ;; Check whether we should rotate the logs
-                rotate? (> now rotate-at)
-                rotate-at (if-not rotate?
-                            rotate-at
-                            (compute-next-rotate-at now))
-                writer (if-not rotate?
-                         writer
-                         (do
-                           (io/resilient-close writer io-error-handler)
-                           (:writer (log-file-for rotate-at))))]
-            (if (or terminate? (not msg))
-              ;; Check whether we should flush and get back to business
-              (if (and
-                    (pos? unflushed)
-                    (or (> (- now last-flush-at) max-elapsed-unflushed-ms)
-                        terminate?))
-                (do
-                  ;; (log/debug "Flush inactive")
-                  (io/resilient-flush ^FileWriter writer io-error-handler)
-                  (when (not terminate?)
-                    (recur (ms-time) 0 rotate-at writer)))
-                (when (not terminate?)
-                  (recur last-flush-at unflushed rotate-at writer)))
-
-              ;; Write log entry, flushing lazily
-              (do
-                ;; (log/debug "Got msg" msg)
-                (io/resilient-write writer (str (entry-formatter msg) "\n") io-error-handler)
-
-                (if (or (> (- now last-flush-at) max-elapsed-unflushed-ms)
-                      (> unflushed max-unflushed))
-                  (do
-                    ;; (log/debug "Flush")
-                    (io/resilient-flush writer io-error-handler)
-                    (recur (ms-time) 0 rotate-at writer))
-                  (recur last-flush-at (inc unflushed) rotate-at writer))))))))))
+  (fn [thread-name args]
+    (let [{:keys [queue-timeout-ms rotate-every-minute max-unflushed max-elapsed-unflushed-ms]} conf
+          create-log-file-for (partial create-log-file-writer compute-file-name)
+          entry-formatter (partial format-log-entry formatter)]
+      (loop [last-flush-at (ms-time)
+             unflushed 0
+             rotate-at (next-rotate-time last-flush-at rotate-every-minute)
+             writer (create-log-file-for rotate-at)]
+        (let [msg (q/fetch queue queue-timeout-ms)
+              now (ms-time)
+              terminate? (= ::terminate msg)
+              rotate? (> now rotate-at)
+              [rotate-at writer unflushed] (if rotate?
+                                             [(next-rotate-time now rotate-every-minute)
+                                              (rotate-log create-log-file-for writer io-error-handler rotate-at) 
+                                              0]
+                                             [rotate-at writer unflushed])
+              is-log-msg? (and (not terminate?) (boolean msg)) ; msg is not false or nil (flush heartbeat triggers)
+              unflushed (if is-log-msg? 
+                          (do
+                            (io/resilient-write writer (str (entry-formatter msg) "\n") io-error-handler)
+                            (inc unflushed))
+                          unflushed)
+              flush? (and (pos? unflushed) ; have some unflushed data
+                          (or terminate? ; stopping the loop
+                              (> (- now last-flush-at) max-elapsed-unflushed-ms) ; unflushed time limit
+                              (> unflushed max-unflushed)))] ; unflushed count limit
+          (if flush?
+            (do
+              (io/resilient-flush writer io-error-handler)
+              (when-not terminate?
+                (recur (ms-time) 0 rotate-at writer)))
+            (when-not terminate?
+              (recur last-flush-at unflushed rotate-at writer))))))))
 
 (defn stop-log-rotate-loop [queue]
   (q/add queue ::terminate))
