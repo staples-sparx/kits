@@ -7,7 +7,7 @@
   :url "https://github.com/staples-sparx/kits"
   :plugins [[jonase/eastwood "0.0.2"]
             [lein-kibit "0.0.7"]]
-  :dependencies [[org.clojure/clojure "1.5.1"]
+  :dependencies [[org.clojure/clojure "1.6.0"]
                  [cheshire "5.3.1"]
                  [clout "1.1.0"]
                  [org.hdrhistogram/HdrHistogram "1.2.1"]
