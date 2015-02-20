@@ -178,6 +178,17 @@
     (catch IOException e
       (error-callback e))))
 
+(defn resilient-move
+  "Move src-path to dest-path, forwarding any exceptions to error-callback"
+  [src-path dest-path error-callback]
+  (try
+    (let [src-file (File. ^String src-path)
+          dest-file (File. ^String dest-path)]
+      (when-not (.renameTo src-file dest-file)
+        (throw (IOException. (str "Failed to rename file from: '" src-path "' to: '" dest-path "'")))))
+    (catch IOException e
+      (error-callback e))))
+
 (defn clj?
   "Returns true if file is a normal file with a .clj extension."
   [^File file]
