@@ -1,6 +1,7 @@
-(ns kits.io
-  "IO related convenience functions"
-  (:use kits.foundation)
+(ns ^{:doc "IO related convenience functions"}
+  kits.io
+  (:use
+    kits.foundation)
   (:require
    [kits.logging :as log]
    [clojure.java.io :as jio])

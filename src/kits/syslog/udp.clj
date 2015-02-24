@@ -1,10 +1,11 @@
-(ns kits.syslog.udp
-  "Provides a writer interface to UDP by wrapping java.net classes."
-  (:import java.io.IOException
-           java.net.DatagramPacket
-           java.net.DatagramSocket
-           java.net.InetAddress
-           java.nio.charset.Charset))
+(ns ^{:doc "Provides a writer interface to UDP by wrapping java.net classes."}
+  kits.syslog.udp
+  (:import
+    java.io.IOException
+    java.net.DatagramPacket
+    java.net.DatagramSocket
+    java.net.InetAddress
+    java.nio.charset.Charset))
 
 (set! *warn-on-reflection* true)
 

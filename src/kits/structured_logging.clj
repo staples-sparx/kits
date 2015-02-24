@@ -1,13 +1,15 @@
-(ns kits.structured-logging
-  "Logging Clojure data as JSON"
-  (:require [cheshire.custom :as cc]
-            [clojure.string :as str]
-            [kits.homeless :as hl]
-            [kits.map :as m]
-            [kits.syslog :as syslog]
-            [kits.timestamp :as ts]
-            [runa.tools.logging :as log])
-  (:import kits.syslog.udp.Channel))
+(ns ^{:doc "Logging Clojure data as JSON"}
+  kits.structured-logging
+  (:require
+    [cheshire.custom :as cc]
+    [clojure.string :as str]
+    [kits.homeless :as hl]
+    [kits.map :as m]
+    [kits.syslog :as syslog]
+    [kits.timestamp :as ts]
+    [runa.tools.logging :as log])
+  (:import
+    kits.syslog.udp.Channel))
 
 (set! *warn-on-reflection* true)
 

@@ -1,5 +1,5 @@
-(ns kits.timestamp
-  "Functions for creating and formatting timestamps (Longs)"
+(ns ^{:doc "Functions for creating and formatting timestamps (Longs)"}
+  kits.timestamp
   (:require [clojure.string :as str])
   (:import (java.sql Timestamp)
            (java.text SimpleDateFormat)
@@ -157,13 +157,13 @@
   ([t]
      (-> t ->timestamp (truncate :day))))
 
-(defn timestamp-at-day-end 
+(defn timestamp-at-day-end
   ([]
      (timestamp-at-day-end (now)))
   ([ts]
      (-> ts (add :day 1) (decrement :second))))
 
-(defn ->timestamp-at-day-end 
+(defn ->timestamp-at-day-end
   ([]
      (->timestamp-at-day-end (now)))
   ([t]
@@ -172,7 +172,7 @@
 
 ;;; Ranges
 
-(def ^:private legal-interval-set 
+(def ^:private legal-interval-set
   #{"none" "second" "minute" "hour" "day" "week" "month" "year"})
 
 (defmulti ^:private timestamp-ranges-internal
@@ -225,7 +225,7 @@
         first-month-pair (first ranges)
         last-month-pair (last ranges)
         month-pairs-middle (butlast (rest ranges))
-        fix-first (fn [[_ end]] 
+        fix-first (fn [[_ end]]
                     [start-ts end])
         fix-last  (fn [[start _]]
                     [start (-> end-ts (add :day 1) (decrement :milli))])

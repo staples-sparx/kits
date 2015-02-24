@@ -1,10 +1,11 @@
-(ns ^{:doc "Useful thread code"}
+(ns ^{:doc "Thread utility functions"}
   kits.thread
-  "Thread utility functions"
-  (:import (java.util.concurrent RejectedExecutionHandler
-                                 RejectedExecutionException
-                                 ThreadFactory
-                                 ThreadPoolExecutor)))
+  (:import
+    (java.util.concurrent
+      RejectedExecutionHandler
+      RejectedExecutionException
+      ThreadFactory
+      ThreadPoolExecutor)))
 
 (set! *warn-on-reflection* true)
 

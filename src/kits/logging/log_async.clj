@@ -1,9 +1,10 @@
-(ns kits.logging.log-async
-  "This file provides a simple API over kits.logging.log-generator and
-   kits.logging.log-consumer. Use start-thread-pool! to start a logger
-   and the familiar logging methods (info, warn, error, etc) to write
-   to it asyncronously. If you require more control, feel free to use
-   log-generator and log-consumer directly, with this ns as an example."
+(ns ^{:doc "This file provides a simple API over
+            kits.logging.log-generator and kits.logging.log-consumer. Use
+            start-thread-pool! to start a logger and the familiar logging
+            methods (info, warn, error, etc) to write to it asyncronously. If
+            you require more control, feel free to use log-generator and
+            log-consumer directly, with this ns as an example."}
+   kits.logging.log-async
   (:require
    [kits.queues :as q]
    [kits.thread :as t]

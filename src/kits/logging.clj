@@ -1,10 +1,12 @@
-(ns kits.logging
-  "Simple wrapper library for java.util.logging"
-  (:require [kits.timestamp :as timestamp])
-  (:import java.io.IOException
-           java.text.SimpleDateFormat
-           java.util.Date
-           [java.util.logging Level Logger Formatter LogRecord Handler]))
+(ns ^{:doc "Simple wrapper library for java.util.logging"}
+  kits.logging
+  (:require
+    [kits.timestamp :as timestamp])
+  (:import
+    java.io.IOException
+    java.text.SimpleDateFormat
+    java.util.Date
+    [java.util.logging Level Logger Formatter LogRecord Handler]))
 
 (set! *warn-on-reflection* false)
 

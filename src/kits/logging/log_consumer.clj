@@ -1,10 +1,12 @@
-(ns kits.logging.log-consumer
-  "Internal namespace. This spawns agents that writes log messages to file and rotates them"
-  (:require [kits.runtime :as runtime]
-            [kits.queues :as q]
-            [kits.logging.log-generator :as log])
-  (:import (java.util Calendar TimeZone)
-           (java.io FileWriter Writer IOException)))
+(ns ^{:doc "Internal namespace. This spawns agents that writes log messages to file and rotates them"}
+  kits.logging.log-consumer
+  (:require
+    [kits.runtime :as runtime]
+    [kits.queues :as q]
+    [kits.logging.log-generator :as log])
+  (:import
+    (java.util Calendar TimeZone)
+    (java.io FileWriter Writer IOException)))
 
 (set! *warn-on-reflection* true)
 
