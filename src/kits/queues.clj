@@ -78,15 +78,24 @@
             t))
          (range 0 (int thread-count)))))
 
+(defn- safe-thread-join [any-ex timeout-ms thread]
+  (try 
+    (if (some? timeout-ms)
+      (.join thread (long timeout-ms))
+      (.join thread))
+    (catch InterruptedException e
+      (when (nil? @any-ex)
+      (var-set any-ex e))))
+  thread)
+
 (defn join-thread-pool
-  "Join all threads in a thread pool."
+  "Join all threads in a thread pool.
+   Throws InterruptedException if any thread was interrupted during the join."
   ([pool] (join-thread-pool pool nil))
   ([pool timeout-ms]
-    (doall
-      (map (fn [thread]
-             (if timeout-ms
-               (.join thread (long timeout-ms))
-               (.join thread))
-             thread)
-           pool))))
-
+   (with-local-vars [any-ex nil]
+     (let [join-thread (partial safe-thread-join any-ex timeout-ms)
+           joined-pool (doall (map join-thread pool))]
+       (when (some? @any-ex)
+         (throw @any-ex))
+       joined-pool))))
