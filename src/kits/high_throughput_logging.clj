@@ -35,14 +35,15 @@
 (defn- next-rotate-time [now rotation-minutes]
   (cal/round-up-ts now rotation-minutes))
 
-(defn- format-log-entry [formatter msg]
+(defn- create-log-msg-formatter [formatter msg]
   (let [host (runtime/host)
         pid (runtime/process-id)
         tid (runtime/thread-id)]
-    (try
-      (formatter host pid tid msg)
-      (catch Throwable e
-        (.printStackTrace e)))))
+    (fn [msg]
+      (try
+        (str (formatter host pid tid msg) "\n")
+        (catch Throwable e
+          (.printStackTrace e))))))
 
 (defn- create-log-file [file-name-fn ts-ms]
   (let [path (str (file-name-fn (runtime/thread-id) ts-ms))
@@ -65,7 +66,7 @@
   (fn [thread-name args]
     (let [{:keys [queue-timeout-ms rotate-every-minute max-unflushed max-elapsed-unflushed-ms]} conf
           create-log-file-for (partial create-log-file compute-file-name)
-          entry-formatter (partial format-log-entry formatter)]
+          format-log-msg (create-log-msg-formatter formatter)]
       (loop [last-flush-at (ms-time)
              unflushed 0
              rotate-at (next-rotate-time last-flush-at rotate-every-minute)
@@ -83,7 +84,7 @@
               unflushed (if is-log-msg? 
                           (do
                             (io/resilient-write (:writer log-file)
-                                                (str (entry-formatter msg) "\n")
+                                                (format-log-msg msg)
                                                 io-error-handler)
                             (inc unflushed))
                           unflushed)
