@@ -81,8 +81,8 @@
 (defn- safe-thread-join [any-ex timeout-ms thread]
   (try 
     (if (some? timeout-ms)
-      (.join thread (long timeout-ms))
-      (.join thread))
+      (.join ^Thread thread (long timeout-ms))
+      (.join ^Thread thread))
     (catch InterruptedException e
       (when (nil? @any-ex)
       (var-set any-ex e))))
