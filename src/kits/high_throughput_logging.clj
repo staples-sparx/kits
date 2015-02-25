@@ -35,7 +35,7 @@
 (defn- next-rotate-time [now rotation-minutes]
   (cal/round-up-ts now rotation-minutes))
 
-(defn- create-log-msg-formatter [formatter msg]
+(defn- create-log-msg-formatter [formatter]
   (let [host (runtime/host)
         pid (runtime/process-id)
         tid (runtime/thread-id)]
@@ -70,17 +70,18 @@
       (loop [last-flush-at (ms-time)
              unflushed 0
              rotate-at (next-rotate-time last-flush-at rotate-every-minute)
-             log-file (create-log-file-for rotate-at)]
+             log-file (create-log-file-for rotate-at)
+             terminate-ready? false]
         (let [msg (q/fetch queue queue-timeout-ms)
               now (ms-time)
-              terminate? (= ::terminate msg)
+              trigger-terminate? (= ::terminate msg)
               rotate? (> now rotate-at)
               [rotate-at log-file unflushed] (if rotate?
                                              [(next-rotate-time now rotate-every-minute)
                                               (rotate-log create-log-file-for log-file io-error-handler rotate-at) 
                                               0]
                                              [rotate-at log-file unflushed])
-              is-log-msg? (and (not terminate?) (boolean msg)) ; msg is not false or nil (flush heartbeat triggers)
+              is-log-msg? (and (not trigger-terminate?) (some? msg))
               unflushed (if is-log-msg? 
                           (do
                             (io/resilient-write (:writer log-file)
@@ -89,16 +90,24 @@
                             (inc unflushed))
                           unflushed)
               flush? (and (pos? unflushed) ; have some unflushed data
-                          (or terminate? ; stopping the loop
-                              (> (- now last-flush-at) max-elapsed-unflushed-ms) ; unflushed time limit
+                          (or (> (- now last-flush-at) max-elapsed-unflushed-ms) ; unflushed time limit
                               (> unflushed max-unflushed)))] ; unflushed count limit
-          (if terminate?
-            (close-log log-file io-error-handler)
-            (if flush?
-              (do
-                (io/resilient-flush (:writer log-file) io-error-handler)
-                (recur (ms-time) 0 rotate-at log-file))
-              (recur last-flush-at unflushed rotate-at log-file))))))))
+          (if (and terminate-ready? (nil? msg)) ; close iff terminate has been signaled and the queue timed out
+            (do
+              (close-log log-file io-error-handler)
+              (locking queue
+                (.notify queue))
+              nil) ; signal that we have finished consuming the queue.
+            (let [terminate-ready? (or terminate-ready? trigger-terminate?)]
+              (if flush?
+                (do
+                  (io/resilient-flush (:writer log-file) io-error-handler)
+                  (recur (ms-time) 0 rotate-at log-file terminate-ready?))
+                (recur last-flush-at unflushed rotate-at log-file terminate-ready?)))))))))
 
-(defn stop-log-rotate-loop [queue]
-  (q/add queue ::terminate))
+(defn stop-log-rotate-loop [queue timeout-ms]
+  "Stop a log rotate loop, blocking until the log writing has finished"
+  (q/add queue ::terminate)
+  (locking queue
+    (.wait queue (long timeout-ms)))
+  nil)
