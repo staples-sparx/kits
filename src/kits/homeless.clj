@@ -1,14 +1,16 @@
-(ns kits.homeless
-  "Unfortunate, uncategorized utility functions and macros.
-   Please help one of these poor souls find a home in a
-   focused, Single-Responsibility namespace instead :("
-  (:require [clojure.pprint :as pprint]
-            [clojure.set :as set]
-            [clojure.string :as str])
-  (:import clojure.lang.Var
-           java.net.MalformedURLException
-           java.sql.SQLException
-           (java.util.concurrent Future TimeoutException)))
+(ns ^{:doc "Unfortunate, uncategorized utility functions and macros.
+            Please help one of these poor souls find a home in a
+            focused, Single-Responsibility namespace instead :("}
+  kits.homeless
+  (:require
+    [clojure.pprint :as pprint]
+    [clojure.set :as set]
+    [clojure.string :as str])
+  (:import
+    clojure.lang.Var
+    java.net.MalformedURLException
+    java.sql.SQLException
+    (java.util.concurrent Future TimeoutException)))
 
 (set! *warn-on-reflection* false)
 

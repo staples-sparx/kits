@@ -1,5 +1,5 @@
-(ns kits.foundation
-  "Basic clojure helper functions"
+(ns ^{:doc "Basic clojure helper functions"}
+  kits.foundation
   (:require
     [clojure.pprint :as pprint]
     [clojure.string :as str]

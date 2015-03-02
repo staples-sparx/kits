@@ -1,10 +1,12 @@
-(ns kits.logging.log-generator
-  "High throughput logger with fine grained control and performance"
-  (:require [kits.queues :as q]
-            [cheshire.core :as json])
-  (:import (java.util Date TimeZone)
-           (java.text SimpleDateFormat)
-           (java.io StringWriter PrintWriter)))
+(ns ^{:doc "High throughput logger with fine grained control and performance"}
+  kits.logging.log-generator
+  (:require
+    [kits.queues :as q]
+    [cheshire.core :as json])
+  (:import
+    (java.util Date TimeZone)
+    (java.text SimpleDateFormat)
+    (java.io StringWriter PrintWriter)))
 
 (set! *warn-on-reflection* true)
 

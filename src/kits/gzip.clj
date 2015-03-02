@@ -1,5 +1,5 @@
-(ns kits.gzip
-  "GZIP compression/decompression convenience functions"
+(ns ^{:doc "GZIP compression/decompression convenience functions"}
+  kits.gzip
   (:import
     java.io.ByteArrayOutputStream
     java.io.ByteArrayInputStream

@@ -1,9 +1,11 @@
-(ns kits.syslog
-  "Write wrapper for syslog."
-  (:require [kits.syslog.messages :as messages]
-            [kits.syslog.udp :as udp]
-            [kits.timestamp :as ts])
-  (:import kits.syslog.udp.Channel))
+(ns ^{:doc "UDP based syslog client (pure Java)."}
+  kits.syslog
+  (:require
+    [kits.syslog.messages :as messages]
+    [kits.syslog.udp :as udp]
+    [kits.timestamp :as ts])
+  (:import
+    kits.syslog.udp.Channel))
 
 (set! *warn-on-reflection* true)
 

@@ -1,10 +1,11 @@
-(ns kits.map
-  "Functions that operate on Clojure maps."
-  (:require [clojure.set :as set]
-            [clojure.string :as str]
-            [clojure.walk :as w]
-            [kits.seq :as sq]
-            [kits.string :as kstr]))
+(ns ^{:doc "Functions that operate on Clojure maps."}
+  kits.map
+  (:require
+    [clojure.set :as set]
+    [clojure.string :as str]
+    [clojure.walk :as w]
+    [kits.seq :as sq]
+    [kits.string :as kstr]))
 
 (set! *warn-on-reflection* true)
 
@@ -105,7 +106,7 @@
          (recur ret (first kvs) (second kvs) (nnext kvs))
          ret))))
 
-(defn- make-conditional-assoc-fn 
+(defn- make-conditional-assoc-fn
   "Only assocs if the kv-checker returns a logical true value"
   [kv-checker]
   (fn

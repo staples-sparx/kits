@@ -1,5 +1,5 @@
-(ns kits.queues
-  "Wrappers for constructing various java.util.concurrent queues."
+(ns ^{:doc "Wrappers for constructing various java.util.concurrent queues."}
+  kits.queues
   (:refer-clojure :exclude [get peek empty?])
   (:use
     kits.foundation)

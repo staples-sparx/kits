@@ -1,5 +1,5 @@
-(ns kits.calendar
-  "Convenience function to manipulate time & date on the JVM"
+(ns ^{:doc "Convenience function to manipulate time & date on the JVM"}
+  kits.calendar
   (:use
     kits.foundation)
   (:import

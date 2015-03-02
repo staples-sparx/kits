@@ -1,5 +1,5 @@
-(ns kits.jetty
-  "Convenience functions to embed Jetty web server"
+(ns ^{:doc "Convenience functions to embed Jetty web server"}
+  kits.jetty
   (:import
     (java.io File FileInputStream InputStream OutputStream)
     (java.util Map HashMap)

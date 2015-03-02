@@ -1,9 +1,11 @@
-(ns kits.string
-  "Functions that operate on Strings or Keywords."
-  (:require [clojure.string :as str])
-  (:import (java.net URLDecoder)
-           (java.nio ByteBuffer CharBuffer)
-           (java.nio.charset Charset CharsetDecoder CodingErrorAction)))
+(ns ^{:doc "Functions that operate on Strings or Keywords."}
+  kits.string
+  (:require
+    [clojure.string :as str])
+  (:import
+    (java.net URLDecoder)
+    (java.nio ByteBuffer CharBuffer)
+    (java.nio.charset Charset CharsetDecoder CodingErrorAction)))
 
 ;;; String Functions
 

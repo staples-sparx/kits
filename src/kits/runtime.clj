@@ -1,9 +1,11 @@
-(ns kits.runtime
-  "Library to access run-time info from the JVM"
-  (:require [clojure.string :as str])
-  (:import (java.io File)
-           (java.lang.management ManagementFactory
-                                 OperatingSystemMXBean RuntimeMXBean)))
+(ns ^{:doc "Library to access run-time info from the JVM"}
+  kits.runtime
+  (:require
+    [clojure.string :as str])
+  (:import
+    (java.io File)
+    (java.lang.management ManagementFactory
+      OperatingSystemMXBean RuntimeMXBean)))
 
 (set! *warn-on-reflection* false)
 
