@@ -1,7 +1,9 @@
 (ns ^{:doc "Bare bone, performance oriented abstraction layer on top or URLConnection"}
     kits.http-client
   (:refer-clojure :exclude [get])
-  (:require [cheshire.core :as json])
+  (:require
+    [kits.json :as json]
+    [kits.io :as io])
   (:import java.io.ByteArrayOutputStream
            java.io.File
            java.io.InputStream
@@ -22,20 +24,9 @@
 (defn encode-params [params]
   (->> params
        (map (fn [[k v]]
-              (str k "=" (url-encode (json/encode v)))))
+              (str k "=" (url-encode (json/encode-str v)))))
        (interpose "&")
        (apply str)))
-
-(defn copy
-  ([in out]
-   (copy in out 10240))
-  ([^InputStream in ^OutputStream out chunk-size]
-   (let [buf (make-array Byte/TYPE chunk-size)]
-     (loop []
-       (let [size (.read in buf)]
-         (when (pos? size)
-           (.write out ^bytes buf 0 size)
-           (recur)))))))
 
 (defn url-for [url params]
   (if (empty? params)
@@ -47,13 +38,13 @@
     (if (= 200 status)
       (with-open [in (.getInputStream conn)
                   out (ByteArrayOutputStream. 1024)]
-        (copy in out)
+        (io/copy in out)
         {:status status
          :msg    (.getResponseMessage conn)
          :body   (.toString out)})
       (with-open [in (.getErrorStream conn)
                   out (ByteArrayOutputStream. 1024)]
-        (copy in out)
+        (io/copy in out)
         {:status status
          :msg    (.getResponseMessage conn)
          :body   (.toString out)}))))
@@ -67,7 +58,7 @@
     (read-response conn)))
 
 (defn post-json [url params timeout]
-  (let [data ^String (json/encode params)
+  (let [data ^String (json/encode-str params)
         url (URL. url)
         conn (doto ^HttpURLConnection (.openConnection url)
                (.setDoOutput true)
