@@ -19,14 +19,27 @@
 (set! *warn-on-reflection* false)
 
 (defn url-encode [value]
-  (URLEncoder/encode (str value)))
+  (URLEncoder/encode
+    (str value)))
 
 (defn encode-params [params]
+  (->> params
+       (map (fn [[k v]]
+              (str k "=" (url-encode v))))
+       (interpose "&")
+       (apply str)))
+
+(defn encode-json-params [params]
   (->> params
        (map (fn [[k v]]
               (str k "=" (url-encode (json/encode-str v)))))
        (interpose "&")
        (apply str)))
+
+(defn url-json-for [url params]
+  (if (empty? params)
+    url
+    (str url "?" (encode-json-params params))))
 
 (defn url-for [url params]
   (if (empty? params)
@@ -34,45 +47,69 @@
     (str url "?" (encode-params params))))
 
 (defn read-response [^HttpURLConnection conn]
-  (let [status (.getResponseCode conn)]
+  ;; Note: no need to close the connection. From HttpURLConnection
+  ;; javadoc : Each HttpURLConnection instance is used to make a
+  ;; single request but the underlying network connection to the HTTP
+  ;; server may be transparently shared by other instances. Calling
+  ;; the close() methods on the InputStream or OutputStream of an
+  ;; HttpURLConnection after a request may free network resources
+  ;; associated with this instance but has no effect on any shared
+  ;; persistent connection.
+  (let [status (.getResponseCode ^HttpURLConnection conn)]
     (if (= 200 status)
       (with-open [in (.getInputStream conn)
                   out (ByteArrayOutputStream. 1024)]
         (io/copy in out)
         {:status status
-         :msg    (.getResponseMessage conn)
-         :body   (.toString out)})
-      (with-open [in (.getErrorStream conn)
-                  out (ByteArrayOutputStream. 1024)]
-        (io/copy in out)
+         :msg (.getResponseMessage ^HttpURLConnection conn)
+         :body (.toString out)})
+      (if-let [error-stream (.getErrorStream conn)]
+        (with-open [in error-stream
+                    out (ByteArrayOutputStream. 1024)]
+          (io/copy in out)
+          {:status status
+           :msg (.getResponseMessage ^HttpURLConnection conn)
+           :body (.toString out)})
         {:status status
-         :msg    (.getResponseMessage conn)
-         :body   (.toString out)}))))
+         :msg (.getResponseMessage ^HttpURLConnection conn)
+         :body nil}))))
 
-(defn get [url params timeout]
+(defn ensure-content-type [^String content-type]
+  (or
+    content-type
+    "text/plain; charset=utf-8"))
+
+(defn get
+  "Returns the response of a plain http get in the form of :status, :msg, and stringyfied :body"
+  [url params timeout-ms]
   (let [url (URL. (url-for url params))
         conn (doto ^HttpURLConnection (.openConnection url)
                (.setRequestMethod "GET")
-               (.setConnectTimeout timeout)
-               (.setReadTimeout timeout))]
+               (.setConnectTimeout timeout-ms)
+               (.setReadTimeout timeout-ms))]
     (read-response conn)))
 
-(defn post-json [url params timeout]
-  (let [data ^String (json/encode-str params)
-        url (URL. url)
+(defn post [url data timeout-ms & [content-type]]
+  (let [actual-content-type (ensure-content-type content-type)
+        url (URL. (url-for url nil))
         conn (doto ^HttpURLConnection (.openConnection url)
-               (.setDoOutput true)
-               (.setRequestMethod "POST")
-               (.setRequestProperty
-                 "Content-Type",
-                 "application/json")
-               (.setConnectTimeout timeout)
-               (.setReadTimeout timeout))]
+                   (.setDoOutput true)
+                   (.setRequestMethod "POST")
+                   (.setRequestProperty
+                    "Content-Type" actual-content-type)
+                   (.setConnectTimeout timeout-ms)
+                   (.setReadTimeout timeout-ms))]
     (with-open [out (.getOutputStream conn)
-                outWriter (OutputStreamWriter. out)
-                writer (BufferedWriter. outWriter)]
+                writer ^Writer (OutputStreamWriter. out)]
       (.write writer data)
       (.flush writer)
       (.close writer)
       (.close out)
       (read-response conn))))
+
+(defn post-json [url data timeout-ms]
+  (post
+    url
+    (json/encode data)
+    timeout-ms
+    "application/json"))
