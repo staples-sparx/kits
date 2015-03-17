@@ -110,6 +110,6 @@
 (defn post-json [url data timeout-ms]
   (post
     url
-    (json/encode data)
+    (json/encode-str data)
     timeout-ms
     "application/json"))
