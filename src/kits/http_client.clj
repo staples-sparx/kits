@@ -55,24 +55,23 @@
   ;; HttpURLConnection after a request may free network resources
   ;; associated with this instance but has no effect on any shared
   ;; persistent connection.
-  (let [status (.getResponseCode ^HttpURLConnection conn)]
+  (let [status (.getResponseCode ^HttpURLConnection conn)
+        response-fn (fn [body]
+                      {:status status
+                       :msg (.getResponseMessage ^HttpURLConnection conn)
+                       :body body})]
     (if (= 200 status)
       (with-open [in (.getInputStream conn)
                   out (ByteArrayOutputStream. 1024)]
         (io/copy in out)
-        {:status status
-         :msg (.getResponseMessage ^HttpURLConnection conn)
-         :body (.toString out)})
+        (response-fn (.toString out)))
       (if-let [error-stream (.getErrorStream conn)]
         (with-open [in error-stream
                     out (ByteArrayOutputStream. 1024)]
-          (io/copy in out)
-          {:status status
-           :msg (.getResponseMessage ^HttpURLConnection conn)
-           :body (.toString out)})
-        {:status status
-         :msg (.getResponseMessage ^HttpURLConnection conn)
-         :body nil}))))
+          (when in
+            (io/copy in out))
+          (response-fn (.toString out)))
+        (response-fn nil)))))
 
 (defn ensure-content-type [^String content-type]
   (or
