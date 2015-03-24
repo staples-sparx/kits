@@ -1,0 +1,6 @@
+# -*- org -*-
+#+TITLE: Kits ChangeLog
+
+* 1.20.8 <2015-03-16 Mon>
+
+- Cleaning up and centralizing kits.http-client logic

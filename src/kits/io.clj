@@ -128,6 +128,9 @@
   (-> (.getClass file-name)
     (.getResourceAsStream (str "/" file-name))))
 
+(defn stream-from-classpath [resource-path]
+  (.getResourceAsStream clojure.lang.RT resource-path))
+
 (defmacro with-resource-line-seq [[var-name resource-path] & body]
   `(with-open [in# (read-from-classpath ~resource-path)
                r# (java.io.InputStreamReader. in#)
