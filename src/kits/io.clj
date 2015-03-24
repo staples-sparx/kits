@@ -3,7 +3,7 @@
   (:use
     kits.foundation)
   (:require
-   [kits.logging :as log]
+   ;[kits.logging :as log]
    [clojure.java.io :as jio])
   (:import
    java.io.BufferedReader
@@ -88,7 +88,7 @@
 (defn explode-zip-file [^String zip-file-path ^String where]
   (with-open [zf (ZipFile. zip-file-path)]
     (doseq [e (enumeration-seq (.entries ^ZipFile zf))]
-      (log/debug "Extracting model package file " (.getName ^ZipEntry e) " -> " where)
+      ;(log/debug "Extracting model package file " (.getName ^ZipEntry e) " -> " where)
       (extract-zip-entry zf e where))))
 
 

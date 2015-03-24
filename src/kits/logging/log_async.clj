@@ -21,34 +21,36 @@
   ([max-msgs] (reset-q! log-q max-msgs))
   ([queue max-msgs] (reset! queue (q/create max-msgs))))
 
+(defn log
+  ([level msg] (log log-q level msg))
+  ([queue level msg]
+   (q/add @queue (assoc msg :log-level level))))
+
 (defn exception
   ([e msg] (exception log-q e msg))
-  ([queue e msg] (q/add @queue (merge msg
-                                      {"log-level" :ERROR}
-                                      (hl/exception->map e)))))
+  ([queue e msg] (log queue :ERROR (merge msg (hl/exception->map e)))))
 
 (defn error
   ([msg] (error log-q msg))
-  ([queue msg] (q/add @queue (assoc msg
-                               "log-level" :ERROR))))
+  ([queue msg] (log queue :ERROR msg)))
 
 ;; TODO: warn should take a throwable but leaving it
 ;;       for now to avoid breaking the existing sig. -sd
 (defn warn
   ([msg] (warn log-q msg))
-  ([queue msg] (q/add @queue (assoc msg :log-level :WARN))))
+  ([queue msg] (log queue :WARN msg)))
 
 (defn info
   ([msg] (info log-q msg))
-  ([queue msg] (q/add @queue (assoc msg :log-level :INFO))))
+  ([queue msg] (log queue :INFO msg)))
 
 (defn debug
   ([msg] (debug log-q msg))
-  ([queue msg] (q/add @queue (assoc msg :log-level :DEBUG))))
+  ([queue msg] (log queue :DEBUG msg)))
 
 (defn trace
   ([msg] (trace log-q msg))
-  ([queue msg] (q/add @queue (assoc msg :log-level :TRACE))))
+  ([queue msg] (log queue :TRACE msg)))
 
 (defn start-thread-pool!
   "Create a log queue and threadpool for consuming log messages

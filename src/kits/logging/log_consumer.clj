@@ -1,133 +1,111 @@
 (ns ^{:doc "Internal namespace. This spawns agents that writes log messages to file and rotates them"}
   kits.logging.log-consumer
   (:require
+    [kits.io :as io]
+    [kits.calendar :as cal]
     [kits.runtime :as runtime]
-    [kits.queues :as q]
-    [kits.logging.log-generator :as log])
+    [kits.queues :as q])
   (:import
-    (java.util Calendar TimeZone)
-    (java.io FileWriter Writer IOException)))
+    java.io.FileWriter))
 
-(set! *warn-on-reflection* true)
+(def ^:private open-file-suffix ".open")
 
-(def utc-tz (TimeZone/getTimeZone "UTC"))
-(defmacro _+ [a b] `(unchecked-add (long ~a) (long ~b)))
-(defmacro _- [a b] `(unchecked-subtract (long ~a) (long ~b)))
-(defmacro _* [a b] `(unchecked-multiply (long ~a) (long ~b)))
+(defn std-log-file-path-fn
+  "Convenience function which return a function can be used as the
+   compute-file-name setting when calling make-log-rotate-loop. Write
+   logs under dir-path with a file name starting with prefix. Also
+   appends information about when that file will be rotated to simplify
+   log shipping and isolates logs by including the thread-id in the
+   name."
+  [dir-path prefix]
+  (fn [thread-id next-rotate-at]
+    (str
+      dir-path
+      "/"
+      prefix
+      next-rotate-at
+      "-"
+      (cal/day-at next-rotate-at)
+      "-"
+      thread-id
+      ".log")))
 
-(defn ms-time
-  " Returns number of milli-seconds since the epoch"
-  []
-  (System/currentTimeMillis))
+(defn- next-rotate-time [now rotation-minutes]
+  (cal/round-up-ts now rotation-minutes))
 
-(defn resilient-close
-  "Close a writer ensuring that no exception can be triggered and we do not write anything to disk."
-  [^Writer writer error-callback]
-  (when writer
-    (try
-      (.close writer)
-      (catch Exception e
-        (error-callback e)))))
+(defn- create-log-msg-formatter [formatter]
+  (let [host (runtime/host)
+        pid (runtime/process-id)
+        tid (runtime/thread-id)]
+    (fn [msg]
+      (try
+        (str (formatter host pid tid msg) "\n")
+        (catch Throwable e
+          (.printStackTrace e))))))
 
-(defn resilient-flush
-  "Flush 'writer', but ignore any java.io.Exception. Useful to avoid
-  killing a logging loop when file system is full for instance."
-  [^Writer writer error-callback]
-  (try
-    (.flush writer)
-    (catch IOException e
-      (error-callback e))))
+(defn- create-log-file [file-name-fn ts-ms]
+  (let [path (str (file-name-fn (runtime/thread-id) ts-ms))
+        open-path (str path open-file-suffix)]
+    {:open-path open-path
+     :dest-path path
+     :writer (FileWriter. ^String open-path true)}))
 
-(defn resilient-write
-  "Write 'data' using 'writer', but ignore any java.io.Exception. Useful
-  to avoid killing a logging loop when file system is full for
-  instance."
-  [^Writer writer ^String data error-callback]
-  (try
-    (.write writer data)
-    (catch IOException e
-      (error-callback e))))
+(defn- close-log [log-file io-error-handler]
+  (io/resilient-close (:writer log-file) io-error-handler)
+  (io/resilient-move (:open-path log-file) (:dest-path log-file) io-error-handler))
 
-(defn utc-cal-at
-  "Returns a UTC Java calendar set at a specific point-of-time (timestamp in ms)"
-  [ts]
-  (doto (Calendar/getInstance)
-    (.setTimeZone utc-tz)
-    (.setTimeInMillis ts)))
-
-(defn round-up-ts
-  "Return a timestamp rounded up to the next 'n' minutes"
-  [ts n-minutes]
-  (let [c ^Calendar(utc-cal-at ts)
-        min (.get c Calendar/MINUTE)
-        n (Math/floor (/ min n-minutes))
-        rounded-down (.getTimeInMillis
-                       (doto ^Calendar c
-                         (.set Calendar/MINUTE (* n n-minutes))))]
-    (_+ rounded-down (_* n-minutes 60000))))
-
-(defn stdout [log-line]
-  (print log-line)
-  (flush))
+(defn- rotate-log [new-log log-file io-error-handler rotate-at]
+  (close-log log-file io-error-handler)
+  (new-log rotate-at))
 
 (defn make-log-rotate-loop
-  "Build a loop that can be used in a thread pool to log entry with a
-  very high-troughput rate. Code is quite ugly but by lazily rotating
-  and flushing the writer we achieve very troughput."
+  "Build a loop to write log entries with a high-throughput rate."
   [{:keys [queue compute-file-name formatter io-error-handler conf]}]
-  (let [{:keys [queue-timeout-ms rotate-every-minute max-unflushed max-elapsed-unflushed-ms]} conf
-        compute-next-rotate-at (fn [now] (round-up-ts now rotate-every-minute))
-        log-file-for (fn [ts]
-                       (let [path (compute-file-name conf (runtime/thread-id) ts)]
-                         {:path path
-                          :writer (FileWriter. ^String path true)}))]
-    (fn [thread-name args]
-      (try
-        (let [now (ms-time)
-              rotate-at (compute-next-rotate-at now)
-              {:keys [path writer]}  (log-file-for rotate-at)]
-          (stdout (log/info "log-consumer::make-log-rotate-loop"
-                                (str "Log file: " path)))
-          (stdout (log/info "log-consumer::make-log-rotate-loop"
-                                 "Starting fetch loop for logging queue..."))
-          (loop [last-flush-at now
-                 unflushed 0
-                 rotate-at rotate-at
-                 writer writer]
-            (let [msg (q/fetch queue queue-timeout-ms)
-                  now (ms-time)]
-              ;; Check whether we should rotate the logs
-              (let [rotate? (> now rotate-at)
-                    rotate-at (if-not rotate?
-                                rotate-at
-                                (compute-next-rotate-at now))
-                    writer (if-not rotate?
-                             writer
-                             (do
-                               (resilient-close writer io-error-handler)
-                               (:writer (log-file-for rotate-at))))]
-                (if-not msg
-                  ;; Check whether we should flush and get back to business
-                  (if (and
-                       (pos? unflushed)
-                       (> (- now last-flush-at) max-elapsed-unflushed-ms))
-                    (do
-                      (stdout  (log/info "log-consumer::make-log-rotate-loop"
-                                             "Flush inactive"))
-                      (resilient-flush ^FileWriter writer io-error-handler)
-                      (recur (ms-time) 0 rotate-at writer))
-                    (recur last-flush-at unflushed rotate-at writer))
+  (fn [thread-name args]
+    (let [{:keys [queue-timeout-ms rotate-every-minute max-unflushed max-elapsed-unflushed-ms]} conf
+          create-log-file-for (partial create-log-file compute-file-name)
+          format-log-msg (create-log-msg-formatter formatter)]
+      (loop [last-flush-at (ms-time)
+             unflushed 0
+             rotate-at (next-rotate-time last-flush-at rotate-every-minute)
+             log-file (create-log-file-for rotate-at)
+             terminate-ready? false]
+        (let [msg (q/fetch queue queue-timeout-ms)
+              now (ms-time)
+              trigger-terminate? (= ::terminate msg)
+              rotate? (> now rotate-at)
+              [rotate-at log-file unflushed] (if rotate?
+                                             [(next-rotate-time now rotate-every-minute)
+                                              (rotate-log create-log-file-for log-file io-error-handler rotate-at) 
+                                              0]
+                                             [rotate-at log-file unflushed])
+              is-log-msg? (and (not trigger-terminate?) (some? msg))
+              unflushed (if is-log-msg? 
+                          (do
+                            (io/resilient-write (:writer log-file)
+                                                (format-log-msg msg)
+                                                io-error-handler)
+                            (inc unflushed))
+                          unflushed)
+              flush? (and (pos? unflushed) ; have some unflushed data
+                          (or (> (- now last-flush-at) max-elapsed-unflushed-ms) ; unflushed time limit
+                              (> unflushed max-unflushed)))] ; unflushed count limit
+          (if (and terminate-ready? (nil? msg)) ; close iff terminate has been signaled and the queue timed out
+            (do
+              (close-log log-file io-error-handler)
+              (locking queue
+                (.notify queue))
+              nil) ; signal that we have finished consuming the queue.
+            (let [terminate-ready? (or terminate-ready? trigger-terminate?)]
+              (if flush?
+                (do
+                  (io/resilient-flush (:writer log-file) io-error-handler)
+                  (recur (ms-time) 0 rotate-at log-file terminate-ready?))
+                (recur last-flush-at unflushed rotate-at log-file terminate-ready?)))))))))
 
-                  ;; Write log entry, flushing lazily
-                  (do
-                    (resilient-write writer (formatter msg) io-error-handler)
-                    (if (or (> (- now last-flush-at) max-elapsed-unflushed-ms)
-                            (> unflushed max-unflushed))
-                      (do
-                        (stdout (log/info "log-consumer::make-log-rotate-loop" "Flush"))
-                        (resilient-flush writer io-error-handler)
-                        (recur (ms-time) 0 rotate-at writer))
-                      (recur last-flush-at (inc unflushed) rotate-at writer))))))))
-        (catch Exception e
-          (stdout (log/error
-                       "log-consumer::make-log-rotate-loop" "Exception in logging" e)))))))
+(defn stop-log-rotate-loop [queue timeout-ms]
+  "Stop a log rotate loop, blocking until the log writing has finished"
+  (q/add queue ::terminate)
+  (locking queue
+    (.wait queue (long timeout-ms)))
+  nil)
