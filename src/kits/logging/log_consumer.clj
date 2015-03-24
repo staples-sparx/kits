@@ -103,8 +103,10 @@
                   (recur (ms-time) 0 rotate-at log-file terminate-ready?))
                 (recur last-flush-at unflushed rotate-at log-file terminate-ready?)))))))))
 
-(defn stop-log-rotate-loop [queue timeout-ms]
+(defn stop-log-rotate-loop
   "Stop a log rotate loop, blocking until the log writing has finished"
+  [queue timeout-ms]
+  {:pre [(integer? timeout-ms)]}
   (q/add queue ::terminate)
   (locking queue
     (.wait queue (long timeout-ms)))

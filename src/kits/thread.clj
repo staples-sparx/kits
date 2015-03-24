@@ -13,12 +13,13 @@
   "Starts a thread pool with 'thread-count' threads. 'f' is a function
    that constitute the tread loop. Its first argument is the thread
    name, the second argument will be set to match the 'args' given
-   when invoking 'start-thread-pool'"
+   when invoking 'start-thread-pool'. Returns a seq of threads."
   [thread-count name-prefix f & args]
-  (doseq [thread-num (range 0 (int thread-count))
-          :let [thread-name (str name-prefix thread-num)
-                t (Thread. ^Runnable (partial f thread-name args) ^String thread-name)]]
-      (.start t)))
+  (doall (for [thread-num (range 0 (int thread-count))
+               :let [thread-name (str name-prefix thread-num)
+                     t (Thread. ^Runnable (partial f thread-name args) ^String thread-name)]]
+           (.start t)
+           t)))
 
 (defn- safe-thread-join [any-ex timeout-ms thread]
   "Join a thread and catch an InterruptedException into any-ex."

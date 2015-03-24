@@ -8,10 +8,9 @@
   (:require
    [kits.queues :as q]
    [kits.thread :as t]
-   [kits.homeless :as hl]
+   [kits.homeless :refer [exception->map]]
    [kits.logging.log-consumer :as log-consumer]
-   [kits.logging.log-generator :as log-generator]
-   [kits.structured-logging :as sl]))
+   [kits.logging.log-generator :as log-generator]))
 
 (set! *warn-on-reflection* true)
 
@@ -19,37 +18,37 @@
 
 (defn reset-q!
   ([max-msgs] (reset-q! log-q max-msgs))
-  ([queue max-msgs] (reset! queue (q/create max-msgs))))
+  ([queue-atom max-msgs] (reset! queue-atom (q/create max-msgs))))
 
 (defn log
-  ([level msg] (log log-q level msg))
+  ([level msg] (log @log-q level msg))
   ([queue level msg]
-   (q/add @queue (assoc msg :log-level level))))
+   (q/add queue (assoc msg :log-level level))))
 
 (defn exception
-  ([e msg] (exception log-q e msg))
-  ([queue e msg] (log queue :ERROR (merge msg (hl/exception->map e)))))
+  ([e msg] (exception @log-q e msg))
+  ([queue e msg] (log queue :ERROR (merge msg (exception->map e)))))
 
 (defn error
-  ([msg] (error log-q msg))
+  ([msg] (error @log-q msg))
   ([queue msg] (log queue :ERROR msg)))
 
 ;; TODO: warn should take a throwable but leaving it
 ;;       for now to avoid breaking the existing sig. -sd
 (defn warn
-  ([msg] (warn log-q msg))
+  ([msg] (warn @log-q msg))
   ([queue msg] (log queue :WARN msg)))
 
 (defn info
-  ([msg] (info log-q msg))
+  ([msg] (info @log-q msg))
   ([queue msg] (log queue :INFO msg)))
 
 (defn debug
-  ([msg] (debug log-q msg))
+  ([msg] (debug @log-q msg))
   ([queue msg] (log queue :DEBUG msg)))
 
 (defn trace
-  ([msg] (trace log-q msg))
+  ([msg] (trace @log-q msg))
   ([queue msg] (log queue :TRACE msg)))
 
 (defn start-thread-pool!
@@ -64,15 +63,16 @@
     :max-msg 10000
     :max-unflushed 10000
     :max-elapsed-unflushed-ms 3000
-    :queue-timeout-ms 1000}"
+    :queue-timeout-ms 1000}
+   Returns a thread pool."
   ([log-config] (start-thread-pool! log-q log-config))
-  ([queue log-config]
-     (reset-q! queue (get log-config :max-msg 10000))
+  ([queue-atom log-config]
+     (reset-q! queue-atom (get log-config :max-msg 10000))
      (t/start-thread-pool
       (:thread-count log-config)
       (:thread-prefix log-config)
       (log-consumer/make-log-rotate-loop
-       {:queue @queue
+       {:queue @queue-atom
         :compute-file-name log-generator/log-file-path-for
         :formatter (or (:formatter-fn log-config)
                        (partial log-generator/log-formatter
@@ -80,3 +80,10 @@
         :io-error-handler (or (:io-error-handler log-config)
                               (partial log-consumer/stdout))
         :conf log-config}))))
+
+(defn stop-thread-pool!
+  "Stop a log thread pool."
+  ([pool timeout-ms] (stop-thread-pool! log-q pool timeout-ms)) 
+  ([queue-atom pool timeout-ms]
+   (log-consumer/stop-log-rotate-loop @queue-atom timeout-ms)
+   (t/join-thread-pool pool timeout-ms)))
