@@ -73,10 +73,10 @@
       (:thread-prefix log-config)
       (log-consumer/make-log-rotate-loop
        {:queue @queue-atom
-        :compute-file-name log-generator/log-file-path-for
+        :compute-file-name (partial log-generator/log-file-path-for log-config)
         :formatter (or (:formatter-fn log-config)
-                       (partial log-generator/log-formatter
-                                (:default-context log-config)))
+                       (partial log-generator/json-log-formatter
+                                {:context (:default-context log-config)}))
         :io-error-handler (or (:io-error-handler log-config)
                               (partial log-consumer/stdout))
         :conf log-config}))))
@@ -85,5 +85,5 @@
   "Stop a log thread pool."
   ([pool timeout-ms] (stop-thread-pool! log-q pool timeout-ms)) 
   ([queue-atom pool timeout-ms]
-   (log-consumer/stop-log-rotate-loop @queue-atom timeout-ms)
+   (log-consumer/stop-log-rotate-loop @queue-atom (count pool) timeout-ms)
    (t/join-thread-pool pool timeout-ms)))

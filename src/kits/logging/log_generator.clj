@@ -18,15 +18,11 @@
               (.printStackTrace (PrintWriter. sw)))]
       (.. sw toString trim))))
 
-(defn log-line [level ^String context ^String message ^Throwable ex]
+(defn log-line [level ^String message ^Throwable ex]
   (-> (StringBuilder. 256)
       (.append (Date.))
       (.append \space)
       (.append level)
-      (.append \space)
-      (.append \[)
-      (.append context)
-      (.append \])
       (.append \space)
       (.append message)
       (.append \space)
@@ -34,10 +30,13 @@
       (.append \newline)
       (.toString)))
 
-(defn log-formatter [default-context msg-map]
-  (let [log-level (get-in msg-map ["log-level"] :INFO)
-        context (get-in msg-map [:reply "context"] default-context)]
-    (log-line log-level context (str msg-map) nil)))
+(defn json-log-formatter 
+  ([context msg-map]
+   (let [log-level (get-in msg-map [:log-level] :INFO)
+         msg-map (merge context msg-map)]
+     (log-line (name log-level) (json/generate-string msg-map) nil)))
+  ([default-context context msg-map]
+   (json-log-formatter (merge default-context context) msg-map)))
 
 (defn simple-date-format
   ([format-string]

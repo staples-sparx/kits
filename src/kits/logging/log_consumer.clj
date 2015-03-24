@@ -12,7 +12,7 @@
 (def ^:private open-file-suffix ".open")
 
 (defn stdout [log-line]
-  (print log-line)
+  (println log-line)
   (flush))
 
 (defn std-log-file-path-fn
@@ -38,13 +38,16 @@
 (defn- next-rotate-time [now rotation-minutes]
   (cal/round-up-ts now rotation-minutes))
 
-(defn- create-log-msg-formatter [formatter]
+(defn- formatter-with-context [formatter]
   (let [host (runtime/host)
         pid (runtime/process-id)
-        tid (runtime/thread-id)]
+        tid (runtime/thread-id)
+        context {:host host
+                 :pid pid
+                 :tid tid}]
     (fn [msg]
       (try
-        (str (formatter host pid tid msg) "\n")
+        (str (formatter context msg))
         (catch Throwable e
           (.printStackTrace e))))))
 
@@ -69,7 +72,7 @@
   (fn [thread-name args]
     (let [{:keys [queue-timeout-ms rotate-every-minute max-unflushed max-elapsed-unflushed-ms]} conf
           create-log-file-for (partial create-log-file compute-file-name)
-          format-log-msg (create-log-msg-formatter formatter)]
+          format-log-msg (formatter-with-context formatter)]
       (loop [last-flush-at (ts/now)
              unflushed 0
              rotate-at (next-rotate-time last-flush-at rotate-every-minute)
@@ -80,10 +83,10 @@
               trigger-terminate? (= ::terminate msg)
               rotate? (> now rotate-at)
               [rotate-at log-file unflushed] (if rotate?
-                                             [(next-rotate-time now rotate-every-minute)
-                                              (rotate-log create-log-file-for log-file io-error-handler rotate-at) 
-                                              0]
-                                             [rotate-at log-file unflushed])
+                                               [(next-rotate-time now rotate-every-minute)
+                                                (rotate-log create-log-file-for log-file io-error-handler rotate-at) 
+                                                0]
+                                               [rotate-at log-file unflushed])
               is-log-msg? (and (not trigger-terminate?) (some? msg))
               unflushed (if is-log-msg? 
                           (do
@@ -99,8 +102,9 @@
             (do
               (close-log log-file io-error-handler)
               (locking queue
+                ; signal that we have finished consuming the queue.
                 (.notify queue))
-              nil) ; signal that we have finished consuming the queue.
+              nil)
             (let [terminate-ready? (or terminate-ready? trigger-terminate?)]
               (if flush?
                 (do
@@ -110,9 +114,11 @@
 
 (defn stop-log-rotate-loop
   "Stop a log rotate loop, blocking until the log writing has finished"
-  [queue timeout-ms]
+  [queue num-threads timeout-ms]
   {:pre [(integer? timeout-ms)]}
-  (q/add queue ::terminate)
-  (locking queue
-    (.wait queue (long timeout-ms)))
+  ; stop each thread
+  (dotimes [n num-threads]
+    (q/add queue ::terminate)
+    (locking queue
+      (.wait queue (long timeout-ms))))
   nil)
