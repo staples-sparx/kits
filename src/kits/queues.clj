@@ -63,39 +63,3 @@
     {:total (_+ s r)
      :used s
      :free r}))
-
-(defn start-thread-pool
-  "Starts a thread pool with 'thread-count' threads. 'f' is a function
-   that constitute the tread loop. Its first argument is the thread
-   name, the second argument will be set  to match the 'args' given
-   when invoking 'start-thread-pool'"
-  [thread-count name-prefix f & args]
-  (doall
-    (map (fn [thread-num]
-           (let [name (str name-prefix thread-num)
-                t (Thread. ^Runnable (partial f name args) ^String name)]
-            (.start t)
-            t))
-         (range 0 (int thread-count)))))
-
-(defn- safe-thread-join [any-ex timeout-ms thread]
-  (try 
-    (if (some? timeout-ms)
-      (.join ^Thread thread (long timeout-ms))
-      (.join ^Thread thread))
-    (catch InterruptedException e
-      (when (nil? @any-ex)
-      (var-set any-ex e))))
-  thread)
-
-(defn join-thread-pool
-  "Join all threads in a thread pool.
-   Throws InterruptedException if any thread was interrupted during the join."
-  ([pool] (join-thread-pool pool nil))
-  ([pool timeout-ms]
-   (with-local-vars [any-ex nil]
-     (let [join-thread (partial safe-thread-join any-ex timeout-ms)
-           joined-pool (doall (map join-thread pool))]
-       (when (some? @any-ex)
-         (throw @any-ex))
-       joined-pool))))

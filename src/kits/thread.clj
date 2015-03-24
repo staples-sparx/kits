@@ -16,10 +16,32 @@
    when invoking 'start-thread-pool'"
   [thread-count name-prefix f & args]
   (doseq [thread-num (range 0 (int thread-count))
-          :let [^String name (str name-prefix thread-num)
-                t (Thread. ^Runnable (partial f name args) name)]]
-    (.start t)
-    t))
+          :let [thread-name (str name-prefix thread-num)
+                t (Thread. ^Runnable (partial f thread-name args) ^String thread-name)]]
+      (.start t)))
+
+(defn- safe-thread-join [any-ex timeout-ms thread]
+  "Join a thread and catch an InterruptedException into any-ex."
+  (try 
+    (if (some? timeout-ms)
+      (.join ^Thread thread (long timeout-ms))
+      (.join ^Thread thread))
+    (catch InterruptedException e
+      (when (nil? @any-ex)
+      (var-set any-ex e))))
+  thread)
+
+(defn join-thread-pool
+  "Join all threads in a thread pool.
+   Throws InterruptedException if any thread was interrupted during the join."
+  ([pool] (join-thread-pool pool nil))
+  ([pool timeout-ms]
+   (with-local-vars [any-ex nil]
+     (let [join-thread (partial safe-thread-join any-ex timeout-ms)
+           joined-pool (doall (map join-thread pool))]
+       (when (some? @any-ex)
+         (throw @any-ex))
+       joined-pool))))
 
 (defn thread-factory [thread-prefix thread-exception-handler]
   (let [thread-num (atom -1)]
