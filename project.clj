@@ -1,5 +1,5 @@
 (defproject org.clojars.sparx/kits "2.0.0-SNAPSHOT"
-  :description "Runa's core utilities."
+  :description "SparX's core utilities."
   :local-repo ".m2"
   :min-lein-version "2.0.0"
   :license {:name "MIT License"
@@ -12,15 +12,12 @@
                  [clout "1.1.0"]
                  [org.hdrhistogram/HdrHistogram "1.2.1"]
                  [org.clojure/math.numeric-tower "0.0.2"]
-                 [org.clojars.runa/clj-utils "1.3.1"]
-                 [org.clojure/java.jdbc "0.3.3"]
-                 [org.clojars.runa/runa.tools.logging "0.2.7"]
-                 [clojure-csv/clojure-csv "2.0.0-alpha1"]
+                 [org.clojure/java.jdbc "0.3.6"]
+                 [clojure-csv/clojure-csv "2.0.1"]
                  [org.eclipse.jetty/jetty-server "9.2.3.v20140905"]]
   :clean-targets  [ :target-path ]
   :global-vars {*warn-on-reflection* false}
   :profiles {:dev {:dependencies [[slamhound "1.3.3"]]}
-             :1.4.0 {:dependencies [[org.clojure/clojure "1.4.0"]]}
              :1.5.0 {:dependencies [[org.clojure/clojure "1.5.1"]]}}
   :aliases {"run-tests" ["with-profile" "1.4.0:1.5.0" "test"]
             "slamhound" ["run" "-m" "slam.hound"]}
