@@ -32,3 +32,27 @@
         (is (= (str 300) lines))))
     (finally
       (sh "/bin/sh" :in "rm -rf /tmp/foo-log*\n"))))
+
+(deftest custom-format-fn
+  (try 
+    (let [log-cfg {:root "/tmp"
+                   :filename-prefix "dot-log"
+                   :default-context "foo-context"
+                   :thread-count 2
+                   :thread-prefix "log-"
+                   :rotate-every-minute 1
+                   :max-msg 10000
+                   :max-unflushed 3
+                   :max-elapsed-unflushed-ms 200
+                   :queue-timeout-ms 100
+                   :formatter-fn (fn [context msg] ".")}
+          log-q-atom (atom nil)
+          pool (log/start-thread-pool! log-q-atom log-cfg)]
+      (is (some? @log-q-atom))
+      (dotimes [n 1000]
+        (log/info @log-q-atom {:data "some data"}))
+      (log/stop-thread-pool! log-q-atom pool 1000)
+      (let [cat (:out (sh "/bin/sh" :in "cat /tmp/dot-log-*.log\n"))]
+        (is (= (apply str (repeat 1000 ".")) cat))))
+    (finally
+      (sh "/bin/sh" :in "rm -rf /tmp/dot-log*\n"))))
