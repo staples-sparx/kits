@@ -4,11 +4,16 @@
     [kits.io :as io]
     [kits.calendar :as cal]
     [kits.runtime :as runtime]
-    [kits.queues :as q])
+    [kits.queues :as q]
+    [kits.timestamp :as ts])
   (:import
     java.io.FileWriter))
 
 (def ^:private open-file-suffix ".open")
+
+(defn stdout [log-line]
+  (print log-line)
+  (flush))
 
 (defn std-log-file-path-fn
   "Convenience function which return a function can be used as the
@@ -65,13 +70,13 @@
     (let [{:keys [queue-timeout-ms rotate-every-minute max-unflushed max-elapsed-unflushed-ms]} conf
           create-log-file-for (partial create-log-file compute-file-name)
           format-log-msg (create-log-msg-formatter formatter)]
-      (loop [last-flush-at (ms-time)
+      (loop [last-flush-at (ts/now)
              unflushed 0
              rotate-at (next-rotate-time last-flush-at rotate-every-minute)
              log-file (create-log-file-for rotate-at)
              terminate-ready? false]
         (let [msg (q/fetch queue queue-timeout-ms)
-              now (ms-time)
+              now (ts/now)
               trigger-terminate? (= ::terminate msg)
               rotate? (> now rotate-at)
               [rotate-at log-file unflushed] (if rotate?
@@ -100,7 +105,7 @@
               (if flush?
                 (do
                   (io/resilient-flush (:writer log-file) io-error-handler)
-                  (recur (ms-time) 0 rotate-at log-file terminate-ready?))
+                  (recur (ts/now) 0 rotate-at log-file terminate-ready?))
                 (recur last-flush-at unflushed rotate-at log-file terminate-ready?)))))))))
 
 (defn stop-log-rotate-loop

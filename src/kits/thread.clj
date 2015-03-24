@@ -18,8 +18,7 @@
   (doall (for [thread-num (range 0 (int thread-count))
                :let [thread-name (str name-prefix thread-num)
                      t (Thread. ^Runnable (partial f thread-name args) ^String thread-name)]]
-           (.start t)
-           t)))
+           (doto t (.start)))))
 
 (defn- safe-thread-join [any-ex timeout-ms thread]
   "Join a thread and catch an InterruptedException into any-ex."

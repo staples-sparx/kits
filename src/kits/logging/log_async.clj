@@ -14,7 +14,7 @@
 
 (set! *warn-on-reflection* true)
 
-(defonce log-q (atom nil))
+(defonce ^:private log-q (atom nil))
 
 (defn reset-q!
   ([max-msgs] (reset-q! log-q max-msgs))
