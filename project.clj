@@ -6,7 +6,8 @@
             :url "http://mit-license.org/"}
   :url "https://github.com/staples-sparx/kits"
   :plugins [[jonase/eastwood "0.0.2"]
-            [lein-kibit "0.0.7"]]
+            [lein-kibit "0.0.7"]
+            [s3-wagon-private "1.1.2"]]
   :dependencies [[org.clojure/clojure "1.6.0"]
                  [cheshire "5.3.1"]
                  [clout "1.1.0"]
@@ -22,4 +23,7 @@
   :aliases {"run-tests" ["with-profile" "1.4.0:1.5.0" "test"]
             "slamhound" ["run" "-m" "slam.hound"]}
   :deploy-repositories [["clojars" {:url "https://clojars.org/repo/"
-                                    :signing {:gpg-key "76FD68DC"}}]])
+                                    :signing {:gpg-key "76FD68DC"}}]
+                        ["s3-releases" {:url "s3p://runa-maven/releases"
+                                        :username [:env/archiva_username]
+                                        :passphrase [:env/archiva_passphrase]}]])
