@@ -1,12 +1,12 @@
 (ns ^{:doc "Internal namespace. This spawns agents that writes log messages to file and rotates them"}
   kits.logging.log-consumer
   (:require
-    [kits.runtime :as runtime]
-    [kits.queues :as q]
-    [kits.logging.log-generator :as log])
+   [kits.runtime :as runtime]
+   [kits.queues :as q]
+   [kits.logging.log-generator :as log])
   (:import
-    (java.util Calendar TimeZone)
-    (java.io FileWriter Writer IOException)))
+   (java.util Calendar TimeZone)
+   (java.io FileWriter Writer IOException)))
 
 (set! *warn-on-reflection* true)
 
@@ -62,8 +62,8 @@
         min (.get c Calendar/MINUTE)
         n (Math/floor (/ min n-minutes))
         rounded-down (.getTimeInMillis
-                       (doto ^Calendar c
-                         (.set Calendar/MINUTE (* n n-minutes))))]
+                      (doto ^Calendar c
+                            (.set Calendar/MINUTE (* n n-minutes))))]
     (_+ rounded-down (_* n-minutes 60000))))
 
 (defn stdout [log-line]
@@ -87,9 +87,9 @@
               rotate-at (compute-next-rotate-at now)
               {:keys [path writer]}  (log-file-for rotate-at)]
           (stdout (log/info "log-consumer::make-log-rotate-loop"
-                                (str "Log file: " path)))
+                            (str "Log file: " path)))
           (stdout (log/info "log-consumer::make-log-rotate-loop"
-                                 "Starting fetch loop for logging queue..."))
+                            "Starting fetch loop for logging queue..."))
           (loop [last-flush-at now
                  unflushed 0
                  rotate-at rotate-at
@@ -113,7 +113,7 @@
                        (> (- now last-flush-at) max-elapsed-unflushed-ms))
                     (do
                       (stdout  (log/info "log-consumer::make-log-rotate-loop"
-                                             "Flush inactive"))
+                                         "Flush inactive"))
                       (resilient-flush ^FileWriter writer io-error-handler)
                       (recur (ms-time) 0 rotate-at writer))
                     (recur last-flush-at unflushed rotate-at writer))
@@ -130,4 +130,4 @@
                       (recur last-flush-at (inc unflushed) rotate-at writer))))))))
         (catch Exception e
           (stdout (log/error
-                       "log-consumer::make-log-rotate-loop" "Exception in logging" e)))))))
+                   "log-consumer::make-log-rotate-loop" "Exception in logging" e)))))))
