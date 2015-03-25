@@ -57,7 +57,7 @@
     content-type
     "text/plain; charset=utf-8"))
 
-(defn read-binary-resp [^HttpURLConnection conn]
+(defn read-raw-resp [^HttpURLConnection conn]
   ;; Note: no need to close the connection. From HttpURLConnection
   ;; javadoc : Each HttpURLConnection instance is used to make a
   ;; single request but the underlying network connection to the HTTP
@@ -67,7 +67,7 @@
   ;; associated with this instance but has no effect on any shared
   ;; persistent connection.
   (let [status (.getResponseCode ^HttpURLConnection conn)]
-    (if (= 200 status)
+    (if (< 199 status 300)
       (with-open [in (.getInputStream conn)
                   out (ByteArrayOutputStream. 1024)]
         (io/copy in out)
@@ -75,17 +75,37 @@
          :msg (.getResponseMessage ^HttpURLConnection conn)
          :headers {"Content-Type" (.getHeaderField conn "Content-Type")
                    "Content-Encoding" (.getHeaderField conn "Content-Encoding")}
-         :body (ByteArrayInputStream. (.toByteArray out))})
+         :out out})
       (if-let [error-stream (.getErrorStream conn)]
         (with-open [in error-stream
                     out (ByteArrayOutputStream. 1024)]
-          (io/copy in out)
+          (try
+            (io/copy in out)
+            {:status status
+             :msg (.getResponseMessage ^HttpURLConnection conn)
+             :body (.toString out)}
+            (catch Exception e))
           {:status status
            :msg (.getResponseMessage ^HttpURLConnection conn)
-           :body (.toString out)})
+           :body nil})
         {:status status
          :msg (.getResponseMessage ^HttpURLConnection conn)
          :body nil}))))
+
+
+(defn read-binary-resp [^HttpURLConnection conn]
+  (let [raw (read-raw-resp conn)
+        out (:out raw)]
+    (assoc raw
+      :body (when out
+              (ByteArrayInputStream. (.toByteArray out))))))
+
+(defn read-str-resp [^HttpURLConnection conn]
+  (let [raw (read-raw-resp conn)
+        out (:out raw)]
+    (assoc raw
+      :body (when out
+              (.toString out)))))
 
 (defn post-binary [url ^InputStream in timeout-ms & [content-type]]
   (let [ct (ensure-content-type content-type)
@@ -103,33 +123,6 @@
       (.close out)
       (read-binary-resp conn))))
 
-(defn read-response [^HttpURLConnection conn]
-  ;; Note: no need to close the connection. From HttpURLConnection
-  ;; javadoc : Each HttpURLConnection instance is used to make a
-  ;; single request but the underlying network connection to the HTTP
-  ;; server may be transparently shared by other instances. Calling
-  ;; the close() methods on the InputStream or OutputStream of an
-  ;; HttpURLConnection after a request may free network resources
-  ;; associated with this instance but has no effect on any shared
-  ;; persistent connection.
-  (let [status (.getResponseCode ^HttpURLConnection conn)
-        response-fn (fn [body]
-                      {:status status
-                       :msg (.getResponseMessage ^HttpURLConnection conn)
-                       :body body})]
-    (if (= 200 status)
-      (with-open [in (.getInputStream conn)
-                  out (ByteArrayOutputStream. 1024)]
-        (io/copy in out)
-        (response-fn (.toString out)))
-      (if-let [error-stream (.getErrorStream conn)]
-        (with-open [in error-stream
-                    out (ByteArrayOutputStream. 1024)]
-          (when in
-            (io/copy in out))
-          (response-fn (.toString out)))
-        (response-fn nil)))))
-
 (defn get
   "Returns the response of a plain http get in the form of :status, :msg, and stringyfied :body"
   [url params timeout-ms]
@@ -138,9 +131,9 @@
                (.setRequestMethod "GET")
                (.setConnectTimeout timeout-ms)
                (.setReadTimeout timeout-ms))]
-    (read-response conn)))
+    (read-str-resp conn)))
 
-(defn post [url data timeout-ms & [content-type]]
+(defn post [url ^String data timeout-ms & [content-type]]
   (let [actual-content-type (ensure-content-type content-type)
         url (URL. (url-for url nil))
         conn (doto ^HttpURLConnection (.openConnection url)
@@ -156,7 +149,7 @@
       (.flush writer)
       (.close writer)
       (.close out)
-      (read-response conn))))
+      (read-str-resp conn))))
 
 (defn post-json [url data timeout-ms]
   (post
