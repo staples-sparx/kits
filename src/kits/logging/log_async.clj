@@ -20,6 +20,11 @@
   ([max-msgs] (reset-q! log-q max-msgs))
   ([queue-atom max-msgs] (reset! queue-atom (q/create max-msgs))))
 
+(defn data
+  ([msg] (data @log-q msg))
+  ([queue msg]
+   (q/add queue msg)))
+
 (defn log
   ([level msg] (log @log-q level msg))
   ([queue level msg]
@@ -78,7 +83,7 @@
                        (partial log-generator/json-log-formatter
                                 {:context (:default-context log-config)}))
         :io-error-handler (or (:io-error-handler log-config)
-                              (partial log-consumer/stdout))
+                              log-consumer/stdout)
         :conf log-config}))))
 
 (defn stop-thread-pool!
@@ -87,3 +92,7 @@
   ([queue-atom pool timeout-ms]
    (log-consumer/stop-log-rotate-loop @queue-atom (count pool) timeout-ms)
    (t/join-thread-pool pool timeout-ms)))
+
+(defn stats
+  ([] (stats @log-q))
+  ([queue] (q/stats queue)))

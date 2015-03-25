@@ -38,6 +38,10 @@
   ([default-context context msg-map]
    (json-log-formatter (merge default-context context) msg-map)))
 
+(defn json-data-formatter
+  [context msg-map]
+  (json/generate-string msg-map))
+
 (defn simple-date-format
   ([format-string]
      (simple-date-format format-string "UTC"))
