@@ -21,7 +21,7 @@
    [^String json]
   (core/parse-string json))
 
-(defn decode-str
+(defn decode
   "Returns the Clojure object corresponding the first JSON-encoded read on the given reader."
   [^BufferedReader in]
   (core/parse-stream in))
