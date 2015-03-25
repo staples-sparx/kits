@@ -1,5 +1,7 @@
 (ns ^{:doc "Bare bone, performance oriented abstraction layer on top or URLConnection"}
-    kits.http-client
+  kits.http-client
+  (:use
+    kits.foundation)
   (:refer-clojure :exclude [get])
   (:require
     [kits.json :as json]
@@ -83,14 +85,22 @@
             (io/copy in out)
             {:status status
              :msg (.getResponseMessage ^HttpURLConnection conn)
-             :body (.toString out)}
-            (catch Exception e))
-          {:status status
-           :msg (.getResponseMessage ^HttpURLConnection conn)
-           :body nil})
-        {:status status
-         :msg (.getResponseMessage ^HttpURLConnection conn)
-         :body nil}))))
+             :out out}
+            (catch Exception e
+              {:status status
+               :msg (.getResponseMessage ^HttpURLConnection conn)
+               :out nil})))
+        (try
+          (with-open [in (.getInputStream conn)
+                      out (ByteArrayOutputStream. 1024)]
+            (io/copy in out)
+            {:status status
+             :msg (.getResponseMessage ^HttpURLConnection conn)
+             :body (.toString out)})
+          (catch Exception e
+            {:status status
+             :msg (.getResponseMessage ^HttpURLConnection conn)
+             :out nil}))))))
 
 
 (defn read-binary-resp [^HttpURLConnection conn]

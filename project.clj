@@ -1,4 +1,4 @@
-(defproject staples-sparx/kits "1.20.11"
+(defproject staples-sparx/kits "1.20.12"
   :description "Runa's core utilities."
   :local-repo ".m2"
   :min-lein-version "2.0.0"
