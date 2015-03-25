@@ -1,4 +1,4 @@
-(defproject org.clojars.sparx/kits "1.20.8"
+(defproject org.clojars.sparx/kits "1.20.9"
   :description "Runa's core utilities."
   :local-repo ".m2"
   :min-lein-version "2.0.0"
