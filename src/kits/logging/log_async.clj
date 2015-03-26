@@ -15,6 +15,7 @@
 (set! *warn-on-reflection* true)
 
 (defonce ^:private log-q (atom nil))
+(defonce ^:private log-pool (atom nil))
 
 (defn reset-q!
   ([max-msgs] (reset-q! log-q max-msgs))
@@ -70,7 +71,7 @@
     :max-elapsed-unflushed-ms 3000
     :queue-timeout-ms 1000}
    Returns a thread pool."
-  ([log-config] (start-thread-pool! log-q log-config))
+  ([log-config] (reset! log-pool (start-thread-pool! log-q log-config)))
   ([queue-atom log-config]
      (reset-q! queue-atom (get log-config :max-msg 10000))
      (t/start-thread-pool
@@ -88,6 +89,7 @@
 
 (defn stop-thread-pool!
   "Stop a log thread pool."
+  ([timeout-ms] (stop-thread-pool! @log-pool timeout-ms))
   ([pool timeout-ms] (stop-thread-pool! log-q pool timeout-ms)) 
   ([queue-atom pool timeout-ms]
    (log-consumer/stop-log-rotate-loop @queue-atom (count pool) timeout-ms)
