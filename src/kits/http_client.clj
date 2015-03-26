@@ -1,22 +1,28 @@
 (ns ^{:doc "Bare bone, performance oriented abstraction layer on top or URLConnection"}
-    kits.http-client
+  kits.http-client
+  (:use
+    kits.foundation)
   (:refer-clojure :exclude [get])
   (:require
     [kits.json :as json]
     [kits.io :as io])
-  (:import java.io.ByteArrayOutputStream
-           java.io.File
-           java.io.InputStream
-           java.io.OutputStream
-           java.io.OutputStreamWriter
-           java.io.Writer
-           java.io.BufferedWriter
-           java.net.HttpURLConnection
-           java.net.URL
-           java.net.URLConnection
-           java.net.URLEncoder))
+  (:import
+    java.io.ByteArrayOutputStream
+    java.io.ByteArrayInputStream
+    java.io.File
+    java.io.InputStream
+    java.io.OutputStream
+    java.io.OutputStreamWriter
+    java.io.Writer
+    java.io.BufferedWriter
+    java.net.HttpURLConnection
+    java.net.URL
+    java.net.URLConnection
+    java.net.URLEncoder))
 
-(set! *warn-on-reflection* false)
+(set! *warn-on-reflection* true)
+
+(def typical-request-size 10240)
 
 (defn url-encode [value]
   (URLEncoder/encode
@@ -46,7 +52,14 @@
     url
     (str url "?" (encode-params params))))
 
-(defn read-response [^HttpURLConnection conn]
+(def typical-request-size 10240)
+
+(defn ensure-content-type [^String content-type]
+  (or
+    content-type
+    "text/plain; charset=utf-8"))
+
+(defn read-raw-resp [^HttpURLConnection conn]
   ;; Note: no need to close the connection. From HttpURLConnection
   ;; javadoc : Each HttpURLConnection instance is used to make a
   ;; single request but the underlying network connection to the HTTP
@@ -55,28 +68,70 @@
   ;; HttpURLConnection after a request may free network resources
   ;; associated with this instance but has no effect on any shared
   ;; persistent connection.
-  (let [status (.getResponseCode ^HttpURLConnection conn)
-        response-fn (fn [body]
-                      {:status status
-                       :msg (.getResponseMessage ^HttpURLConnection conn)
-                       :body body})]
-    (if (= 200 status)
+  (let [status (.getResponseCode ^HttpURLConnection conn)]
+    (if (< 199 status 300)
       (with-open [in (.getInputStream conn)
                   out (ByteArrayOutputStream. 1024)]
         (io/copy in out)
-        (response-fn (.toString out)))
+        {:status status
+         :msg (.getResponseMessage ^HttpURLConnection conn)
+         :headers {"Content-Type" (.getHeaderField conn "Content-Type")
+                   "Content-Encoding" (.getHeaderField conn "Content-Encoding")}
+         :out out})
       (if-let [error-stream (.getErrorStream conn)]
         (with-open [in error-stream
                     out (ByteArrayOutputStream. 1024)]
-          (when in
-            (io/copy in out))
-          (response-fn (.toString out)))
-        (response-fn nil)))))
+          (try
+            (io/copy in out)
+            {:status status
+             :msg (.getResponseMessage ^HttpURLConnection conn)
+             :out out}
+            (catch Exception e
+              {:status status
+               :msg (.getResponseMessage ^HttpURLConnection conn)
+               :out nil})))
+        (try
+          (with-open [in (.getInputStream conn)
+                      out (ByteArrayOutputStream. 1024)]
+            (io/copy in out)
+            {:status status
+             :msg (.getResponseMessage ^HttpURLConnection conn)
+             :body (.toString out)})
+          (catch Exception e
+            {:status status
+             :msg (.getResponseMessage ^HttpURLConnection conn)
+             :out nil}))))))
 
-(defn ensure-content-type [^String content-type]
-  (or
-    content-type
-    "text/plain; charset=utf-8"))
+
+(defn read-binary-resp [^HttpURLConnection conn]
+  (let [raw (read-raw-resp conn)
+        out (:out raw)]
+    (assoc raw
+      :body (when out
+              (ByteArrayInputStream. (.toByteArray out))))))
+
+(defn read-str-resp [^HttpURLConnection conn]
+  (let [raw (read-raw-resp conn)
+        out (:out raw)]
+    (assoc raw
+      :body (when out
+              (.toString out)))))
+
+(defn post-binary [url ^InputStream in timeout-ms & [content-type]]
+  (let [ct (ensure-content-type content-type)
+        url (URL. (url-for url nil))
+        conn (doto ^HttpURLConnection (.openConnection url)
+                   (.setDoOutput true)
+                   (.setRequestMethod "POST")
+                   (.setRequestProperty
+                    "Content-Type" ct)
+                   (.setConnectTimeout timeout-ms)
+                   (.setReadTimeout timeout-ms))]
+    (with-open [out (.getOutputStream conn)]
+      (io/copy in out 10240)
+      (.flush out)
+      (.close out)
+      (read-binary-resp conn))))
 
 (defn get
   "Returns the response of a plain http get in the form of :status, :msg, and stringyfied :body"
@@ -86,9 +141,9 @@
                (.setRequestMethod "GET")
                (.setConnectTimeout timeout-ms)
                (.setReadTimeout timeout-ms))]
-    (read-response conn)))
+    (read-str-resp conn)))
 
-(defn post [url data timeout-ms & [content-type]]
+(defn post [url ^String data timeout-ms & [content-type]]
   (let [actual-content-type (ensure-content-type content-type)
         url (URL. (url-for url nil))
         conn (doto ^HttpURLConnection (.openConnection url)
@@ -104,11 +159,11 @@
       (.flush writer)
       (.close writer)
       (.close out)
-      (read-response conn))))
+      (read-str-resp conn))))
 
 (defn post-json [url data timeout-ms]
   (post
     url
-    (json/encode data)
+    (json/encode-str data)
     timeout-ms
     "application/json"))
