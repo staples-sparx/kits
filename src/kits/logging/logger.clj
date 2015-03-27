@@ -7,7 +7,7 @@
     [kits.logging.log-async :as async]))
 
 (defn- log-dict [log-ns throwable message]
-  (cond-> {:namespace log-ns}
+  (cond-> {:namespace (str log-ns)}
     (string? message) (assoc :message message)
     (map? message) (merge message)
     throwable (assoc :exception (exception->map throwable))))
@@ -43,4 +43,8 @@
 (defn install! []
   (alter-var-root (var logging/*logger-factory*)
                   logger-factory))
+
+(defn uninstall! []
+  (alter-var-root (var logging/*logger-factory*) 
+                  (constantly (impl/find-factory))))
 
