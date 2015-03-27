@@ -41,10 +41,8 @@
 (defn- formatter-with-context [formatter]
   (let [host (runtime/host)
         pid (runtime/process-id)
-        tid (runtime/thread-id)
         context {:host host
-                 :pid pid
-                 :tid tid}]
+                 :pid pid}]
     (fn [msg]
       (try
         (str (formatter context msg))
