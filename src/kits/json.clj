@@ -25,3 +25,14 @@
   "Returns the Clojure object corresponding the first JSON-encoded read on the given reader."
   [^BufferedReader in]
   (core/parse-stream in))
+
+(defn resilient-encode-str
+  ([dict] (resilient-encode-str dict (fn [ex] 
+                                       (binding [*out* *err*]
+                                         (println (str "Failed to encode JSON from: '" dict "'"))
+                                         (.printStackTrace ex))
+                                       "{}"))) ; return an empty json datum
+  ([dict handle-error]
+   (try (encode-str dict)
+        (catch Exception e 
+          (handle-error e)))))

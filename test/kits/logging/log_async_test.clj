@@ -5,7 +5,7 @@
     [clojure.string :as string]
     [kits.logging.log-async :as log]))
 
-(deftest start-stop-logging
+(deftest logging-data-counts
   (try 
     (let [log-cfg {:root "/tmp"
                    :filename-prefix "foo-log"
@@ -26,10 +26,13 @@
         (log/warn @log-q-atom {:message "Beware world!"
                                :n n})
         (log/exception @log-q-atom (ex-info "Oh crap!" {:stuff "some data"}) {:message2 "Some error happened!"}))
+      (log/info @log-q-atom {:message "Something that can't be json encoded!"
+                             :fn (fn [] "foo!")}) ; gets logged as an empty message
+      (log/info @log-q-atom {:message "Log continued after error"})
       (log/stop-thread-pool! log-q-atom pool 1000)
       (let [wc (:out (sh "/bin/sh" :in "wc -l /tmp/foo-log-*.log\n"))
             lines (-> wc (string/split #"\n") (last) (string/trim) (string/split #"\s") (first))]
-        (is (= (str 300) lines))))
+        (is (= (str 302) lines))))
     (finally
       (sh "/bin/sh" :in "rm -rf /tmp/foo-log*\n"))))
 

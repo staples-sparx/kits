@@ -2,7 +2,7 @@
   kits.logging.log-generator
   (:require
     [kits.queues :as q]
-    [cheshire.core :as json])
+    [kits.json :as json])
   (:import
     (java.util Date TimeZone)
     (java.text SimpleDateFormat)
@@ -26,7 +26,7 @@
       (.append \space)
       (.append message)
       (.append \space)
-      (.append  (stacktrace ex))
+      (.append (stacktrace ex))
       (.append \newline)
       (.toString)))
 
@@ -34,13 +34,13 @@
   ([context msg-map]
    (let [log-level (get-in msg-map [:log-level] :INFO)
          msg-map (merge context msg-map)]
-     (log-line (name log-level) (json/generate-string msg-map) nil)))
+     (log-line (name log-level) (json/resilient-encode-str msg-map) nil)))
   ([default-context context msg-map]
    (json-log-formatter (merge default-context context) msg-map)))
 
 (defn json-data-formatter
   [context msg-map]
-  (json/generate-string msg-map))
+  (json/resilient-encode-str msg-map))
 
 (defn simple-date-format
   ([format-string]
