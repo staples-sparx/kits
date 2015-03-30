@@ -27,7 +27,7 @@
   (core/parse-stream in))
 
 (defn resilient-encode-str
-  ([dict] (resilient-encode-str dict (fn [ex] 
+  ([dict] (resilient-encode-str dict (fn [dict ex] 
                                        (binding [*out* *err*]
                                          (println (str "Failed to encode JSON from: '" dict "'"))
                                          (.printStackTrace ex))
@@ -35,4 +35,4 @@
   ([dict handle-error]
    (try (encode-str dict)
         (catch Exception e 
-          (handle-error e)))))
+          (handle-error dict e)))))

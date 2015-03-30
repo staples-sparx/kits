@@ -30,11 +30,22 @@
       (.append \newline)
       (.toString)))
 
+(defn- handle-json-log-encode-failure [dict ex]
+  (try
+    (let [fallback-data {:message "Failed to encode JSON log data"
+                         :json-fallback-data (str dict)}]
+      (json/encode-str fallback-data))  
+    (catch Exception ex2
+      (binding [*out* *err*]
+        (println (str "Failed to encode JSON from: '" dict "'"))
+        (.printStackTrace ex2))
+      "{}")))
+
 (defn json-log-formatter 
   ([context msg-map]
    (let [log-level (get-in msg-map [:log-level] :INFO)
          msg-map (merge context msg-map)]
-     (log-line (name log-level) (json/resilient-encode-str msg-map) nil)))
+     (log-line (name log-level) (json/resilient-encode-str msg-map handle-json-log-encode-failure) nil)))
   ([default-context context msg-map]
    (json-log-formatter (merge default-context context) msg-map)))
 
