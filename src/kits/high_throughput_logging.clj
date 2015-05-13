@@ -1,5 +1,23 @@
 (ns kits.high-throughput-logging
-  "High throuput logging flushing to disk every N message and/or M milliseconds, whichever comes first"
+  "High throughput logging that can easily sustain 40K of messages/s
+   with a single thread.
+
+   The core idea to achieve this level of throughput is to write to disk
+   sequentially and batch flushing. We flush to disk only every N message
+   and/or M milliseconds, whichever comes first.
+
+   To guarantee the integrity of the log files (no partial writes of an
+   entry), we also take care of log rotation in the same loop that is in
+   charge of the log entry writing (this way we can ensure that rotation
+   can only happen at entry boundaries). Rotation can happen based on
+   time or number of bytes written, whichever comes first.
+
+   If std-log-file-path-fn convenience function is used, it employs a
+   strategy where the log file name contains the timestamp of when it
+   will get rotated (time of the last possible write). This enable a
+   simple log shipping strategy outside of the application logic via an
+   external program: just look at any file name and only 'ship' it
+   if its rotation time is in the past."
   (:use
     kits.foundation)
   (:require
@@ -15,7 +33,7 @@
    compute-file-name setting when calling make-log-rotate-loop. Write
    logs under dir-path with a file name starting with prefix. Also
    appends information about when that file will be rotated to simplify
-   log shipping and isolates logs by including the thread-id in the
+   log shipping. Also isolates logs by including the thread-id in the
    name."
   [dir-path prefix]
   (fn [thread-id next-rotate-at]
@@ -23,46 +41,49 @@
       dir-path
       "/"
       prefix
-      next-rotate-at
+      next-rotate-at                ;; Nice for machine parsing
       "-"
-      (cal/day-at next-rotate-at)
+      (cal/day-at next-rotate-at)   ;; Nice for humans
       "-"
-      thread-id
+      thread-id                     ;; Make it safe to use multiple logging threads
       ".log")))
 
 (defn make-log-rotate-loop
   "Build a loop that can be used in a thread pool to log entry with a
-  very high-troughput rate. Code is quite ugly but by lazily rotating
-  and flushing the writer we achieve very troughput."
+   very high-troughput rate. Code is quite ugly but by lazily rotating
+   and flushing the writer we achieve very troughput."
   [{:keys [queue compute-file-name formatter io-error-handler conf]}]
   (let [{:keys [queue-timeout-ms
                 rotate-every-minute
+                rotate-every-bytes
                 max-unflushed
                 max-elapsed-unflushed-ms]} conf
-        compute-next-rotate-at (fn [now]
-                                 (cal/round-up-ts now rotate-every-minute))
-        log-file-for (fn ^FileWriter [ts]
-                       (let [path (compute-file-name (runtime/thread-id) ts)]
-                         (FileWriter. ^String path true)))
-        enforce-log-rotation-policy (fn [now rotate-at writer bytes unflushed-msgs]
-                                      (if (> now rotate-at)
-                                        [(compute-next-rotate-at now)
+                compute-next-rotate-at (fn [now]
+                                         (cal/round-up-ts now rotate-every-minute))
+                log-file-for (fn ^FileWriter [ts]
+                               (let [path (compute-file-name (runtime/thread-id) ts)]
+                                 (FileWriter. ^String path true)))
+
+                enforce-log-rotation-policy (fn [now rotate-at writer bytes unflushed-msgs]
+                                              (if (or
+                                                    (> now rotate-at)
+                                                    (>= bytes rotate-every-bytes))
+                                                (let [_ (io/resilient-close writer io-error-handler)
+                                                      rotate-at (compute-next-rotate-at now)
+                                                      writer (log-file-for rotate-at)]
+                                                  [rotate-at writer 0 0])
+                                                [rotate-at writer bytes unflushed-msgs]))
+
+                enforce-flush-policy (fn [unflushed-msgs elapsed-unflushed-ms writer]
+                                       (if (or
+                                             (> unflushed-msgs max-unflushed)
+                                             (and
+                                               (pos? unflushed-msgs)
+                                               (> elapsed-unflushed-ms max-elapsed-unflushed-ms)))
                                          (do
-                                           (io/resilient-close writer io-error-handler)
-                                           (log-file-for rotate-at))
-                                         0
-                                         0]
-                                        [rotate-at writer bytes unflushed-msgs]))
-        enforce-flush-policy (fn [unflushed-msgs elapsed-unflushed-ms writer]
-                               (if (or
-                                     (> unflushed-msgs max-unflushed)
-                                     (and
-                                       (pos? unflushed-msgs)
-                                       (> elapsed-unflushed-ms max-elapsed-unflushed-ms)))
-                                 (do
-                                   (io/resilient-flush writer io-error-handler)
-                                   true)
-                                 false))]
+                                           (io/resilient-flush writer io-error-handler)
+                                           true)
+                                         false))]
     (fn [thread-name args]
       (let [host (runtime/host)
             pid (runtime/process-id)
