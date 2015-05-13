@@ -71,7 +71,10 @@
                            writer
                            (do
                              (io/resilient-close writer io-error-handler)
-                             (log-file-for rotate-at)))]
+                             (log-file-for rotate-at)))
+                  unflushed (if rotate?
+                              0
+                              unflushed)]
               (if-not msg
                 ;; Check whether we should flush and get back to business
                 (if (and
