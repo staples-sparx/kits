@@ -1,5 +1,5 @@
 (ns kits.high-throughput-logging
-  "High throuput logging flushing to disk every N message and M milliseconds"
+  "High throuput logging flushing to disk every N message and/or M milliseconds, whichever comes first"
   (:use
     kits.foundation)
   (:require
@@ -35,20 +35,20 @@
   very high-troughput rate. Code is quite ugly but by lazily rotating
   and flushing the writer we achieve very troughput."
   [{:keys [queue compute-file-name formatter io-error-handler conf]}]
-  (let [{:keys [queue-timeout-ms rotate-every-minute max-unflushed max-elapsed-unflushed-ms]} conf
+  (let [{:keys [queue-timeout-ms
+                rotate-every-minute
+                max-unflushed
+                max-elapsed-unflushed-ms]} conf
         compute-next-rotate-at (fn [now]
                                  (cal/round-up-ts now rotate-every-minute))
-        log-file-for (fn [ts]
+        log-file-for (fn ^FileWriter [ts]
                        (let [path (compute-file-name (runtime/thread-id) ts)]
-                         {:path path
-                          :writer (FileWriter. ^String path true)}))]
+                         (FileWriter. ^String path true)))]
     (fn [thread-name args]
-      (let [now (ms-time)
-            rotate-at (compute-next-rotate-at now)
-            {:keys [path writer]}  (log-file-for rotate-at)
-            host (runtime/host)
+      (let [host (runtime/host)
             pid (runtime/process-id)
             tid (runtime/thread-id)
+            now (ms-time)
             entry-formatter (fn [msg]
                               (try
                                 (formatter host pid tid msg)
@@ -57,8 +57,8 @@
         ;; (log/info "Starting thread writing to " path)
         (loop [last-flush-at now
                unflushed 0
-               rotate-at rotate-at
-               writer writer]
+               rotate-at (compute-next-rotate-at now)
+               writer (log-file-for rotate-at)]
           ;; (log/debug thread-name " | Fetching a message...")
           (let [msg (q/fetch queue queue-timeout-ms)
                 now (ms-time)]
@@ -71,7 +71,7 @@
                            writer
                            (do
                              (io/resilient-close writer io-error-handler)
-                             (:writer (log-file-for rotate-at))))]
+                             (log-file-for rotate-at)))]
               (if-not msg
                 ;; Check whether we should flush and get back to business
                 (if (and
@@ -79,17 +79,20 @@
                       (> (- now last-flush-at) max-elapsed-unflushed-ms))
                   (do
                     ;; (log/debug "Flush inactive")
-                    (io/resilient-flush ^FileWriter writer io-error-handler)
+                    (io/resilient-flush writer io-error-handler)
                     (recur (ms-time) 0 rotate-at writer))
                   (recur last-flush-at unflushed rotate-at writer))
 
                 ;; Write log entry, flushing lazily
                 (do
                   ;; (log/debug "Got msg" msg)
-                  (io/resilient-write writer (str (entry-formatter msg) "\n") io-error-handler)
+                  (io/resilient-write writer
+                    (str (entry-formatter msg) "\n")
+                    io-error-handler)
 
-                  (if (or (> (- now last-flush-at) max-elapsed-unflushed-ms)
-                        (> unflushed max-unflushed))
+                  (if (or
+                        (> unflushed max-unflushed)
+                        (> (- now last-flush-at) max-elapsed-unflushed-ms))
                     (do
                       ;; (log/debug "Flush")
                       (io/resilient-flush writer io-error-handler)
