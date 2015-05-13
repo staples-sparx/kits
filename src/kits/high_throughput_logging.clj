@@ -43,7 +43,23 @@
                                  (cal/round-up-ts now rotate-every-minute))
         log-file-for (fn ^FileWriter [ts]
                        (let [path (compute-file-name (runtime/thread-id) ts)]
-                         (FileWriter. ^String path true)))]
+                         (FileWriter. ^String path true)))
+        enforce-log-rotation-policy (fn [now rotate-at writer unflushed]
+                                      (if (> now rotate-at)
+                                        [(compute-next-rotate-at now)
+                                         (do
+                                           (io/resilient-close writer io-error-handler)
+                                           (log-file-for rotate-at))
+                                         0]
+                                        [rotate-at writer unflushed]))
+        enforce-flush-policy (fn [unflushed elapsed-unflushed-ms writer]
+                               (if (or
+                                     (> unflushed max-unflushed)
+                                     (> elapsed-unflushed-ms max-elapsed-unflushed-ms))
+                                 (do
+                                   (io/resilient-flush writer io-error-handler)
+                                   true)
+                                 false))]
     (fn [thread-name args]
       (let [host (runtime/host)
             pid (runtime/process-id)
@@ -53,16 +69,8 @@
                               (try
                                 (formatter host pid tid msg)
                                 (catch Throwable e
-                                  (.printStackTrace e))))
-            enforce-log-rotation-policy (fn [now rotate-at writer unflushed]
-                                          (if (> now rotate-at)
-                                            [(compute-next-rotate-at now)
-                                             (do
-                                               (io/resilient-close writer io-error-handler)
-                                               (log-file-for rotate-at))
-                                             0]
-                                            [rotate-at writer unflushed]))]
-        (loop [last-flush-at now
+                                  (.printStackTrace e))))]
+                (loop [last-flush-at now
                unflushed 0
                rotate-at (compute-next-rotate-at now)
                writer (log-file-for rotate-at)]
@@ -87,17 +95,12 @@
                 (recur last-flush-at unflushed rotate-at writer))
 
               ;;
-              ;; Write log entry, then flush if needed
+              ;; New log entry, write it and flush only when needed
               ;;
               (do
                 (io/resilient-write writer
                   (str (entry-formatter msg) "\n")
                   io-error-handler)
-
-                (if (or
-                      (> unflushed max-unflushed)
-                      (> elapsed-unflushed-ms max-elapsed-unflushed-ms))
-                  (do
-                    (io/resilient-flush writer io-error-handler)
-                    (recur (ms-time) 0 rotate-at writer))
+                (if (enforce-flush-policy unflushed elapsed-unflushed-ms writer)
+                  (recur (ms-time) 0 rotate-at writer)
                   (recur last-flush-at (inc unflushed) rotate-at writer))))))))))
