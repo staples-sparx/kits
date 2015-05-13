@@ -53,51 +53,51 @@
                               (try
                                 (formatter host pid tid msg)
                                 (catch Throwable e
-                                  (.printStackTrace e))))]
-        ;; (log/info "Starting thread writing to " path)
+                                  (.printStackTrace e))))
+            enforce-log-rotation-policy (fn [now rotate-at writer unflushed]
+                                          (if (> now rotate-at)
+                                            [(compute-next-rotate-at now)
+                                             (do
+                                               (io/resilient-close writer io-error-handler)
+                                               (log-file-for rotate-at))
+                                             0]
+                                            [rotate-at writer unflushed]))]
         (loop [last-flush-at now
                unflushed 0
                rotate-at (compute-next-rotate-at now)
                writer (log-file-for rotate-at)]
-          ;; (log/debug thread-name " | Fetching a message...")
           (let [msg (q/fetch queue queue-timeout-ms)
-                now (ms-time)]
-            ;; Check whether we should rotate the logs
-            (let [rotate? (> now rotate-at)
-                  rotate-at (if-not rotate?
-                              rotate-at
-                              (compute-next-rotate-at now))
-                  writer (if-not rotate?
-                           writer
-                           (do
-                             (io/resilient-close writer io-error-handler)
-                             (log-file-for rotate-at)))
-                  unflushed (if rotate?
-                              0
-                              unflushed)]
-              (if-not msg
-                ;; Check whether we should flush and get back to business
-                (if (and
-                      (pos? unflushed)
-                      (> (- now last-flush-at) max-elapsed-unflushed-ms))
+                now (ms-time)
+                [rotate-at writer unflushed] (enforce-log-rotation-policy
+                                               now
+                                               rotate-at
+                                               writer
+                                               unflushed)
+                elapsed-unflushed-ms (- now last-flush-at)]
+            (if-not msg
+              ;;
+              ;; Idle, just check whether we should flush and get back
+              ;; to business
+              (if (and
+                    (pos? unflushed)
+                    (> elapsed-unflushed-ms max-elapsed-unflushed-ms))
+                (do
+                  (io/resilient-flush writer io-error-handler)
+                  (recur (ms-time) 0 rotate-at writer))
+                (recur last-flush-at unflushed rotate-at writer))
+
+              ;;
+              ;; Write log entry, then flush if needed
+              ;;
+              (do
+                (io/resilient-write writer
+                  (str (entry-formatter msg) "\n")
+                  io-error-handler)
+
+                (if (or
+                      (> unflushed max-unflushed)
+                      (> elapsed-unflushed-ms max-elapsed-unflushed-ms))
                   (do
-                    ;; (log/debug "Flush inactive")
                     (io/resilient-flush writer io-error-handler)
                     (recur (ms-time) 0 rotate-at writer))
-                  (recur last-flush-at unflushed rotate-at writer))
-
-                ;; Write log entry, flushing lazily
-                (do
-                  ;; (log/debug "Got msg" msg)
-                  (io/resilient-write writer
-                    (str (entry-formatter msg) "\n")
-                    io-error-handler)
-
-                  (if (or
-                        (> unflushed max-unflushed)
-                        (> (- now last-flush-at) max-elapsed-unflushed-ms))
-                    (do
-                      ;; (log/debug "Flush")
-                      (io/resilient-flush writer io-error-handler)
-                      (recur (ms-time) 0 rotate-at writer))
-                    (recur last-flush-at (inc unflushed) rotate-at writer)))))))))))
+                  (recur last-flush-at (inc unflushed) rotate-at writer))))))))))
