@@ -44,14 +44,15 @@
         log-file-for (fn ^FileWriter [ts]
                        (let [path (compute-file-name (runtime/thread-id) ts)]
                          (FileWriter. ^String path true)))
-        enforce-log-rotation-policy (fn [now rotate-at writer unflushed-msgs]
+        enforce-log-rotation-policy (fn [now rotate-at writer bytes unflushed-msgs]
                                       (if (> now rotate-at)
                                         [(compute-next-rotate-at now)
                                          (do
                                            (io/resilient-close writer io-error-handler)
                                            (log-file-for rotate-at))
+                                         0
                                          0]
-                                        [rotate-at writer unflushed-msgs]))
+                                        [rotate-at writer bytes unflushed-msgs]))
         enforce-flush-policy (fn [unflushed-msgs elapsed-unflushed-ms writer]
                                (if (or
                                      (> unflushed-msgs max-unflushed)
@@ -67,22 +68,25 @@
             pid (runtime/process-id)
             tid (runtime/thread-id)
             now (ms-time)
-            entry-formatter (fn [msg]
-                              (try
-                                (formatter host pid tid msg)
-                                (catch Throwable e
-                                  (.printStackTrace e))))]
+            resilient-formatter (fn [msg]
+                                  (try
+                                    (formatter host pid tid msg)
+                                    (catch Throwable e
+                                      (.printStackTrace e))))]
         (loop [rotate-at (compute-next-rotate-at now)
                writer (log-file-for rotate-at)
+               bytes 0
                last-flush-at now
                unflushed-msgs 0]
           (let [msg (q/fetch queue queue-timeout-ms)
                 now (ms-time)
-                [rotate-at writer unflushed-msgs] (enforce-log-rotation-policy
-                                                    now
-                                                    rotate-at
-                                                    writer
-                                                    unflushed-msgs)
+                ;; Enforce log rotation before doing anything else
+                [rotate-at writer bytes unflushed-msgs] (enforce-log-rotation-policy
+                                                          now
+                                                          rotate-at
+                                                          writer
+                                                          bytes
+                                                          unflushed-msgs)
                 elapsed-unflushed-ms (- now last-flush-at)]
             (if-not msg
               ;; Idle, just check whether it's time to flush and get
@@ -90,14 +94,14 @@
               (if (enforce-flush-policy unflushed-msgs elapsed-unflushed-ms writer)
                 (do
                   (io/resilient-flush writer io-error-handler)
-                  (recur rotate-at writer (ms-time) 0))
-                (recur rotate-at writer last-flush-at unflushed-msgs))
+                  (recur rotate-at writer bytes (ms-time) 0))
+                (recur rotate-at writer bytes last-flush-at unflushed-msgs))
 
               ;; New log entry, write it and flush only when needed
-              (do
-                (io/resilient-write writer
-                  (str (entry-formatter msg) "\n")
-                  io-error-handler)
+              (let [line (str (resilient-formatter msg) "\n")
+                    new-bytes (alength (.getBytes line "UTF-8"))
+                    bytes (+ bytes new-bytes)]
+                (io/resilient-write writer line io-error-handler)
                 (if (enforce-flush-policy unflushed-msgs elapsed-unflushed-ms writer)
-                  (recur rotate-at writer (ms-time) 0 )
-                  (recur rotate-at writer last-flush-at (inc unflushed-msgs)))))))))))
+                  (recur rotate-at writer bytes (ms-time) 0 )
+                  (recur rotate-at writer bytes last-flush-at (inc unflushed-msgs)))))))))))
