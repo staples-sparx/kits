@@ -1,18 +1,28 @@
 (ns kits.random
-  (:import (java.util.concurrent ThreadLocalRandom)))
+  "Performant random number generation in a multi-threaded environment.
 
-(defn- thread-local-random []
-  (ThreadLocalRandom/current))
+   java.util.Random severely hurts performance in a multi-threaded
+   context due to a high-degree of locking and contention.
 
-(defn next [bits]
-  (.next (thread-local-random) bits))
+   This library uses java.util.concurrent.ThreadLocalRandom instead,
+   which exhibits a much less overhead and contention."
+  (:import
+    java.util.concurrent.ThreadLocalRandom))
 
-(defn next-double [n]
-  (.nextDouble (thread-local-random) n))
+(defn thread-local-random []
+    (ThreadLocalRandom/current))
 
-(defn next-int [start end]
-  (.nextInt (thread-local-random) start end))
+(defn ^double next-double [^double n]
+  (.nextDouble
+    (ThreadLocalRandom/current)
+    n))
 
-(defn next-long [n]
-  (.nextLong (thread-local-random) n))
+(defn ^long next-int [^long start ^long end]
+  (.nextInt
+    (ThreadLocalRandom/current)
+    start end))
 
+(defn ^long next-long [n]
+  (.nextLong
+    (ThreadLocalRandom/current)
+    n))
