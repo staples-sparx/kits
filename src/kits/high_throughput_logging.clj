@@ -17,7 +17,18 @@
    will get rotated (time of the last possible write). This enable a
    simple log shipping strategy outside of the application logic via an
    external program: just look at any file name and only 'ship' it
-   if its rotation time is in the past."
+   if its rotation time is in the past.
+
+   Note: there is a slight shortcoming in that we compute the name of
+   the next file based on the next rotation time in milliseconds. If we
+   logrotate multiple times whithin the same milliseconds (e.g. because
+   we want rotation every 10 bytes), then the file names will all be the
+   same within the same millisecond, and the log file will be bigger than
+   we expect - but with no data loss, all entries will be there. This is
+   quite a corner case, and fixing it would bring complexity that does
+   not seem waranteed at this point.
+
+"
   (:use
     kits.foundation)
   (:require
@@ -52,7 +63,7 @@
   "Build a loop that can be used in a thread pool to log entry with a
    very high-troughput rate. Code is quite ugly but by lazily rotating
    and flushing the writer we achieve very troughput."
-  [{:keys [queue compute-file-name formatter io-error-handler conf]}]
+  [{:keys [queue compute-file-name formatter io-error-handler shutdown conf]}]
   (let [{:keys [queue-timeout-ms
                 rotate-every-minute
                 rotate-every-bytes
@@ -115,8 +126,10 @@
               (if (enforce-flush-policy unflushed-msgs elapsed-unflushed-ms writer)
                 (do
                   (io/resilient-flush writer io-error-handler)
-                  (recur rotate-at writer bytes (ms-time) 0))
-                (recur rotate-at writer bytes last-flush-at unflushed-msgs))
+                  (when-not @shutdown
+                    (recur rotate-at writer bytes (ms-time) 0)))
+                (when-not @shutdown
+                  (recur rotate-at writer bytes last-flush-at unflushed-msgs)))
 
               ;; New log entry, write it and flush only when needed
               (let [line (str (resilient-formatter msg) "\n")
@@ -124,5 +137,5 @@
                     bytes (+ bytes new-bytes)]
                 (io/resilient-write writer line io-error-handler)
                 (if (enforce-flush-policy unflushed-msgs elapsed-unflushed-ms writer)
-                  (recur rotate-at writer bytes (ms-time) 0 )
+                  (recur rotate-at writer bytes (ms-time) 0)
                   (recur rotate-at writer bytes last-flush-at (inc unflushed-msgs)))))))))))
