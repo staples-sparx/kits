@@ -75,7 +75,8 @@
                                (let [path (compute-file-name (runtime/thread-id) ts)]
                                  (FileWriter. ^String path true)))
 
-                enforce-log-rotation-policy (fn [now rotate-at writer bytes unflushed-msgs]
+                enforce-log-rotation-policy (fn [^long now ^long rotate-at writer ^long bytes ^long unflushed-msgs
+                                                 ]
                                               (if (or
                                                     (> now rotate-at)
                                                     (>= bytes rotate-every-bytes))
@@ -85,7 +86,7 @@
                                                   [rotate-at writer 0 0])
                                                 [rotate-at writer bytes unflushed-msgs]))
 
-                enforce-flush-policy (fn [unflushed-msgs elapsed-unflushed-ms writer]
+                enforce-flush-policy (fn [^long unflushed-msgs ^long elapsed-unflushed-ms writer]
                                        (if (or
                                              (> unflushed-msgs max-unflushed)
                                              (and
@@ -105,7 +106,7 @@
                                     (formatter host pid tid msg)
                                     (catch Throwable e
                                       (.printStackTrace e))))]
-        (loop [rotate-at (compute-next-rotate-at now)
+        (loop [rotate-at ^long (compute-next-rotate-at now)
                writer (log-file-for rotate-at)
                bytes 0
                last-flush-at now
@@ -122,7 +123,8 @@
                 elapsed-unflushed-ms (- now last-flush-at)]
             (if-not msg
               ;; Idle, just check whether it's time to flush and get
-              ;; back to business
+              ;; back to business... unless shutdown has been
+              ;; requested, we are actually at a good point for that.
               (if (enforce-flush-policy unflushed-msgs elapsed-unflushed-ms writer)
                 (do
                   (io/resilient-flush writer io-error-handler)

@@ -24,5 +24,17 @@
              :1.5.0 {:dependencies [[org.clojure/clojure "1.5.1"]]}}
   :aliases {"run-tests" ["with-profile" "1.4.0:1.5.0" "test"]
             "slamhound" ["run" "-m" "slam.hound"]}
+  :jvm-opts ["-server"
+             "-XX:+UseConcMarkSweepGC"
+             "-XX:+UseParNewGC"
+             "-XX:+CMSParallelRemarkEnabled"
+             "-XX:MaxGCPauseMillis=5"
+             "-XX:+UseStringCache"
+             "-XX:+OptimizeStringConcat"
+             "-XX:+UseCompressedOops"
+             "-XX:+AggressiveOpts"
+             ;; "-XX:+UnlockCommercialFeatures"
+             ;; "-XX:+FlightRecorder"
+             ]
   :deploy-repositories [["clojars" {:url "https://clojars.org/repo/"
                                     :signing {:gpg-key "76FD68DC"}}]])

@@ -108,7 +108,7 @@
 
 (defn ms-time
   " Returns number of milli-seconds since the epoch"
-  []
+  ^long []
   (System/currentTimeMillis))
 
 (defn starts-with [^String prefix ^String s]
