@@ -13,7 +13,6 @@
                  [org.hdrhistogram/HdrHistogram "1.2.1"]
                  [org.clojure/math.numeric-tower "0.0.2"]
                  [org.clojars.runa/clj-utils "1.3.1"]
-                 [org.clojure/java.jdbc "0.3.3"]
                  [org.clojars.runa/runa.tools.logging "0.2.7"]
                  [clojure-csv/clojure-csv "2.0.0-alpha1"]
                  [org.eclipse.jetty/jetty-server "9.2.3.v20140905"]]
