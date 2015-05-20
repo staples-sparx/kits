@@ -1,5 +1,5 @@
-(defproject staples-sparx/kits "1.20.12"
-  :description "Runa's core utilities."
+(defproject staples-sparx/kits "1.20.13"
+  :description "Staples SparX core libraries."
   :local-repo ".m2"
   :min-lein-version "2.0.0"
   :license {:name "MIT License"

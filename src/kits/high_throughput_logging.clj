@@ -1,6 +1,6 @@
 (ns kits.high-throughput-logging
   "High throughput logging that can easily sustain 40K of messages/s
-   with a single thread.
+   with a single logging thread.
 
    The core idea to achieve this level of throughput is to write to disk
    sequentially and batch flushing. We flush to disk only every N message
@@ -75,11 +75,10 @@
                                (let [path (compute-file-name (runtime/thread-id) ts)]
                                  (FileWriter. ^String path true)))
 
-                enforce-log-rotation-policy (fn [^long now ^long rotate-at writer ^long bytes ^long unflushed-msgs
-                                                 ]
+                enforce-log-rotation-policy (fn [now rotate-at writer bytes unflushed-msgs]
                                               (if (or
-                                                    (> now rotate-at)
-                                                    (>= bytes rotate-every-bytes))
+                                                    (> ^long now ^long rotate-at)
+                                                    (>= ^long bytes ^long rotate-every-bytes))
                                                 (let [_ (io/resilient-close writer io-error-handler)
                                                       rotate-at (compute-next-rotate-at now)
                                                       writer (log-file-for rotate-at)]
