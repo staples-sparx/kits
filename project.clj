@@ -1,4 +1,4 @@
-(defproject staples-sparx/kits "1.20.13"
+(defproject staples-sparx/kits "1.20.14"
   :description "Staples SparX core libraries."
   :local-repo ".m2"
   :min-lein-version "2.0.0"
@@ -36,4 +36,5 @@
              ;; "-XX:+FlightRecorder"
              ]
   :deploy-repositories [["clojars" {:url "https://clojars.org/repo/"
-                                    :signing {:gpg-key "76FD68DC"}}]])
+                                    :signing {:gpg-key "76FD68DC" }
+                                    }]])
