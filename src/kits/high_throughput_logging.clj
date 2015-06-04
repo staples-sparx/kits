@@ -99,7 +99,7 @@
   "Build a loop that can be used in a thread pool to log entry with a
    very high-troughput rate. Code is quite ugly but by lazily rotating
    and flushing the writer we achieve very troughput."
-  [{:keys [queue compute-file-name formatter io-error-handler shutdown conf]}]
+  [{:keys [queue compute-file-name formatter io-error-handler shutdown-requested? conf]}]
   (let [{:keys [queue-timeout-ms
                 rotate-every-minute
                 rotate-every-bytes
@@ -151,9 +151,9 @@
               (if (enforce-flush-policy unflushed-msgs elapsed-unflushed-ms writer)
                 (do
                   (io/resilient-flush writer io-error-handler)
-                  (when-not @shutdown
+                  (when-not @shutdown-requested?
                     (recur rotate-at writer bytes (ms-time) 0)))
-                (if @shutdown
+                (if @shutdown-requested?
                   (io/resilient-flush writer io-error-handler)
                   (recur rotate-at writer bytes last-flush-at unflushed-msgs)))
 

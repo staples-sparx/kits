@@ -61,15 +61,24 @@
     (.exists
       (java.io.File. path))))
 
+(defn mkdirs
+  "Creates all parent directories of file."
+  [^String path]
+  (.mkdirs
+    (jio/file path)))
+
 (defn mkdir
   "Creates a directory including any missing parents"
   [^String path]
-  (.mkdirs (jio/file path)))
+    (println "kits.io.mkdir is deprecated, use mkdirs")
+  (mkdirs path))
 
 (defn make-parents
   "Creates all parent directories of file."
-  [^String path]
-  (.mkdirs (.getParentFile (File. path))))
+  [path]
+  (.mkdirs
+    (.getParentFile
+      (File. path))))
 
 (defn touch [^String path]
   (-> (File. path)
