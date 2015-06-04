@@ -155,7 +155,8 @@
                   (io/resilient-flush writer io-error-handler)
                   (when-not @shutdown
                     (recur rotate-at writer bytes (ms-time) 0)))
-                (when-not @shutdown
+                (if @shutdown
+                  (io/resilient-flush writer io-error-handler)
                   (recur rotate-at writer bytes last-flush-at unflushed-msgs)))
 
               ;; New log entry, write it and flush only when needed
