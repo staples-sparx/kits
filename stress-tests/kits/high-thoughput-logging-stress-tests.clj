@@ -13,7 +13,7 @@
   (let [dir "/tmp/htl"
         prefix "High-Throughput-Logging-Stress-Test"
         shutdown (atom false)
-        q (q/create 100)
+        q (q/create 100000)
         pool (q/start-thread-pool
                1
                "High-Throughput-Logging-Stress-Test-Logger"
@@ -30,6 +30,7 @@
                          :max-elapsed-unflushed-ms 100
                          :root dir
                          :filename-prefix prefix}}))]
+
     (Thread/sleep 100) ;; Give a chance for the threadpool to start
     (loop [i 0]
       (if (>= i 100)
@@ -37,7 +38,8 @@
         (do
           (if-not (q/add q (str "Hello world " i))
             (println "Ooops dropped a message")
-            (println i))
+            ;; (println i)
+            )
           (recur (inc i)))))))
 
 ;; (try (foo) (catch Exception e (.printStackTrace e)))

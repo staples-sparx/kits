@@ -47,7 +47,7 @@
    log shipping. Also isolates logs by including the thread-id in the
    name."
   [dir-path prefix]
-  (fn [thread-id next-rotate-at]
+  (fn [process-id thread-id next-rotate-at]
     (str
       dir-path
       "/"
@@ -56,13 +56,51 @@
       "-"
       (cal/day-at next-rotate-at)   ;; Nice for humans
       "-"
+      process-id                    ;; Complete information about who's logging
+      "-"
       thread-id                     ;; Make it safe to use multiple logging threads
       ".log")))
 
+
+
+(defn- log-file-for
+  [compute-file-name]
+  (fn ^FileWriter [ts]
+    (let [path (compute-file-name
+                (runtime/process-id)
+                (runtime/thread-id)
+                ts)]
+      (FileWriter. ^String path true))))
+
+(defn- enforce-log-rotation-policy
+  [io-error-handler log-file-for compute-next-rotate-at rotate-every-bytes]
+  (fn [now rotate-at writer bytes unflushed-msgs]
+    (if (or
+         (> ^long now ^long rotate-at)
+         (>= ^long bytes ^long rotate-every-bytes))
+      (let [_ (io/resilient-close writer io-error-handler)
+            rotate-at (compute-next-rotate-at now)
+            writer (log-file-for rotate-at)]
+        [rotate-at writer 0 0])
+      [rotate-at writer bytes unflushed-msgs])))
+
+(defn- enforce-flush-policy
+  [io-error-handler max-elapsed-unflushed-ms max-unflushed]
+  (fn [^long unflushed-msgs ^long elapsed-unflushed-ms writer]
+    (if (or
+         (> unflushed-msgs max-unflushed)
+         (and
+          (pos? unflushed-msgs)
+          (> elapsed-unflushed-ms max-elapsed-unflushed-ms)))
+      (do
+        (io/resilient-flush writer io-error-handler)
+        true)
+      false)))
+
 (defn make-log-rotate-loop
   "Build a loop that can be used in a thread pool to log entry with a
-   very high-troughput rate. Code is quite ugly but by lazily rotating
-   and flushing the writer we achieve very troughput."
+  very high-troughput rate. Code is quite ugly but by lazily rotating
+  and flushing the writer we achieve very troughput."
   [{:keys [queue compute-file-name formatter io-error-handler shutdown conf]}]
   (let [{:keys [queue-timeout-ms
                 rotate-every-minute
@@ -71,30 +109,18 @@
                 max-elapsed-unflushed-ms]} conf
                 compute-next-rotate-at (fn [now]
                                          (cal/round-up-ts now rotate-every-minute))
-                log-file-for (fn ^FileWriter [ts]
-                               (let [path (compute-file-name (runtime/thread-id) ts)]
-                                 (FileWriter. ^String path true)))
+                log-file-for (log-file-for compute-file-name)
 
-                enforce-log-rotation-policy (fn [now rotate-at writer bytes unflushed-msgs]
-                                              (if (or
-                                                    (> ^long now ^long rotate-at)
-                                                    (>= ^long bytes ^long rotate-every-bytes))
-                                                (let [_ (io/resilient-close writer io-error-handler)
-                                                      rotate-at (compute-next-rotate-at now)
-                                                      writer (log-file-for rotate-at)]
-                                                  [rotate-at writer 0 0])
-                                                [rotate-at writer bytes unflushed-msgs]))
+                enforce-log-rotation-policy (enforce-log-rotation-policy
+                                             io-error-handler
+                                             log-file-for
+                                             compute-next-rotate-at
+                                             rotate-every-bytes)
 
-                enforce-flush-policy (fn [^long unflushed-msgs ^long elapsed-unflushed-ms writer]
-                                       (if (or
-                                             (> unflushed-msgs max-unflushed)
-                                             (and
-                                               (pos? unflushed-msgs)
-                                               (> elapsed-unflushed-ms max-elapsed-unflushed-ms)))
-                                         (do
-                                           (io/resilient-flush writer io-error-handler)
-                                           true)
-                                         false))]
+                enforce-flush-policy (enforce-flush-policy
+                                      io-error-handler
+                                      max-elapsed-unflushed-ms
+                                      max-unflushed)]
     (fn [thread-name args]
       (let [host (runtime/host)
             pid (runtime/process-id)
@@ -114,11 +140,11 @@
                 now (ms-time)
                 ;; Enforce log rotation before doing anything else
                 [rotate-at writer bytes unflushed-msgs] (enforce-log-rotation-policy
-                                                          now
-                                                          rotate-at
-                                                          writer
-                                                          bytes
-                                                          unflushed-msgs)
+                                                         now
+                                                         rotate-at
+                                                         writer
+                                                         bytes
+                                                         unflushed-msgs)
                 elapsed-unflushed-ms (- now last-flush-at)]
             (if-not msg
               ;; Idle, just check whether it's time to flush and get
@@ -129,7 +155,8 @@
                   (io/resilient-flush writer io-error-handler)
                   (when-not @shutdown
                     (recur rotate-at writer bytes (ms-time) 0)))
-                (when-not @shutdown
+                (if @shutdown
+                  (io/resilient-flush writer io-error-handler)
                   (recur rotate-at writer bytes last-flush-at unflushed-msgs)))
 
               ;; New log entry, write it and flush only when needed
