@@ -47,7 +47,7 @@
    log shipping. Also isolates logs by including the thread-id in the
    name."
   [dir-path prefix]
-  (fn [thread-id next-rotate-at]
+  (fn [process-id thread-id next-rotate-at]
     (str
       dir-path
       "/"
@@ -55,6 +55,8 @@
       next-rotate-at                ;; Nice for machine parsing
       "-"
       (cal/day-at next-rotate-at)   ;; Nice for humans
+      "-"
+      process-id                    ;; Complete information about who's logging
       "-"
       thread-id                     ;; Make it safe to use multiple logging threads
       ".log")))
@@ -72,7 +74,10 @@
                 compute-next-rotate-at (fn [now]
                                          (cal/round-up-ts now rotate-every-minute))
                 log-file-for (fn ^FileWriter [ts]
-                               (let [path (compute-file-name (runtime/thread-id) ts)]
+                               (let [path (compute-file-name
+                                           (runtime/process-id)
+                                           (runtime/thread-id)
+                                           ts)]
                                  (FileWriter. ^String path true)))
 
                 enforce-log-rotation-policy (fn [now rotate-at writer bytes unflushed-msgs]
