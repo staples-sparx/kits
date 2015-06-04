@@ -18,7 +18,8 @@
                  [org.eclipse.jetty/jetty-server "9.2.3.v20140905"]]
   :clean-targets  [ :target-path ]
   :global-vars {*warn-on-reflection* false}
-  :profiles {:dev {:dependencies [[slamhound "1.3.3"]]}
+  :profiles {:dev {:dependencies [[slamhound "1.3.3"]
+                                  [cider/cider-nrepl "0.8.2"]]}
              :1.4.0 {:dependencies [[org.clojure/clojure "1.4.0"]]}
              :1.5.0 {:dependencies [[org.clojure/clojure "1.5.1"]]}}
   :aliases {"run-tests" ["with-profile" "1.4.0:1.5.0" "test"]
