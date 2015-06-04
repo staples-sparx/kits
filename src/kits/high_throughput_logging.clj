@@ -61,18 +61,16 @@
       thread-id                     ;; Make it safe to use multiple logging threads
       ".log")))
 
-
-
-(defn- log-file-for
+(defn log-file-for
   [compute-file-name]
   (fn ^FileWriter [ts]
-    (let [path (compute-file-name
-                (runtime/process-id)
-                (runtime/thread-id)
+    (let [path ^String (compute-file-name
+                         (runtime/process-id)
+                         (runtime/thread-id)
                 ts)]
-      (FileWriter. ^String path true))))
+      (FileWriter. path true))))
 
-(defn- enforce-log-rotation-policy
+(defn enforce-log-rotation-policy
   [io-error-handler log-file-for compute-next-rotate-at rotate-every-bytes]
   (fn [now rotate-at writer bytes unflushed-msgs]
     (if (or
@@ -84,7 +82,7 @@
         [rotate-at writer 0 0])
       [rotate-at writer bytes unflushed-msgs])))
 
-(defn- enforce-flush-policy
+(defn enforce-flush-policy
   [io-error-handler max-elapsed-unflushed-ms max-unflushed]
   (fn [^long unflushed-msgs ^long elapsed-unflushed-ms writer]
     (if (or
@@ -99,8 +97,8 @@
 
 (defn make-log-rotate-loop
   "Build a loop that can be used in a thread pool to log entry with a
-  very high-troughput rate. Code is quite ugly but by lazily rotating
-  and flushing the writer we achieve very troughput."
+   very high-troughput rate. Code is quite ugly but by lazily rotating
+   and flushing the writer we achieve very troughput."
   [{:keys [queue compute-file-name formatter io-error-handler shutdown conf]}]
   (let [{:keys [queue-timeout-ms
                 rotate-every-minute
@@ -112,10 +110,10 @@
                 log-file-for (log-file-for compute-file-name)
 
                 enforce-log-rotation-policy (enforce-log-rotation-policy
-                                             io-error-handler
-                                             log-file-for
-                                             compute-next-rotate-at
-                                             rotate-every-bytes)
+                                              io-error-handler
+                                              log-file-for
+                                              compute-next-rotate-at
+                                              rotate-every-bytes)
 
                 enforce-flush-policy (enforce-flush-policy
                                       io-error-handler
@@ -140,11 +138,11 @@
                 now (ms-time)
                 ;; Enforce log rotation before doing anything else
                 [rotate-at writer bytes unflushed-msgs] (enforce-log-rotation-policy
-                                                         now
-                                                         rotate-at
-                                                         writer
-                                                         bytes
-                                                         unflushed-msgs)
+                                                          now
+                                                          rotate-at
+                                                          writer
+                                                          bytes
+                                                          unflushed-msgs)
                 elapsed-unflushed-ms (- now last-flush-at)]
             (if-not msg
               ;; Idle, just check whether it's time to flush and get
