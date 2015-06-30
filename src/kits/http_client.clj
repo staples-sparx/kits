@@ -18,7 +18,9 @@
     java.net.HttpURLConnection
     java.net.URL
     java.net.URLConnection
-    java.net.URLEncoder))
+    java.net.URLEncoder
+    java.util.zip.GZIPInputStream
+    java.util.zip.GZIPOutputStream))
 
 (set! *warn-on-reflection* true)
 
@@ -68,15 +70,18 @@
   ;; HttpURLConnection after a request may free network resources
   ;; associated with this instance but has no effect on any shared
   ;; persistent connection.
-  (let [status (.getResponseCode ^HttpURLConnection conn)]
+  (let [status (.getResponseCode ^HttpURLConnection conn)
+        content-encoding (.getHeaderField conn "Content-Encoding")]
     (if (< 199 status 300)
-      (with-open [in (.getInputStream conn)
+      (with-open [in (if (.contains (or content-encoding "") "gzip")
+                       (GZIPInputStream. (.getInputStream conn))
+                  (.getInputStream conn))
                   out (ByteArrayOutputStream. 1024)]
         (io/copy in out)
         {:status status
          :msg (.getResponseMessage ^HttpURLConnection conn)
          :headers {"Content-Type" (.getHeaderField conn "Content-Type")
-                   "Content-Encoding" (.getHeaderField conn "Content-Encoding")}
+                   "Content-Encoding" content-encoding}
          :out out})
       (if-let [error-stream (.getErrorStream conn)]
         (with-open [in error-stream
@@ -136,14 +141,14 @@
 (defn get
   "Returns the response of a plain http get in the form of :status, :msg, and stringyfied :body"
   [url params timeout-ms]
-  (let [url (URL. (url-for url params))
+ (let [url (URL. (url-for url params))
         conn (doto ^HttpURLConnection (.openConnection url)
                (.setRequestMethod "GET")
                (.setConnectTimeout timeout-ms)
                (.setReadTimeout timeout-ms))]
     (read-str-resp conn)))
 
-(defn post [url ^String data timeout-ms & [content-type]]
+(defn post [url ^String data timeout-ms & [content-type gzipped?]]
   (let [actual-content-type (ensure-content-type content-type)
         url (URL. (url-for url nil))
         conn (doto ^HttpURLConnection (.openConnection url)
@@ -152,18 +157,27 @@
                    (.setRequestProperty
                     "Content-Type" actual-content-type)
                    (.setConnectTimeout timeout-ms)
-                   (.setReadTimeout timeout-ms))]
+                   (.setReadTimeout timeout-ms))
+        _ (if gzipped?
+            (doto ^HttpURLConnection conn
+                  (.setRequestProperty "Accept-Encoding" "gzip")
+                  (.setRequestProperty "Content-Encoding" "gzip")))]
     (with-open [out (.getOutputStream conn)
-                writer ^Writer (OutputStreamWriter. out)]
+                writer ^Writer ( if gzipped?
+                                 (-> out
+                                     GZIPOutputStream.
+                                     OutputStreamWriter.)
+                                 (OutputStreamWriter. out))]
       (.write writer data)
       (.flush writer)
       (.close writer)
       (.close out)
       (read-str-resp conn))))
 
-(defn post-json [url data timeout-ms]
+(defn post-json [url data timeout-ms & {:keys [gzipped?] :or {gzipped? false}}]
   (post
     url
     (json/encode-str data)
     timeout-ms
-    "application/json"))
+    "application/json"
+    gzipped?))
