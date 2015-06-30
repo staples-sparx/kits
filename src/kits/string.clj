@@ -11,6 +11,10 @@
 
 (declare nil-str re-matches? split)
 
+(defn downcase [^String s]
+  (when s
+    (.toLowerCase s)))
+
 (defn all-whitespace? [s]
   (re-matches? #"^\s*$" s))
 

@@ -4,6 +4,7 @@
     kits.foundation)
   (:refer-clojure :exclude [get])
   (:require
+    [kits.string :as str]
     [kits.json :as json]
     [kits.io :as io])
   (:import
@@ -61,6 +62,12 @@
     content-type
     "text/plain; charset=utf-8"))
 
+(defn decoded-input-stream ^InputStream [^HttpURLConnection conn ^String content-encoding]
+  (if (= "gzip" (str/downcase content-encoding))
+    (GZIPInputStream.
+      (.getInputStream conn))
+    (.getInputStream conn)))
+
 (defn read-raw-resp [^HttpURLConnection conn]
   ;; Note: no need to close the connection. From HttpURLConnection
   ;; javadoc : Each HttpURLConnection instance is used to make a
@@ -73,9 +80,7 @@
   (let [status (.getResponseCode ^HttpURLConnection conn)
         content-encoding (.getHeaderField conn "Content-Encoding")]
     (if (< 199 status 300)
-      (with-open [in (if (.contains (or content-encoding "") "gzip")
-                       (GZIPInputStream. (.getInputStream conn))
-                  (.getInputStream conn))
+      (with-open [in (decoded-input-stream conn content-encoding)
                   out (ByteArrayOutputStream. 1024)]
         (io/copy in out)
         {:status status
@@ -109,18 +114,17 @@
 
 
 (defn read-binary-resp [^HttpURLConnection conn]
-  (let [raw (read-raw-resp conn)
-        out (:out raw)]
+  (let [raw (read-raw-resp conn)]
     (assoc raw
-      :body (when out
-              (ByteArrayInputStream. (.toByteArray out))))))
+      :body (when-let [out ^ByteArrayOutputStream (:out raw)]
+              (ByteArrayInputStream.
+                (.toByteArray out))))))
 
 (defn read-str-resp [^HttpURLConnection conn]
-  (let [raw (read-raw-resp conn)
-        out (:out raw)]
+  (let [raw (read-raw-resp conn)]
     (assoc raw
-      :body (when out
-              (.toString out)))))
+      :body (when-let [out ^ByteArrayOutputStream (:out raw)]
+              (.toString ^ByteArrayInputStream out)))))
 
 (defn post-binary [url ^InputStream in timeout-ms & [content-type]]
   (let [ct (ensure-content-type content-type)
@@ -141,7 +145,7 @@
 (defn get
   "Returns the response of a plain http get in the form of :status, :msg, and stringyfied :body"
   [url params timeout-ms]
- (let [url (URL. (url-for url params))
+  (let [url (URL. (url-for url params))
         conn (doto ^HttpURLConnection (.openConnection url)
                (.setRequestMethod "GET")
                (.setConnectTimeout timeout-ms)
@@ -158,16 +162,17 @@
                     "Content-Type" actual-content-type)
                    (.setConnectTimeout timeout-ms)
                    (.setReadTimeout timeout-ms))
+        stream-encoder (if gzipped?
+                         #(GZIPOutputStream. %)
+                         identity)
         _ (if gzipped?
             (doto ^HttpURLConnection conn
-                  (.setRequestProperty "Accept-Encoding" "gzip")
-                  (.setRequestProperty "Content-Encoding" "gzip")))]
+              (.setRequestProperty "Accept-Encoding" "gzip")
+              (.setRequestProperty "Content-Encoding" "gzip")))]
     (with-open [out (.getOutputStream conn)
-                writer ^Writer ( if gzipped?
-                                 (-> out
-                                     GZIPOutputStream.
-                                     OutputStreamWriter.)
-                                 (OutputStreamWriter. out))]
+                writer ^Writer (-> out
+                                 stream-encoder
+                                 OutputStreamWriter.)]
       (.write writer data)
       (.flush writer)
       (.close writer)
