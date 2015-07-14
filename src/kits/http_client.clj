@@ -62,12 +62,6 @@
     content-type
     "text/plain; charset=utf-8"))
 
-(defn decoded-input-stream ^InputStream [^HttpURLConnection conn ^String content-encoding]
-  (if (= "gzip" (str/downcase content-encoding))
-    (GZIPInputStream.
-      (.getInputStream conn))
-    (.getInputStream conn)))
-
 (defn read-raw-resp [^HttpURLConnection conn]
   ;; Note: no need to close the connection. From HttpURLConnection
   ;; javadoc : Each HttpURLConnection instance is used to make a
@@ -77,16 +71,15 @@
   ;; HttpURLConnection after a request may free network resources
   ;; associated with this instance but has no effect on any shared
   ;; persistent connection.
-  (let [status (.getResponseCode ^HttpURLConnection conn)
-        content-encoding (.getHeaderField conn "Content-Encoding")]
+  (let [status (.getResponseCode ^HttpURLConnection conn)]
     (if (< 199 status 300)
-      (with-open [in (decoded-input-stream conn content-encoding)
+      (with-open [in (.getInputStream conn)
                   out (ByteArrayOutputStream. 1024)]
         (io/copy in out)
         {:status status
          :msg (.getResponseMessage ^HttpURLConnection conn)
          :headers {"Content-Type" (.getHeaderField conn "Content-Type")
-                   "Content-Encoding" content-encoding}
+                   "Content-Encoding" (.getHeaderField conn "Content-Encoding")}
          :out out})
       (if-let [error-stream (.getErrorStream conn)]
         (with-open [in error-stream
@@ -112,7 +105,6 @@
              :msg (.getResponseMessage ^HttpURLConnection conn)
              :out nil}))))))
 
-
 (defn read-binary-resp [^HttpURLConnection conn]
   (let [raw (read-raw-resp conn)]
     (assoc raw
@@ -121,12 +113,19 @@
                 (.toByteArray out))))))
 
 (defn read-str-resp [^HttpURLConnection conn]
-  (let [raw (read-raw-resp conn)]
+  (let [raw (read-raw-resp conn)
+        content-encoding (.getHeaderField conn "Content-Encoding")
+        gzipped? (= "gzip" (str/downcase content-encoding))
+        stream-decoder (if gzipped?
+                         #(GZIPInputStream. %)
+                         identity)]
     (assoc raw
-      :body (when-let [out ^ByteArrayOutputStream (:out raw)]
+      :body (when-let [out (stream-decoder ^ByteArrayOutputStream (:out raw))]
               (.toString ^ByteArrayInputStream out)))))
 
 (defn post-binary [url ^InputStream in timeout-ms & [content-type]]
+  ;; Binary post is left untouched. In particular it is /not/
+  ;; gunzipped, whatever the content encoding is
   (let [ct (ensure-content-type content-type)
         url (URL. (url-for url nil))
         conn (doto ^HttpURLConnection (.openConnection url)
