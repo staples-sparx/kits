@@ -3,12 +3,12 @@ package kits;
 import java.util.Arrays;
 
 public class VolatileByteArray {
-    private final byte mask = (byte) 1;
-    private volatile byte whichBuffer;
+    private final int mask =  1;
+    private volatile int whichBuffer;
     private byte[][] buffers;
 
     public VolatileByteArray(int bufferSize) {
-        this.whichBuffer = (byte) 0;
+        this.whichBuffer = 0;
         this.buffers = new byte[2][bufferSize]; 
     }
 
