@@ -62,7 +62,16 @@
     content-type
     "text/plain; charset=utf-8"))
 
-(defn read-raw-resp [^HttpURLConnection conn]
+(defn get-input-stream ^InputStream [^HttpURLConnection conn transparent-decode?]
+  (let [is (.getInputStream conn)]
+    (if transparent-decode?
+      (if (= "gzip" (str/downcase (.getHeaderField conn "Content-Encoding")))
+        (GZIPInputStream. is)
+        is)
+      is)))
+
+(defn read-raw-resp
+  [^HttpURLConnection conn transparent-decode?]
   ;; Note: no need to close the connection. From HttpURLConnection
   ;; javadoc : Each HttpURLConnection instance is used to make a
   ;; single request but the underlying network connection to the HTTP
@@ -73,7 +82,7 @@
   ;; persistent connection.
   (let [status (.getResponseCode ^HttpURLConnection conn)]
     (if (< 199 status 300)
-      (with-open [in (.getInputStream conn)
+      (with-open [in (get-input-stream conn transparent-decode?)
                   out (ByteArrayOutputStream. 1024)]
         (io/copy in out)
         {:status status
@@ -106,21 +115,16 @@
              :out nil}))))))
 
 (defn read-binary-resp [^HttpURLConnection conn]
-  (let [raw (read-raw-resp conn)]
+  (let [raw (read-raw-resp conn false)]
     (assoc raw
       :body (when-let [out ^ByteArrayOutputStream (:out raw)]
               (ByteArrayInputStream.
                 (.toByteArray out))))))
 
 (defn read-str-resp [^HttpURLConnection conn]
-  (let [raw (read-raw-resp conn)
-        content-encoding (.getHeaderField conn "Content-Encoding")
-        gzipped? (= "gzip" (str/downcase content-encoding))
-        stream-decoder (if gzipped?
-                         #(GZIPInputStream. %)
-                         identity)]
+  (let [raw (read-raw-resp conn true)]
     (assoc raw
-      :body (when-let [out (stream-decoder ^ByteArrayOutputStream (:out raw))]
+      :body (when-let [out ^ByteArrayOutputStream (:out raw)]
               (.toString ^ByteArrayInputStream out)))))
 
 (defn post-binary [url ^InputStream in timeout-ms & [content-type]]

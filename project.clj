@@ -1,6 +1,6 @@
-(defproject staples-sparx/kits "1.20.16"
+(defproject staples-sparx/kits "1.21.0"
   :description "Staples SparX core libraries."
-  :local-repo ".m2"
+  :local-repo "../Furtive/.m2"
   :min-lein-version "2.0.0"
   :license {:name "MIT License"
             :url "http://mit-license.org/"}
@@ -22,6 +22,8 @@
                                   [cider/cider-nrepl "0.8.2"]]}
              :1.4.0 {:dependencies [[org.clojure/clojure "1.4.0"]]}
              :1.5.0 {:dependencies [[org.clojure/clojure "1.5.1"]]}}
+  :source-paths      ["src/clojure"]
+  :java-source-paths ["src/java"]
   :aliases {"run-tests" ["with-profile" "1.4.0:1.5.0" "test"]
             "slamhound" ["run" "-m" "slam.hound"]}
   :jvm-opts ["-server"
