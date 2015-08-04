@@ -1,4 +1,4 @@
-(defproject staples-sparx/kits "1.21.0"
+(defproject staples-sparx/kits "1.21.1"
   :description "Staples SparX core libraries."
   :local-repo ".m2"
   :min-lein-version "2.0.0"
@@ -37,9 +37,4 @@
              "-XX:+AggressiveOpts"
              ;; "-XX:+UnlockCommercialFeatures"
              ;; "-XX:+FlightRecorder"
-             ]
-  :deploy-repositories [["clojars" {:url "https://clojars.org/repo/"
-                                    :signing {:gpg-key "76FD68DC" }}]
-                        ["s3-releases" {:url "s3p://runa-maven/releases"
-                                        :username [:env/archiva_username]
-                                        :passphrase [:env/archiva_passphrase]}]])
+             ])
