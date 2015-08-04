@@ -1,6 +1,6 @@
 (defproject staples-sparx/kits "1.21.0"
   :description "Staples SparX core libraries."
-  :local-repo "../Furtive/.m2"
+  :local-repo ".m2"
   :min-lein-version "2.0.0"
   :license {:name "MIT License"
             :url "http://mit-license.org/"}
