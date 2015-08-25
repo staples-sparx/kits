@@ -2,11 +2,27 @@
   kits.alert-test
   (:require [clojure.test :refer :all]
             [kits.alert :as alert]
+            [kits.logging.log-async :as log]
             [kits.runtime :as runtime]))
 
 (def ^:private alert-conf
   {:mode :log
    :alert-callback #(assert (some? %))})
+
+(defn- with-logging
+  [test-fn]
+  (when (nil? @log/log-q)
+    (log/start-thread-pool!
+      {:root "/tmp"
+       :filename-prefix "test-log"
+       :thread-count 1
+       :thread-prefix "log"
+       :rotate-every-minute 60
+       :max-msg 10000
+       :max-unflushed 1000
+       :max-elapsed-unflushed-ms 3000
+       :queue-timeout-ms 1000}))
+  (test-fn))
 
 (defn- with-alerts-initialized
   [test-fn]
@@ -14,7 +30,7 @@
   (test-fn)
   (alert/uninitialize!))
 
-(use-fixtures :each with-alerts-initialized)
+(use-fixtures :each (compose-fixtures with-logging with-alerts-initialized))
 
 (deftest ^:unit test-post-alert
   (alert/alert! "The sky is falling!")
