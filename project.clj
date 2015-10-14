@@ -47,4 +47,4 @@
                                     :signing {:gpg-key "76FD68DC" }}]
                         ["s3-releases" {:url "s3p://runa-maven/releases/"
                                         :username [:env/s3_username]
-                                        :passphrase [:env/s3_passphrase]}]])
+                                        :passphrase [:env/s3_passphrase]}]]) 
