@@ -6,7 +6,8 @@
             :url "http://mit-license.org/"}
   :url "https://github.com/staples-sparx/kits"
   :plugins [[jonase/eastwood "0.0.2"]
-            [lein-kibit "0.0.7"]]
+            [lein-kibit "0.0.7"]
+            [s3-wagon-private  "1.1.2"]]
   :dependencies [[org.clojure/clojure "1.7.0"]
                  [org.clojure/core.async "0.1.346.0-17112a-alpha"]
                  [cheshire "5.3.1"]
@@ -41,4 +42,9 @@
              "-XX:+AggressiveOpts"
              ;; "-XX:+UnlockCommercialFeatures"
              ;; "-XX:+FlightRecorder"
-             ])
+             ]
+  :deploy-repositories [["clojars" {:url "https://clojars.org/repo/"
+                                    :signing {:gpg-key "76FD68DC" }}]
+                        ["s3-releases" {:url "s3p://runa-maven/releases/"
+                                        :username [:env/s3_username]
+                                        :passphrase [:env/s3_passphrase]}]]) 

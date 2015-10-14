@@ -1,6 +1,10 @@
 .PHONY:	help ? test deploy
 
-LEIN = HTTP_CLIENT="curl --insecure -f -L -o" lein
+S3_USERNAME = $(shell grep access_key ~/.s3cfg | head -n1 | awk -F ' = ' '{print $$2 }')
+S3_PASSPHRASE = $(shell grep secret_key ~/.s3cfg | head -n1 | awk -F ' = ' '{print $$2}')
+LEIN_ENV = S3_USERNAME="$(S3_USERNAME)" S3_PASSPHRASE="$(S3_PASSPHRASE)" HTTP_CLIENT="curl --insecure -f -L -o"
+
+LEIN = $(LEIN_ENV) lein
 
 all: tests
 
@@ -17,6 +21,9 @@ ci: clean tests
 
 deploy:
 	$(LEIN) deploy clojars
+
+s3-deploy:
+	$(LEIN) deploy s3-releases
 
 help: ?
 
