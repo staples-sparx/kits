@@ -1,9 +1,11 @@
-(ns kits.async-processor
+(ns ^{:doc "Async task processor constructor and processing functions."}
+    kits.async-processor
   (:require [kits.queues :as q]
             [kits.thread :as t])
   (:import [java.util ArrayList]
            [java.util.concurrent BlockingQueue Executors
-            ExecutorService ScheduledExecutorService TimeUnit]))
+            ExecutorService ScheduledExecutorService TimeUnit
+            ThreadFactory]))
 
 (set! *warn-on-reflection* true)
 
@@ -32,7 +34,7 @@
   (Executors/newScheduledThreadPool pool-size daemon-thread-factory))
 
 (def ^:private scheduler
-  (concurrent/create-scheduler 1))
+  (create-scheduler 1))
 
 (defn create-process-pool [n name]
   (swap! process-pool assoc name (Executors/newFixedThreadPool n)))
@@ -147,7 +149,7 @@
   :exception-logger - Logging method for exceptions - takes a map."
 
   [{:keys [process-fn exception-handler name min-batch-count
-           queue-count thread-count info-logger]
+           queue-count thread-count info-logger exception-logger]
     :as args}]
   {:pre [process-fn exception-handler name queue-count thread-count info-logger exception-logger]}
   (info-logger {:tags [name]
