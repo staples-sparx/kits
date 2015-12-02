@@ -28,7 +28,7 @@
            (.setDaemon daemon)))))))
 
 (def ^:private ^ThreadFactory daemon-thread-factory
-  (counted-thread-factory "trillian-executor-%d"))
+  (counted-thread-factory "kits-executor-%d"))
 
 (defn create-scheduler [pool-size]
   (Executors/newScheduledThreadPool pool-size daemon-thread-factory))
