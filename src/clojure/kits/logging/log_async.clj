@@ -23,14 +23,14 @@
 
 (defn exception
   ([e msg] (exception log-q e msg))
-  ([queue e msg] (q/add @queue (merge msg
-                                      {"log-level" :ERROR}
-                                      (hl/exception->map e)))))
+  ([queue e msg] (q/add @queue (assoc msg
+                                  :log-level :ERROR
+                                  :exception (hl/exception->map e)))))
 
 (defn error
   ([msg] (error log-q msg))
   ([queue msg] (q/add @queue (assoc msg
-                               "log-level" :ERROR))))
+                               :log-level :ERROR))))
 
 ;; TODO: warn should take a throwable but leaving it
 ;;       for now to avoid breaking the existing sig. -sd
