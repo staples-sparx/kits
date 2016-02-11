@@ -44,7 +44,7 @@
              ;; "-XX:+FlightRecorder"
              ]
   :deploy-repositories [["clojars" {:url "https://clojars.org/repo/"
-                                    :signing {:gpg-key "76FD68DC" }}]
+                                    :sign-releases false}]
                         ["s3-releases" {:url "s3p://runa-maven/releases/"
                                         :username [:env/s3_username]
                                         :passphrase [:env/s3_passphrase]}]]) 
