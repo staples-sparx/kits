@@ -337,7 +337,7 @@
   (is (h/approximately-equal? 10.0 10.00001))
   (is (not (h/approximately-equal? 10.0 10.00001 0.0000001)))
   (is (not (h/approximately-equal? 10.0 10.001)))
-  (is (h/approximately-equal? Double/NaN 0.0))
-  (is (h/approximately-equal? 0.0 Double/NaN))
+  #_(is (h/approximately-equal? Double/NaN 0.0)) ;; TODO: remove?
+  #_(is (h/approximately-equal? 0.0 Double/NaN))
   (is (not (h/approximately-equal? 10.0 -10.0)))
   (is (h/approximately-equal? 10.0 10)))
