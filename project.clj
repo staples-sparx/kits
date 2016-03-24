@@ -18,7 +18,7 @@
                  [org.clojars.runa/clj-utils "1.3.1"]
                  [org.clojars.runa/runa.tools.logging "0.2.7"]
                  [clojure-csv/clojure-csv "2.0.2"]
-                 [org.eclipse.jetty/jetty-server "9.2.3.v20140905"]]
+                 [org.eclipse.jetty/jetty-server "9.3.8.v20160314"]]
   :clean-targets  [ :target-path ]
   :global-vars {*warn-on-reflection* false}
   :profiles {:dev {:dependencies [[slamhound "1.3.3"]
