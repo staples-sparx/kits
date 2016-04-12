@@ -18,7 +18,10 @@
    :quotechar \",
    :separator \,,
    :strictQuotes false
-   :skip-header false})
+   :skip-header false
+   :error-handler (fn [e coll]
+                    (println :kits/read-csv :malformed-csv-line coll)
+                    (clojure.stacktrace/print-stack-trace e))})
 
 (defn- csv-row->value [csv-row {:keys [val-fn exclude-columns]
                                 :or {val-fn identity}
@@ -75,10 +78,8 @@
              parsed []]
         (if (nil? h)
           parsed
-          (recur t (if-let [parsed-h (parse-line csv-parser h
-                                                 (or (:error-handler opts)
-                                                     #(println :parse-line-error %)))]
-                     (conj parsed parsed-h)
+          (recur t (if-let [ph (parse-line csv-parser h (:error-handler opts))]
+                     (conj parsed ph)
                      parsed)))))))
 
 (defn write-csv [csv-file data]
