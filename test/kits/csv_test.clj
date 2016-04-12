@@ -92,10 +92,9 @@
 
 (deftest parsing-csv-into-nested-maps
   (let [result
-        (with-open [rdr (clj-io/reader (sample-csv))]
-          (doall (csv/read-csv rdr
-                               {:skip-header true
-                                :delimiter \space})))
+        (csv/read-csv (sample-csv)
+                      {:skip-header true
+                       :separator \space})
         map-result
         (csv/csv-rows->map result sample-field-reader-opts)
 
@@ -106,19 +105,19 @@
         (csv/csv-rows->coll result (assoc sample-field-reader-opts :pred-fn #(= (:id %) 1)))]
 
     (testing "Given a csv, generate map of maps {k-fn, the row}"
-      (is (= expected-map-result
+      (is (f/=== expected-map-result
              map-result))
       (is (map? map-result))
       (is (map? (get map-result 1))))
 
     (testing "Given a csv, generate a coll of maps {k-fn, the row}"
-      (is (= expected-coll-result
+      (is (f/=== expected-coll-result
              coll-result))
       (is (seq? coll-result))
       (is (map? (first coll-result))))
 
     (testing "Given a csv and a predicate function, filter the collection of maps by the predicate function"
-      (is (= [(get expected-map-result 1)]
+      (is (f/=== [(get expected-map-result 1)]
              id-1-p-result)))
 
     (testing "The parsed csv does not contain empty lines"
@@ -127,7 +126,7 @@
 (deftest parsing-csv-into-nested-maps-with-columns-excluded
   (testing
       "Given a csv, generate map of maps {k-fn, the row} excludes columns"
-    (is (= {1
+    (is (f/=== {1
             {:status "1",
              :split_point "1990",
              :split_var "most_expensive_product_in_cart",
@@ -155,21 +154,19 @@
              :right 9,
              :extra "added this",
              :id 4}}
-           (with-open [rdr (clj-io/reader (sample-csv))]
-             (csv/csv-rows->map (csv/read-csv
-                                 rdr
-                                 {:skip-header true :delimiter \space})
-                                (assoc sample-field-reader-opts
-                                  :exclude-columns #{1 6})))))))
+           (csv/csv-rows->map (csv/read-csv
+                               (sample-csv)
+                               {:skip-header true :separator \space})
+                              (assoc sample-field-reader-opts
+                                     :exclude-columns #{1 6}))))))
 
 (deftest load-psv-files
   (testing "loading of psv files"
-    (is (= {:zip "03062", :id "1431413"}
-           (get (with-open [rdr (clj-io/reader (sample-psv))]
-                  (csv/csv-rows->map (csv/read-csv
-                                      rdr
-                                      {:skip-header true :delimiter \|})
-                                     {:key-fn :id
-                                      0 {:label :id :reader identity}
-                                      2 {:label :zip :reader identity}}))
+    (is (f/=== {:zip "03062", :id "1431413"}
+           (get (csv/csv-rows->map (csv/read-csv
+                                    (sample-psv)
+                                    {:skip-header true :separator \|})
+                                   {:key-fn :id
+                                    0 {:label :id :reader identity}
+                                    2 {:label :zip :reader identity}})
                 "1431413")))))

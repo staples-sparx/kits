@@ -1,36 +1,28 @@
 (ns kits.csv
-  "wrapper around clojure-csv library that turn csv in to column-name,
+  "wrapper around opencsv library that turn csv in to column-name,
    column-value key value pair that can be configured via :key-fn, :val-fn
    and :reader for each field"
-  (:require [clojure-csv.core :as csv]))
+  (:require
+   [clojure.java.io :as jio]
+   [clojure.data.csv :as csv])
+  (:import
+   (com.opencsv CSVParser)))
 
 (set! *warn-on-reflection* true)
 
-(def ^:dynamic *parse-opts*
-  {:skip-header false
-   :delimiter \,
-   :end-of-line nil
-   :quote-char \"
-   :strict false})
-
-(defn read-csv
-  ([csv-rdr]
-     (read-csv csv-rdr *parse-opts*))
-  ([csv-rdr opts]
-     (let [merged-opts (merge *parse-opts* opts)
-           {:keys [skip-header delimiter end-of-line
-                   quote-char strict]} merged-opts]
-       (->> (csv/parse-csv csv-rdr
-                           :delimiter delimiter
-                           :end-of-line end-of-line
-                           :quote-char quote-char
-                           :strict strict)
-            (#(if skip-header (rest %) %))
-            (filter #(not= [""] %))))))
+(def ^:private default-opts
+  {:escape \\,
+   :ignoreLeadingWhiteSpace true,
+   :ignoreQuotations false,
+   :pending false,
+   :quotechar \",
+   :separator \,,
+   :strictQuotes false
+   :skip-header false})
 
 (defn- csv-row->value [csv-row {:keys [val-fn exclude-columns]
-                              :or {val-fn identity}
-                              :as field-reader-opts}]
+                                :or {val-fn identity}
+                                :as field-reader-opts}]
   (let [add-column (fn [m i]
                      (let [col (get csv-row i)
                            field (get field-reader-opts i)]
@@ -57,3 +49,38 @@
   (reduce #(assoc %1 (key-fn %2) %2)
           nil
           (csv-rows->coll csv-rows field-reader-opts)))
+
+(defn- make-csv-parser [opts]
+  (let [opt (merge default-opts opts)]
+    (CSVParser. (:separator opt) (:quotechar opt) (:escape opt)
+                (:strictQuotes opt) (:ignoreLeadingWhiteSpace opt)
+                (:ignoreQuotations opt))))
+
+(defn- parse-line [parser line error-handler]
+  (when (seq line)
+    (try
+      (.parseLine ^CSVParser parser line)
+      (catch Exception e
+        (error-handler e line)
+        nil))))
+
+(defn read-csv [csv-file-path & [opts]]
+  (with-open [rdr (jio/reader csv-file-path)]
+    (let [csv-parser (make-csv-parser opts)
+          all-lines (line-seq rdr)
+          lines (if (:skip-header opts)
+                  (rest all-lines)
+                  all-lines)]
+      (loop [[h & t] lines
+             parsed []]
+        (if (nil? h)
+          parsed
+          (recur t (if-let [parsed-h (parse-line csv-parser h
+                                                 (or (:error-handler opts)
+                                                     #(println :parse-line-error %)))]
+                     (conj parsed parsed-h)
+                     parsed)))))))
+
+(defn write-csv [csv-file data]
+  (with-open [out-file (jio/writer csv-file)]
+    (csv/write-csv out-file data)))

@@ -1,4 +1,4 @@
-(defproject staples-sparx/kits "1.22.2"
+(defproject staples-sparx/kits "1.30.0"
   :description "Staples SparX core libraries."
   :local-repo ".m2"
   :min-lein-version "2.0.0"
@@ -17,7 +17,8 @@
                  [org.clojure/math.numeric-tower "0.0.2"]
                  [org.clojars.runa/clj-utils "1.3.1"]
                  [org.clojars.runa/runa.tools.logging "0.2.7"]
-                 [clojure-csv/clojure-csv "2.0.2"]
+                 [com.opencsv/opencsv "3.7"]
+                 [org.clojure/data.csv "0.1.3"]
                  [org.eclipse.jetty/jetty-server "9.3.8.v20160314"]]
   :clean-targets  [ :target-path ]
   :global-vars {*warn-on-reflection* false}
