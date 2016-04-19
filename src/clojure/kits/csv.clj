@@ -68,7 +68,9 @@
         nil))))
 
 (defn read-csv [csv-file-path & [opts]]
-  (with-open [rdr (jio/reader csv-file-path)]
+  (with-open [rdr (jio/reader csv-file-path
+                              :encoding (or (:encoding opts)
+                                            "UTF-8"))]
     (let [csv-parser (make-csv-parser opts)
           all-lines (line-seq rdr)
           lines (if (:skip-header opts)
