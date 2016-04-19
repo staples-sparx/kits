@@ -62,7 +62,7 @@
 (defn- parse-line [parser line error-handler]
   (when (seq line)
     (try
-      (.parseLine ^CSVParser parser line)
+      (parser line)
       (catch Exception e
         (error-handler e line)
         nil))))
@@ -70,7 +70,8 @@
 (defn read-csv [csv-file-path & [opts]]
   (let [encoding (or (:encoding opts)
                      "UTF-8")
-        csv-parser (make-csv-parser opts)
+        csv-parser (or (:line-parser opts)
+                       #(.parseLine ^CSVParser (make-csv-parser opts) %))
         file-s (slurp csv-file-path :encoding encoding)
         all-lines (.split ^String file-s (or (:end-of-line opts) "\n"))
         lines (if (:skip-header opts)
@@ -80,7 +81,10 @@
            parsed []]
       (if (nil? h)
         parsed
-        (recur t (if-let [ph (parse-line csv-parser h (:error-handler opts))]
+        (recur t (if-let [ph (parse-line csv-parser
+                                         h
+                                         (or (:error-handler opts)
+                                             (:error-handler default-opts)))]
                    (conj parsed ph)
                    parsed))))))
 
