@@ -4,7 +4,8 @@
    and :reader for each field"
   (:require
    [clojure.java.io :as jio]
-   [clojure.data.csv :as csv])
+   [clojure.data.csv :as csv]
+   [clojure.stacktrace :as strace])
   (:import
    (com.opencsv CSVParser)))
 
@@ -21,7 +22,7 @@
    :skip-header false
    :error-handler (fn [e coll]
                     (println :kits/read-csv :malformed-csv-line coll)
-                    (clojure.stacktrace/print-stack-trace e))})
+                    (strace/print-stack-trace e))})
 
 (defn- csv-row->value [csv-row {:keys [val-fn exclude-columns]
                                 :or {val-fn identity}
