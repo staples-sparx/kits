@@ -5,7 +5,8 @@
   (:require
    [clojure.java.io :as jio]
    [clojure.data.csv :as csv]
-   [clojure.stacktrace :as strace])
+   [clojure.stacktrace :as strace]
+   [clojure.string :as s])
   (:import
    (com.opencsv CSVParser)))
 
@@ -76,7 +77,8 @@
                       #(.parseLineMulti ^CSVParser csv-parser %)
                       #(.parseLine ^CSVParser csv-parser %))
         parser (or (:line-parser opts) line-parser)
-        file-s (slurp csv-file-path :encoding encoding)
+        file-s (-> (slurp csv-file-path :encoding encoding)
+                   s/trim)
         all-lines (.split ^String file-s (or (:end-of-line opts) "\n"))
         lines (if (:skip-header opts)
                 (rest all-lines)
