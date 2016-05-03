@@ -1,4 +1,4 @@
-(defproject staples-sparx/kits "1.32.5"
+(defproject staples-sparx/kits "1.33.0"
   :description "Staples SparX core libraries."
   :local-repo ".m2"
   :min-lein-version "2.0.0"

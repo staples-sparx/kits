@@ -240,7 +240,7 @@
 (defn ->sql-time [timestamp]
   (->str timestamp yyyy-mm-dd-hh-mm-ss-SSS))
 
-(defn ->Timestamp
+(defn ->SQLTimestamp
   "Creating a UTC string and parsing it adjusts the timezone
    properly. (Timestamp. millis) alters the millis into the local timezone"
   [ts]
