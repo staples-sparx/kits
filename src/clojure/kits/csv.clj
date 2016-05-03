@@ -71,8 +71,11 @@
 (defn read-csv [csv-file-path & [opts]]
   (let [encoding (or (:encoding opts)
                      "UTF-8")
-        csv-parser (or (:line-parser opts)
-                       #(.parseLine ^CSVParser (make-csv-parser opts) %))
+        csv-parser (make-csv-parser opts)
+        line-parser (if (:multi-line opts)
+                      #(.parseLineMulti ^CSVParser csv-parser %)
+                      #(.parseLine ^CSVParser csv-parser %))
+        parser (or (:line-parser opts) line-parser)
         file-s (slurp csv-file-path :encoding encoding)
         all-lines (.split ^String file-s (or (:end-of-line opts) "\n"))
         lines (if (:skip-header opts)
@@ -82,13 +85,13 @@
            parsed []]
       (if (nil? h)
         parsed
-        (recur t (if-let [ph (parse-line csv-parser
+        (recur t (if-let [ph (parse-line parser
                                          h
                                          (or (:error-handler opts)
                                              (:error-handler default-opts)))]
                    (conj parsed ph)
                    parsed))))))
 
-(defn write-csv [csv-file data]
+(defn write-csv [csv-file data & opts]
   (with-open [out-file (jio/writer csv-file)]
-    (csv/write-csv out-file data)))
+    (csv/write-csv out-file data opts)))
