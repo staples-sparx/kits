@@ -60,7 +60,7 @@
   [^BlockingQueue q]
   (let [s (used q)
         r (free q)]
-    {:total (_+ s r)
+    {:total (+ s r)
      :used s
      :free r}))
 
