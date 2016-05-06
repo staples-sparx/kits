@@ -8,9 +8,47 @@
    [clojure.stacktrace :as strace]
    [clojure.string :as s])
   (:import
+   (java.io InputStreamReader BufferedReader FileInputStream PushbackReader)
    (com.opencsv CSVParser)))
 
 (set! *warn-on-reflection* true)
+
+(defn is-line-sep-char? [line-sep c]
+  (some (set line-sep) (str c)))
+
+(defn read-lines [file-path & [opts]]
+  "Intended to be used to read in large files."
+  (let [lines-to-read (atom (or (:max-lines opts) 50,000) )
+        fis (FileInputStream. ^String file-path)
+        isr (InputStreamReader. ^java.io.FileInputStream fis
+                                (or ^String (:encoding opts) "UTF-8"))
+        br (PushbackReader. isr)
+        line-sep (or (:end-of-line opts) "\n")
+        end-of-line (StringBuilder.)
+        accumulate-lines (fn [sb acc]
+                           (let [s (.. ^StringBuilder sb toString trim)]
+                             (if (seq s)
+                               (do (swap! lines-to-read dec)
+                                   (conj acc s))
+                               acc)))]
+    (loop [c (.read br)
+           [result line-sb eol] [[] (StringBuilder.) (StringBuilder.)]]
+      (if (or (= c -1) (zero? @lines-to-read))
+        (conj result (.toString line-sb))
+        (recur (.read br)
+               (let [ch (char c)
+                     eol (if (is-line-sep-char? line-sep ch)
+                           (.append end-of-line ch)
+                           end-of-line)
+                     sb (->  ^StringBuilder line-sb
+                             (.append ch))]
+                 (if (= (.toString eol) line-sep)
+                   [(accumulate-lines sb result)
+                    (doto sb (.setLength 0))
+                    (doto eol (.setLength 0))]
+                   [result
+                    sb
+                    eol])))))))
 
 (def ^:private default-opts
   {:escape \\,
@@ -70,16 +108,15 @@
         nil))))
 
 (defn read-csv [csv-file-path & [opts]]
-  (let [encoding (or (:encoding opts)
-                     "UTF-8")
-        csv-parser (make-csv-parser opts)
+  (let [csv-parser (make-csv-parser opts)
         line-parser (if (:multi-line opts)
                       #(.parseLineMulti ^CSVParser csv-parser %)
                       #(.parseLine ^CSVParser csv-parser %))
         parser (or (:line-parser opts) line-parser)
-        file-s (-> (slurp csv-file-path :encoding encoding)
-                   s/trim)
-        all-lines (.split ^String file-s (or (:end-of-line opts) "\n"))
+        ;; file-s (-> (slurp csv-file-path :encoding encoding)
+        ;;            s/trim)
+        ;; all-lines (.split ^String file-s (or (:end-of-line opts) "\n"))
+        all-lines (read-lines csv-file-path opts)
         lines (if (:skip-header opts)
                 (rest all-lines)
                 all-lines)]
