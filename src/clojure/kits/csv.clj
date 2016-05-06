@@ -34,20 +34,19 @@
     (loop [c (.read br)
            [result line-sb eol] [[] (StringBuilder.) (StringBuilder.)]]
       (if (or (= c -1) (zero? @lines-to-read))
-        (conj result (.toString line-sb))
+        (accumulate-lines line-sb result)
         (recur (.read br)
                (let [ch (char c)
                      eol (if (is-line-sep-char? line-sep ch)
                            (.append end-of-line ch)
-                           end-of-line)
-                     sb (->  ^StringBuilder line-sb
-                             (.append ch))]
+                           end-of-line)]
                  (if (= (.toString eol) line-sep)
-                   [(accumulate-lines sb result)
-                    (doto sb (.setLength 0))
+                   [(accumulate-lines line-sb result)
+                    (doto line-sb (.setLength 0))
                     (doto eol (.setLength 0))]
                    [result
-                    sb
+                    (->  ^StringBuilder line-sb
+                         (.append ch))
                     eol])))))))
 
 (def ^:private default-opts
@@ -107,15 +106,18 @@
         (error-handler e line)
         nil))))
 
+(defn pricedrop-field-reader-opts []
+  (let  [string-pool (memoize clojure.string/trim)]
+    {:key-fn :sku_num
+     0  {:label :sku_num :reader string-pool}
+     1  {:label :website_code :reader string-pool}}))
+
 (defn read-csv [csv-file-path & [opts]]
   (let [csv-parser (make-csv-parser opts)
         line-parser (if (:multi-line opts)
                       #(.parseLineMulti ^CSVParser csv-parser %)
                       #(.parseLine ^CSVParser csv-parser %))
         parser (or (:line-parser opts) line-parser)
-        ;; file-s (-> (slurp csv-file-path :encoding encoding)
-        ;;            s/trim)
-        ;; all-lines (.split ^String file-s (or (:end-of-line opts) "\n"))
         all-lines (read-lines csv-file-path opts)
         lines (if (:skip-header opts)
                 (rest all-lines)
