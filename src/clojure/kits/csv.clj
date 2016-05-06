@@ -131,6 +131,12 @@
                    (conj parsed ph)
                    parsed))))))
 
-(defn write-csv [csv-file data & opts]
+(def write-default-options
+  [:separator \,
+   :quote \"
+   :newline :lf])
+
+(defn write-csv [csv-file data & options]
   (with-open [out-file (jio/writer csv-file)]
-    (csv/write-csv out-file data opts)))
+    (let [opts (conj write-default-options options)]
+      (csv/write-csv out-file data opts))))
