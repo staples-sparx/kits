@@ -117,8 +117,9 @@
         line-parser (if (:multi-line opts)
                       #(.parseLineMulti ^CSVParser csv-parser %)
                       #(.parseLine ^CSVParser csv-parser %))
+        read-liner (or (:read-liner opts) read-lines)
         parser (or (:line-parser opts) line-parser)
-        all-lines (read-lines csv-file-path opts)
+        all-lines (read-liner csv-file-path opts)
         lines (if (:skip-header opts)
                 (rest all-lines)
                 all-lines)]
