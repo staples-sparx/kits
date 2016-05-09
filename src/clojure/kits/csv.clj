@@ -18,7 +18,7 @@
 
 (defn read-lines [file-path & [opts]]
   "Intended to be used to read in large files."
-  (let [lines-to-read (atom (or (:max-lines opts) 50,000) )
+  (let [lines-to-read (atom (or (:max-lines opts) 50000))
         fis (FileInputStream. ^String file-path)
         isr (InputStreamReader. ^java.io.FileInputStream fis
                                 (or ^String (:encoding opts) "UTF-8"))
@@ -134,6 +134,6 @@
                    (conj parsed ph)
                    parsed))))))
 
-(defn write-csv [csv-file data]
+(defn write-csv [csv-file data & opts]
   (with-open [out-file (jio/writer csv-file)]
-    (csv/write-csv out-file data)))
+    (apply (partial csv/write-csv out-file data) opts)))
