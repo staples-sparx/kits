@@ -136,4 +136,4 @@
 
 (defn write-csv [csv-file data & opts]
   (with-open [out-file (jio/writer csv-file)]
-    (apply (partial csv/write-csv out-file data) opts)))
+    (apply csv/write-csv out-file data opts)))
