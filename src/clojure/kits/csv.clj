@@ -134,6 +134,6 @@
                    (conj parsed ph)
                    parsed))))))
 
-(defn write-csv [csv-file data]
+(defn write-csv [csv-file data & opts]
   (with-open [out-file (jio/writer csv-file)]
-    (csv/write-csv out-file data)))
+    (apply (partial csv/write-csv out-file data) opts)))
