@@ -18,7 +18,7 @@
 
 (defn read-lines [file-path & [opts]]
   "Intended to be used to read in large files."
-  (let [lines-to-read (atom (or (:max-lines opts) 50,000) )
+  (let [lines-to-read (atom (or (:max-lines opts) Integer/MAX_VALUE))
         fis (FileInputStream. ^String file-path)
         isr (InputStreamReader. ^java.io.FileInputStream fis
                                 (or ^String (:encoding opts) "UTF-8"))
