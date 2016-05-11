@@ -8,13 +8,17 @@
    [clojure.stacktrace :as strace]
    [clojure.string :as s])
   (:import
-   (java.io InputStreamReader BufferedReader FileInputStream PushbackReader)
+   (java.io Closeable InputStreamReader BufferedReader FileInputStream PushbackReader)
    (com.opencsv CSVParser)))
 
 (set! *warn-on-reflection* true)
 
 (defn is-line-sep-char? [line-sep c]
   (some (set line-sep) (str c)))
+
+(defn- close [closables]
+  (doall (map (fn [c] (when c (.close ^Closeable c)))
+              closables)))
 
 (defn read-lines [file-path & [opts]]
   "Intended to be used to read in large files."
@@ -34,7 +38,8 @@
     (loop [c (.read br)
            [result line-sb eol] [[] (StringBuilder.) (StringBuilder.)]]
       (if (or (= c -1) (zero? @lines-to-read))
-        (accumulate-lines line-sb result)
+        (do (close [fis isr br])
+            (accumulate-lines line-sb result))
         (recur (.read br)
                (let [ch (char c)
                      eol (if (is-line-sep-char? line-sep ch)
@@ -42,8 +47,8 @@
                            end-of-line)]
                  (if (= (.toString eol) line-sep)
                    [(accumulate-lines line-sb result)
-                    (doto line-sb (.setLength 0))
-                    (doto eol (.setLength 0))]
+                    (doto ^StringBuilder line-sb (.setLength 0))
+                    (doto ^StringBuilder eol (.setLength 0))]
                    [result
                     (->  ^StringBuilder line-sb
                          (.append ch))
