@@ -155,7 +155,7 @@
                (.setReadTimeout timeout-ms))]
     (read-str-resp conn)))
 
-(defn post [url ^String data timeout-ms & [content-type gzipped?]]
+(defn post [url ^String data timeout-ms & [content-type gzipped-request? gzipped-response?]]
   (let [actual-content-type (ensure-content-type content-type)
         url (URL. (url-for url nil))
         conn (doto ^HttpURLConnection (.openConnection url)
@@ -165,13 +165,15 @@
                     "Content-Type" actual-content-type)
                    (.setConnectTimeout timeout-ms)
                    (.setReadTimeout timeout-ms))
-        stream-encoder (if gzipped?
+        stream-encoder (if gzipped-request?
                          #(GZIPOutputStream. %)
                          identity)
-        _ (if gzipped?
+        _ (if gzipped-request?
             (doto ^HttpURLConnection conn
-              (.setRequestProperty "Accept-Encoding" "gzip")
-              (.setRequestProperty "Content-Encoding" "gzip")))]
+              (.setRequestProperty "Content-Encoding" "gzip")))
+        _ (if gzipped-response?
+            (doto ^HttpURLConnection conn
+              (.setRequestProperty "Accept-Encoding" "gzip")))]
     (with-open [out (.getOutputStream conn)
                 writer ^Writer (-> out
                                  stream-encoder
@@ -182,10 +184,14 @@
       (.close out)
       (read-str-resp conn))))
 
-(defn post-json [url data timeout-ms & {:keys [gzipped?] :or {gzipped? false}}]
+(defn post-json [url data timeout-ms & {:keys [gzipped-request? gzipped-response? gzipped?]
+                                        :or {gzipped-request? false
+                                             gzipped-response? false}}]
   (post
     url
     (json/encode-str data)
     timeout-ms
     "application/json"
-    gzipped?))
+    ;; Maintain backwards compatibility
+    (or gzipped? gzipped-request?)
+    (or gzipped? gzipped-response?)))
