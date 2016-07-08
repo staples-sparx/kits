@@ -19,7 +19,8 @@
                  [org.clojars.runa/runa.tools.logging "0.2.7"]
                  [com.opencsv/opencsv "3.7"]
                  [org.clojure/data.csv "0.1.3"]
-                 [org.eclipse.jetty/jetty-server "9.3.8.v20160314"]]
+                 [org.eclipse.jetty/jetty-server "9.3.8.v20160314"]
+                 [org.mapdb/mapdb "3.0.0"]]
   :clean-targets  [ :target-path ]
   :global-vars {*warn-on-reflection* false}
   :profiles {:dev {:dependencies [[slamhound "1.3.3"]
@@ -33,14 +34,10 @@
   :aliases {"run-tests" ["with-profile" "1.4.0:1.5.0" "test"]
             "slamhound" ["run" "-m" "slam.hound"]}
   :jvm-opts ["-server"
-             "-XX:+UseConcMarkSweepGC"
-             "-XX:+UseParNewGC"
-             "-XX:+CMSParallelRemarkEnabled"
-             "-XX:MaxGCPauseMillis=5"
-             "-XX:+UseStringCache"
-             "-XX:+OptimizeStringConcat"
-             "-XX:+UseCompressedOops"
-             "-XX:+AggressiveOpts"
+             "-XX:+UseG1GC"
+             "-XX:+PrintGCDetails"
+             "-XX:+PrintGCDateStamps"
+             "-XX:+PrintTenuringDistribution"
              ;; "-XX:+UnlockCommercialFeatures"
              ;; "-XX:+FlightRecorder"
              ]
