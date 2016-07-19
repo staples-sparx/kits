@@ -18,3 +18,4 @@
 .*.swp
 .m2
 /pom.xml.asc
+/kasim.db
