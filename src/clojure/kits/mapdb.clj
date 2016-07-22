@@ -17,19 +17,35 @@
   (doto ^ConcurrentMap db
     (.put k v)))
 
+(defn load-data->mapdb [db data & opts]
+  (doseq [[k v] data]
+    (load-mmap-db db k v opts)))
+
 (comment
-  (def db (make-mmapfile-db "kasim.db"))
+  (def db (make-mmapfile-db "kasim2.db"))
   (.. (first db) getStore fileLoad)
-  (load-mmap-db (second db) "test" "me")
-  (load-mmap-db (second db) "over" "again")
-  (load-mmap-db (second db) "map" {1 3})
-  (load-mmap-db (second db) "set" #{1 3})
-  (load-mmap-db (second db) "coll" [1 2 3 4])
+  (load-data->mapdb (second db) {"test" "me"
+                                 "over" "again"
+                                 "map" {1 3}
+                                 "set" #{1 3}
+                                 "coll" [1 2 3 4]})
   (.get (second db) "test")
   (.get (second db) "over")
   (.get (second db) "map")
   (.get (second db) "set")
   (.get (second db) "coll")
+  (.commit (first db))
+  (.close (first db)))
+
+(comment
+  (def field-reader-opts {:key-fn :src-sku
+                          0 {:label :src-sku :reader identity}
+                          1 {:label :target-sku :reader identity}
+                          2 {:label :score :reader identity}})
+  (def csv (kits.csv/read-csv "~/Downloads/title-similarity-2016-06-30-0000.csv"))
+  (def cmap (kits.csv/csv-rows->map csv field-reader-opts))
+  (def ts-db (make-mmapfile-db "title-similarity.db"))
+  (def load-data->mapdb (second db) cmap)
   (.commit (first db))
   (.close (first db))
   )
