@@ -111,12 +111,6 @@
         (error-handler e line)
         nil))))
 
-(defn pricedrop-field-reader-opts []
-  (let  [string-pool (memoize clojure.string/trim)]
-    {:key-fn :sku_num
-     0  {:label :sku_num :reader string-pool}
-     1  {:label :website_code :reader string-pool}}))
-
 (defn read-csv [csv-file-path & [opts]]
   (let [csv-parser (make-csv-parser opts)
         line-parser (if (:multi-line opts)
