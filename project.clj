@@ -36,9 +36,11 @@
             "slamhound" ["run" "-m" "slam.hound"]}
   :jvm-opts ["-server"
              "-XX:+UseG1GC"
-             "-XX:+PrintGCDetails"
-             "-XX:+PrintGCDateStamps"
-             "-XX:+PrintTenuringDistribution"
+             ;; "-XX:+PrintGCDetails"
+             ;; "-XX:+PrintGCDateStamps"
+             ;; "-XX:+PrintTenuringDistribution"
+             ;; "-Xms12g"
+             ;; "-Xmx12g"
              ;; "-XX:+UnlockCommercialFeatures"
              ;; "-XX:+FlightRecorder"
              ]
