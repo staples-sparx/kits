@@ -13,22 +13,22 @@
                make)]
     [db (.. db (hashMap "map") make)]))
 
-(defn load-mmap-db [db k v & opts]
+(defn put-kv->mmap-db [db k v & opts]
   (doto ^ConcurrentMap db
     (.put k v)))
 
-(defn load-data->mapdb [db data & opts]
-  (doseq [[k v] data]
-    (load-mmap-db db k v opts)))
+(defn put-kvs->mmap-db [db kvs & opts]
+  (doseq [[k v] kvs]
+    (put-kv->mmap-db db k v opts)))
 
 (comment
   (def db (make-mmapfile-db "kasim2.db"))
   (.. (first db) getStore fileLoad)
-  (load-data->mapdb (second db) {"test" "me"
-                                 "over" "again"
-                                 "map" {1 3}
-                                 "set" #{1 3}
-                                 "coll" [1 2 3 4]})
+  (put-kvs->mmap-db (second db) {"test" "me"
+                                "over" "again"
+                                "map" {1 3}
+                                "set" #{1 3}
+                                "coll" [1 2 3 4]})
   (.get (second db) "test")
   (.get (second db) "over")
   (.get (second db) "map")
@@ -42,11 +42,11 @@
                           0 {:label :src-sku :reader identity}
                           1 {:label :target-sku :reader identity}
                           2 {:label :score :reader identity}})
-  (def csv (kits.csv/read-csv "/home/kasim/Downloads/title-similarity-2016-06-30-0000.csv"))
+  (def csv (kits.csv/read-csv "~/Downloads/title-similarity-2016-06-30-0000.csv"))
   (def cmap (kits.csv/csv-rows->map csv field-reader-opts))
   (def ks (keys cmap))
   (def ts-db (make-mmapfile-db "title-similarity.db"))
-  (load-data->mapdb (second ts-db) cmap)
+  (put-kvs->mmap-db (second ts-db) cmap)
   (def ts-db-m (second ts-db))
   (use 'criterium.core)
   (bench (.get ts-db-m (rand-nth ks)))
