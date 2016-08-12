@@ -45,7 +45,7 @@
   ([format-string tz-string]
      (doto (SimpleDateFormat. format-string)
        (.setTimeZone
-         (TimeZone/getTimeZone tz-string)))))
+         (TimeZone/getTimeZone ^String tz-string)))))
 
 (defn utc-date-format
   "Return a yyy-MM-dd date format enforcing UTC semantics. Not thread safe!"

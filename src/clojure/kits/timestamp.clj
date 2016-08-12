@@ -48,7 +48,7 @@
   ([format-string tz-or-tz-str]
      (let [^TimeZone tz (if (instance? TimeZone tz-or-tz-str)
                           tz-or-tz-str
-                          (TimeZone/getTimeZone tz-or-tz-str))]
+                          (TimeZone/getTimeZone ^String tz-or-tz-str))]
        (doto (SimpleDateFormat. format-string)
          (.setTimeZone tz)))))
 
@@ -244,4 +244,4 @@
   "Creating a UTC string and parsing it adjusts the timezone
    properly. (Timestamp. millis) alters the millis into the local timezone"
   [ts]
-  (Timestamp/valueOf (->sql-time ts)))
+  (Timestamp/valueOf ^String (->sql-time ts)))
