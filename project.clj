@@ -23,7 +23,8 @@
                  [org.mapdb/mapdb "3.0.0"]
                  [criterium "0.4.4"]]
   :clean-targets  [ :target-path ]
-  :global-vars {*warn-on-reflection* false}
+  :global-vars {*warn-on-reflection* false
+                *print-length* 20}
   :profiles {:dev {:dependencies [[slamhound "1.3.3"]
                                   [cider/cider-nrepl "0.8.2"]]}
              :1.4 {:dependencies [[org.clojure/clojure "1.4.0"]]}
