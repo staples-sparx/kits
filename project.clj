@@ -1,4 +1,4 @@
-(defproject staples-sparx/kits "1.38.4"
+(defproject staples-sparx/kits "1.38.5"
   :description "Staples SparX core libraries."
   :local-repo ".m2"
   :min-lein-version "2.0.0"
@@ -20,11 +20,7 @@
                  [com.opencsv/opencsv "3.7"]
                  [org.clojure/data.csv "0.1.3"]
                  [org.eclipse.jetty/jetty-server "9.3.8.v20160314"]
-                 [org.mapdb/mapdb "3.0.0"
-                  :exclusions [com.google.guava/guava
-                               org.eclipse.collections/eclipse-collections
-                               org.eclipse.collections/eclipse-collections-api
-                               org.eclipse.collections/eclipse-collections-forkjoin]]
+                 [org.mapdb/mapdb "3.0.0"]
                  [criterium "0.4.4"]]
   :clean-targets  [ :target-path ]
   :global-vars {*warn-on-reflection* false

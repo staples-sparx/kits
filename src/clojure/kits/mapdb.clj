@@ -6,23 +6,38 @@
 (set! *warn-on-reflection* true)
 
 (defn- make-mmapfile-db [^String file]
-  (let [db (.. (DBMaker/fileDB file)
-               fileMmapEnable
-               fileMmapPreclearDisable
-               cleanerHackEnable
-               make)]
-    [db (.. db (hashMap "map") make)]))
+  (try (let [db (.. (DBMaker/fileDB file)
+                    fileMmapEnable
+                    fileMmapPreclearDisable
+                    cleanerHackEnable
+                    make)]
+         [db (.. db (hashMap "map") make)])
+       (catch Exception e [e nil])))
 
-(defn put-kv->mmap-db [db k v & opts]
+(defn- put-kv->mmap-db [db k v & opts]
   (doto ^ConcurrentMap db
     (.put k v)))
 
-(defn put-kvs->mmap-db [db kvs & opts]
+(defn- put-kvs->mmap-db [db kvs & opts]
   (doseq [[k v] kvs]
     (put-kv->mmap-db db k v opts)))
 
+(defn ->mapdb [db-file kvs & opts]
+  (let [[db db-view] (make-mmapfile-db db-file)]
+    (try (do (put-kvs->mmap-db db-view kvs)
+             (.commit ^DB db)
+             [db db-view])
+         (catch Exception e [e nil]))))
+
 (comment
-  (def db (make-mmapfile-db "kasim2.db"))
+  (def db-view
+    (second (->mapdb "5.db" {"test" "me"
+                                 "over" "again"
+                                 "map" {1 3}
+                                 "set" #{1 3}
+                                 "coll" [1 2 3 4]})))
+
+  (def db (make-mmapfile-db "kasim.db"))
   (.. (first db) getStore fileLoad)
   (put-kvs->mmap-db (second db) {"test" "me"
                                 "over" "again"
